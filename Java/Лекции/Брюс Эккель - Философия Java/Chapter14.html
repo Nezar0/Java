@@ -1,0 +1,3161 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=Win1251">
+   <meta name="GENERATOR" content="Mozilla/4.5 [en] (Win98; I) [Netscape]">
+   <title>14: Множественные нити процессов</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center>
+<h2>
+<font face="Verdana">Думай на Java, 2-я редакция, Проверка 11</font></h2></center>
+
+<center>
+<h3>
+<font face="Verdana">№2000 by Bruce Eckel</font></h3></center>
+
+<center>
+  <font face="Verdana"><font size=-1>[ <a href="Chapter13.html">Предыдущая глава</a> 
+  ] [ <a href="SimpleContents.html">Оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+  ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="Chapter15.html">Следующая 
+  глава </a> ]</font></font>
+</center>
+<a NAME="Chapter_16"></a><a NAME="_Toc375545471"></a><a NAME="_Toc477690734"></a><a NAME="_Toc481064845"></a><a NAME="Heading480"></a>
+<h1>
+<font face="Verdana">14: Множественные нити процессов</font></h1>
+
+<p><br>
+  <b><font size=+1>Объекты позволяют разбить программу на независимые секции. 
+  Часто также необходимо превратить программу в несколько независимо выполняющихся 
+  подзадач.</font></b>
+<p>Каждая такая подзадача называется&nbsp;<a NAME="Index1890"></a><a NAME="Index1891"></a>процесс 
+  (другие способы перевода: <i>нити</i> или <i>потоки</i>, чтобы избежать путаницы 
+  с потоками (<i>stream</i>), в данной главе <i>thread</i> будет переводиться 
+  как <i>процесс</i> - Прим.перев. ), а ваша программа выполняется так, как если 
+  бы каждый процесс был запущен сам по себе на отдельном процессоре. Некоторые 
+  нижележащие механизмы действительно разделяют время процессора для вашей задачи, 
+  но в основном вам нет необходимости думать об этом, в результате чего программирование 
+  с множественными процессами становится простой задачей.
+<p> <i>Процесс<a NAME="Index1892"></a></i><font face="Georgia"> - автономно выполняемая 
+  программа, запущенная в своем собственном адресном пространстве. <i>Многозадачная<a NAME="Index1893"></a></i> 
+  операционная система способна запускать более одного процесса (программы) одновременно, 
+  это выглядит так, как будто каждая выполняется сама по себе, за счет периодической 
+  передачи кванта времени процессора для каждой задачи. Процесс есть простой последовательный 
+  поток управления в процессоре. Следовательно, один процессор может выполнять 
+  несколько конкурирующих процессов.</font>
+<p><font face="Georgia"> Применение множества процессов разнообразно, но в основном&nbsp; 
+  у вас есть часть программы привязанная к определенному событию или ресурсу и 
+  позволяющая выполнять их независимо от основной программы. Хороший пример этому 
+  кнопка "Выход" - не хотелось бы опрашивать ее состояние в каждом куске кода 
+  программы, но, в то же время, она должна реагировать на нажатие так, как будто 
+  регулярно проверяется. Фактически одна из наиболее привлекательных причин использования 
+  множества процессов в создании быстрореагирующего пользовательского интерфейса.</font> 
+  <br>
+  <a NAME="_Toc375545472"></a><a NAME="_Toc481064846"></a><a NAME="Heading481"></a> 
+<h2>
+<font face="Verdana">Отзывчивый пользовательский интерфейс</font><br>
+<a NAME="Index1894"></a></h2>
+<font face="Georgia">В качестве отправной точки рассмотрим программу выполняющую
+какие-либо интенсивные вычисления из-за чего совершенно не реагирует на
+ввод пользователя. Нижеприведенный код, являющийся апплетом/приложением
+одновременно, просто выводит показания счетчика:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Counter1.java</font>
+<font color=#009900>// A non-responsive user interface.</font>
+<font color=#009900>// &lt;applet code=Counter1 width=300 height=100&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Counter1 <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> count = 0;
+  <font color=#0000ff>private</font> JButton
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    onOff = <font color=#0000ff>new</font> JButton(<font color=#004488>"Toggle"</font>);
+  <font color=#0000ff>private</font> JTextField t = <font color=#0000ff>new</font> JTextField(10);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> runFlag = <font color=#0000ff>true</font>;
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    cp.add(t);
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    cp.add(start);
+    onOff.addActionListener(<font color=#0000ff>new</font> OnOffL());
+    cp.add(onOff);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> go() {
+    <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+      <font color=#0000ff>try</font> {
+        Thread.sleep(100);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+      <font color=#0000ff>if</font> (runFlag)
+        t.setText(Integer.toString(count++));
+    }
+  }
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      go();
+    }
+  }
+  <font color=#0000ff>class</font> OnOffL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      runFlag = !runFlag;
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Counter1(), 300, 100);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Swing и апплеты должны быть вам уже знакомы по главе 13. 
+  Метод <b>go()</b> это то место программы где выполнение зацикливается: текущее 
+  значение <b>count</b> помещается в <b>JTextField t</b>, после чего <b>count</b> 
+  увеличивает значение.</font></p>
+<p><font face="Georgia"> Часть бесконечного цикла внутри <b>go()</b> вызов <b>sleep()</b>.<a NAME="Index1895"></a><b> 
+  Sleep()</b> должен ассоциироваться с объектом&nbsp;<a NAME="Index1896"></a><b>Thread</b>, 
+  и это должно показывать, что каждое приложение имеет несколько связанных с ним 
+  процессов. (Действительно, Java базируется на процессах и всегда есть один, 
+  запущенный с вашим приложением.) Таким образом, в зависимости от того где вы 
+  точно используете процессы, вы можете вызвать текущий процесс используемый программой 
+  при помощи <b>Thread</b> и статического <b>sleep()</b> метода.</font></p>
+<p><font face="Georgia"> Имейте ввиду, что <b>sleep()</b> может генерировать исключения&nbsp;<a NAME="Index1897"></a><b> 
+  InterruptedException</b>, хотя генерация подобного исключения является неправильным 
+  путем выхода из процесса и должна быть отвергнут.&nbsp; (Повторю еще раз, исключения 
+  существуют только для особых ситуаций, а не для управления выполнения программы.) 
+  Вызов спящего потока включен для поддержки будущих расширений языка.</font></p>
+<p><font face="Georgia"> Когда нажата кнопка <b>Strart</b> выполняется <b>go()</b>. 
+  Глянув на код <b>go()</b> вы можете наивно предположить (как и я), что множественность 
+  процессов будет соблюдаться, так как процесс засыпает. Таким образом, когда 
+  данный метод заснул, CPU должен заниматься опросом других кнопок. На самом деле 
+  проблема в том, что go() никогда не завершиться, поскольку цикл бесконечный, 
+  а значит <b>actionPerformed( )</b> не завершиться. Поскольку вы находитесь в 
+  <b>actionPerformed( )</b> после первого нажатия, программа не сможет обработать 
+  другие события. (Для выхода необходимо каким-то образом завершить приложение, 
+  наиболее простой способ нажать Ctrl+C в консольном окне, если запущено в консоли. 
+  Если запущено в броузере, то придется убить броузер.)</font></p>
+<p><font face="Georgia"> Основная проблема заключается в том, что <b>go()</b> 
+  должна продолжить выполнение и в то же время завершить выполнение так, чтобы 
+  вызов <b>actionPerformed( )</b> мог завершиться и пользовательский интерфейс 
+  мог снова среагировать на действия пользователя. Но обычный метод, похожий на 
+  go(), не может продолжить выполнение <i>и</i> вернуть управление основной программе 
+  одновременно. Это звучит как неразрешимая проблема, как будто CPU должен находиться 
+  сразу в двух местах, но это точно иллюзия создаваемая процессами.</font></p>
+<p><font face="Georgia"> Модель процессов (и ее программирование, поддерживаемое 
+  Java) удобное средство программирования для облегчения запуска нескольких операций 
+  в одно и то же время в одной программе. С процессами CPU обходит их всех и выделяет 
+  каждому квант времени. Каждый процесс считает, что выполняется на CPU единолично, 
+  на самом деле время процессора поделено между всеми процессами. Исключением 
+  является случай, когда программа запущено на многопроцессорной машине. Но одно 
+  важное обстоятельство насчет процессов заключается в том, что вам не нужно думать 
+  об этих уровнях, так что коду вашей программы не обязательно знать выполняется 
+  он на единственном CPU или на нескольких. Таким образом, процессы дают возможность 
+  создавать легко масштабируемые приложения.</font></p>
+<p><font face="Georgia"><a NAME="Index1898"></a><a NAME="Index1899"></a>Процессы 
+  немного уменьшают эффективность вычислений, но улучшенные сетевые возможности, 
+  т.к. сбалансированность ресурсов и удобство пользователя зачастую более важны. 
+  Конечно, если вы имеете более одного процессора, то операционная система позволяет 
+  выделить каждый CPU для нескольких процессов и вся программа будет выполняться 
+  значительно быстрее. Многозадачность и множественность процессов будут более 
+  предпочтительными для использования многопроцессорных систем.</font> <br>
+  <a NAME="_Toc375545473"></a><a NAME="_Toc481064847"></a><a NAME="Heading482"></a> 
+</p>
+<h3>
+<font face="Verdana">Наследование от процесса</font></h3>
+<p><font face="Georgia">Простейшим путем для создания процесса является наследование 
+  от класса <b>Thread</b>, который имеет все необходимое для создания и запуска 
+  процесса. Наиболее важный метод для <b>Thread</b> это <b>run()</b>, который 
+  необходимо переопределить чтобы процесс выполнял то, что вам необходимо. Таким 
+  образом, <b>run()</b> есть код, который будет запущен "одновременно"&nbsp; с 
+  другими процессами в программе.</font></p>
+<p><font face="Georgia"> Следующий пример создает произвольное количество процессов, 
+  отслеживаемые по присвоенному каждому процессу уникальному номеру, сгенерированному 
+  <b>static</b> переменной. Метод <b>run()<a NAME="Index1900"></a></b>от<b> Thread</b> 
+  переопределен и выполняет уменьшение счетчика при каждом проходе цикла и завершает 
+  выполнение когда счетчик равен нулю (в том месте когда <b>run()</b> возвращает 
+  значение процесс завершается).</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:SimpleThread.java</font>
+<font color=#009900>// Very simple Threading example.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> SimpleThread <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> countDown = 5;
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>int</font> threadCount = 0;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> threadNumber = ++threadCount;
+  <font color=#0000ff>public</font> SimpleThread() {
+    System.out.println(<font color=#004488>"Making "</font> + threadNumber);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      System.out.println(<font color=#004488>"Thread "</font> + 
+        threadNumber + <font color=#004488>"("</font> + countDown + <font color=#004488>")"</font>);
+      <font color=#0000ff>if</font>(--countDown == 0) <font color=#0000ff>return</font>;
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 5; i++)
+      <font color=#0000ff>new</font> SimpleThread().start();
+    System.out.println(<font color=#004488>"All Threads Started"</font>);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Метод <b>run( )</b> практически всегда содержит какой-либо 
+  тип цикла, выполняемый до тех пор, пока процесс не станет ненужным, поэтому 
+  необходимо предусмотреть условие выхода из цикла (или, как в примере выше, просто 
+  <b>return</b> из <b>run()</b>). Часто задача <b>run()</b> в выполнении бесконечного 
+  цикла, что означает, что кроме исключительных случаев возникновения какого-либо 
+  внешнего события завершающющего <b>run()</b>, цикл будет выполняться вечно.</font>
+<p><font face="Georgia"> В вызове <b>main( )</b> содержится несколько созданных 
+  и запущенных процессов. Метод <b>start()<a NAME="Index1901"></a></b>класса<b> 
+  Thread</b> выполняет специальную инициализацию для процесса и затем вызывает 
+  <b>run()</b>. Таким образом необходимые действия: вызов конструктора для создания 
+  объекта, затем <b>start()</b> конфигурирует процесс и вызов <b>run()</b>. Если 
+  не вызвать <b>start()</b> (что делается в конструкторе, если возможно) процесс 
+  никогда не будет запущен.</font>
+<p><font face="Georgia"> Результат работы программа&nbsp; для одного из запусков 
+  (которые могут отличаться при каждом запуске) следующий:</font> 
+<blockquote>
+<pre><font size=+1>Making 1
+Making 2
+Making 3
+Making 4
+Making 5
+Thread 1(5)
+Thread 1(4)
+Thread 1(3)
+Thread 1(2)
+Thread 2(5)
+Thread 2(4)
+Thread 2(3)
+Thread 2(2)
+Thread 2(1)
+Thread 1(1)
+All Threads Started
+Thread 3(5)
+Thread 4(5)
+Thread 4(4)
+Thread 4(3)
+Thread 4(2)
+Thread 4(1)
+Thread 5(5)
+Thread 5(4)
+Thread 5(3)
+Thread 5(2)
+Thread 5(1)
+Thread 3(4)
+Thread 3(3)
+Thread 3(2)
+Thread 3(1)</font></pre>
+</blockquote>
+<p><font face="Georgia">Заметьте, что ни где в данном примере не вызывался <b>sleep()</b> 
+  и результат работы показывает, что каждый процесс получил часть процессорного 
+  времени для выполнения. Это демонстрирует, что <b>sleep()</b>, пока он полагается 
+  на существование процесса для того чтобы выполниться, не задействован ни в разрешение, 
+  ни в запрещение процесса. Это просто другой метод.</font></p>
+<p><font face="Georgia"> Можно также видеть, что</font><a NAME="Index1902"></a><font face="Georgia">процессы&nbsp; 
+  выполняются не в том же порядке в каком они были запущены. Фактически, порядок, 
+  в котором CPU обрабатывает существующие процессы, не определен до тех пор, пока 
+  не определены приоритеты, используя <b>setPriority()</b> метод класса <b>Thread</b>.</font></p>
+<p><font face="Georgia"> Когда <b>main()</b> создает объекты <b>Thread</b> он 
+  не сохраняет ссылки на них. Обычные объекты могут быть просто игрушкой для сборщика 
+  мусора, но не <b>Thread</b>. Каждый <b>Thread</b> "регистрирует" себя сам, и 
+  таким образом ссылка на него храниться где-то в другом месте из-за чего сборщик 
+  мусора не может его очистить.</font><a NAME="_Toc375545474"></a><a NAME="_Toc481064848"></a><a NAME="Heading483"></a> 
+</p>
+<h3>
+<font face="Verdana">Использование процессов для пользовательского интерфейса</font><br>
+<a NAME="Index1903"></a></h3>
+<font face="Georgia">Вот теперь появилась возможность разрешить проблему
+из примера <b>Counter1.java</b> с процессами. Решение заключается в правильном
+размещении подзадачи, т.е. цикла, расположенного внутри <b>go()</b>, который
+поместим внутрь метода <b>run()</b>. Когда пользователь нажимает кнопку
+<b>start</b>
+процесс запускается, но затем <i>создание</i> процесса завершается, и,
+хотя процесс запущен, основная работа программы, которая заключается в
+реагировании на действия пользователя, продолжается. Вот решение этой проблемы:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Counter2.java</font>
+<font color=#009900>// A responsive user interface with threads.</font>
+<font color=#009900>// &lt;applet code=Counter2 width=300 height=100&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Counter2 <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> <font color=#0000ff>class</font> SeparateSubTask <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>private</font> <font color=#0000ff>int</font> count = 0;
+    <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> runFlag = <font color=#0000ff>true</font>;
+    SeparateSubTask() { start(); }
+    <font color=#0000ff>void</font> invertFlag() { runFlag = !runFlag; }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+       <font color=#0000ff>try</font> {
+        sleep(100);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+       <font color=#0000ff>if</font>(runFlag) 
+         t.setText(Integer.toString(count++));
+      }
+    }
+  } 
+  <font color=#0000ff>private</font> SeparateSubTask sp = <font color=#0000ff>null</font>;
+  <font color=#0000ff>private</font> JTextField t = <font color=#0000ff>new</font> JTextField(10);
+  <font color=#0000ff>private</font> JButton 
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    onOff = <font color=#0000ff>new</font> JButton(<font color=#004488>"Toggle"</font>);
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>if</font>(sp == <font color=#0000ff>null</font>)
+        sp = <font color=#0000ff>new</font> SeparateSubTask();
+    }
+  }
+  <font color=#0000ff>class</font> OnOffL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>if</font>(sp != <font color=#0000ff>null</font>)
+        sp.invertFlag();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    cp.add(t);
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    cp.add(start);
+    onOff.addActionListener(<font color=#0000ff>new</font> OnOffL());
+    cp.add(onOff);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Counter2 (), 300, 100);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><br>
+  <font face="Georgia"><b>Counter2 </b>совершенно прямолинейная программа, основное 
+  предназначение которой в создании пользовательского интерфейса. Но теперь, когда 
+  пользователь нажал кнопку <b>start</b>, код обработки событий не вызовет метод, 
+  а будет создан процесс <b>SeparateSubTask</b>, после чего цикл обработки события 
+  <b>Counter2</b> продолжиться.</font>
+<p><font face="Georgia"> Класс <b>SeparateSubTask</b> простое расширение от <b>Thread</b> 
+  с конструктором, который запускает процесс вызовом <b>start()</b>, а затем <b>run()</b>, 
+  который в сущности содержит код от <b>go()</b> из примера <b>Counter1.java</b>.</font>
+<p><font face="Georgia"> Из-за того, что <b>SeparateSubTask</b> внутренний класс, 
+  он может напрямую обращаться к <b>JTextField t</b> в <b>Counter2</b>; можно 
+  видеть как это происходит внутри <b>run()</b>. Поле <b>t</b> во внешнем классе 
+  определено как <b>private</b>, поскольку <b>SeparateSubTask</b> может получить 
+  к нему доступ без применения специальных разрешений, и всегда желательно делать 
+  поле настолько <b>private</b>, насколько это возможно, для того чтобы оно не 
+  могло быть случайно изменено извне вашего класса.</font>
+<p><font face="Georgia"> Когда нажимаем кнопку <b>onOff</b> она меняет <b>runFlag</b> 
+  внутри объекта <b>SeparateSubTask</b>. Данный процесс (когда он проверяет флаг) 
+  может самостоятельно остановиться или запуститься. Нажатие кнопки <b>onOff</b> 
+  вызывает тут же заметную реакцию. Конечно, в реальности реакция не мгновенная, 
+  счетчик остановится только тогда, когда процесс получит свой квант времени от 
+  CPU и проверит изменение флага.</font>
+<p><font face="Georgia"> Можно видеть, что внутренний&nbsp;<a NAME="Index1904"></a><a NAME="Index1905"></a> 
+  класс <b>SeparateSubTask</b> есть&nbsp; <b>private</b>, а это значит, что к 
+  его полям и методам существует доступ по умолчанию (за исключением <b>run()</b>, 
+  который должен быть <b>public</b> поскольку он <b>public</b> в классе предка). 
+  Внутренний <b>Private</b> класс недоступен никому, за исключением Counter2 и 
+  эти два класса крепко связаны. Всегда, когда вы замечаете классы, которые оказываются 
+  крепко связанными друг с другом, рассмотрите возможность оптимизации своего 
+  кода и поддержки за счет использования внутренних классов.</font><a NAME="_Toc375545475"></a><a NAME="_Toc481064849"></a><a NAME="Heading484"></a> 
+<h3>
+<font face="Verdana">Объединение процесса с основным классом</font><br>
+<a NAME="Index1906"></a></h3>
+<p><font face="Georgia">В вышеприведенном примере показан класс процесса отделенной 
+  от основного класса программы. Это делает пример более характерным и сравнительно 
+  легким для понимания. Существует, однако, альтернативная форма использования, 
+  которую вы будете часто видеть и которая не столь проста, но в большинстве случаев 
+  более кратка (что вероятно и увеличивает ее популярность). Эта форма объединяет 
+  класс основной программы и класс процесса, делая класс основной программы процессом. 
+  Поскольку для GUI (графический интерфейс пользователя) программы класс основной 
+  программы должен быть наследован как от <b>Frame</b> так и от <b>Applete</b>, 
+  наследование может быть использовано для добавления функциональности. Данный 
+  интерфейс называется <b>Runnable</b> и содержит те же основные методы что и 
+  <b>Thread</b>. Фактически <b>Thread</b> также реализует <b>Runnable</b>, что 
+  выражается только в наличии метода <b>run()</b>.</font></p>
+<p><font face="Georgia"> <i>Использование</i> совмещенной программы-процесса не 
+  столь очевидно. Когда запускается программа, создается объект, который <b>Runnable</b>, 
+  но процесс не запускается, что должно быть сделано явно. Это можно пронаблюдать 
+  в следующем примере, функционально идентичному <b>Counter2</b>:</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Counter3.java</font>
+<font color=#009900>// Using the Runnable interface to turn the </font>
+<font color=#009900>// main class into a thread.</font>
+<font color=#009900>// &lt;applet code=Counter3 width=300 height=100&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Counter3 
+    <font color=#0000ff>extends</font> JApplet <font color=#0000ff>implements</font> Runnable {
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> count = 0;
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> runFlag = <font color=#0000ff>true</font>;
+  <font color=#0000ff>private</font> Thread selfThread = <font color=#0000ff>null</font>;
+  <font color=#0000ff>private</font> JButton 
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    onOff = <font color=#0000ff>new</font> JButton(<font color=#004488>"Toggle"</font>);
+  <font color=#0000ff>private</font> JTextField t = <font color=#0000ff>new</font> JTextField(10);
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+      <font color=#0000ff>try</font> {
+        selfThread.sleep(100);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+      <font color=#0000ff>if</font>(runFlag) 
+        t.setText(Integer.toString(count++));
+    }
+  }
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>if</font>(selfThread == <font color=#0000ff>null</font>) {
+        selfThread = <font color=#0000ff>new</font> Thread(Counter3.<font color=#0000ff>this</font>);
+        selfThread.start();
+      }
+    }
+  }
+  <font color=#0000ff>class</font> OnOffL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      runFlag = !runFlag;
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    cp.add(t);
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    cp.add(start);
+    onOff.addActionListener(<font color=#0000ff>new</font> OnOffL());
+    cp.add(onOff);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Counter3(), 300, 100);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<font face="Georgia">Теперь <b>run()</b> внутри класса, но и после завершения
+<b>inti()
+</b>процесс все еще не запущен. Когда вы нажимаете кнопку
+<b>start</b>,
+процесс создается (если он еще не существует) следующим непонятным выражением:</font>
+<blockquote>
+<pre><font size=+1><font color="#0000FF">new</font> Thread(Counter3.<font color="#0000FF">this</font>);</font></pre>
+</blockquote>
+<font face="Georgia">Когда что-либо имеет интерфейс&nbsp;<a NAME="Index1907"></a><a NAME="Index1908"></a><a NAME="Index1909"></a><b>Runnable</b>,
+это просто означает, что оно имеет метод <b>run( )</b>, однако ничего особеного
+в этом нет - не производится ни каких задуманных для процесса действий,
+кроме как наследование класса от <b>Thread</b>. Таким образом, чтобы сделать
+процесс из <b>Runnable</b> объекта необходимо создать отдельный объект
+<b>Thread</b>,
+как показано выше, передав объект <b>Runnable</b> в специальный конструктор
+<b>Thread</b>. Затем можно вызвать <b>start()</b> для данного процесса:</font>
+<blockquote>
+<pre><font size=+1>selfThread.start();</font></pre>
+</blockquote>
+<p><font face="Georgia">Выполняется обычная инициализация и затем вызов <b>run()</b>.</font></p>
+<p><font face="Georgia"> Удобство использования интерфейса <b>Runnable</b> в том, 
+  что все принадлежит тому же классу. Если необходимо обращение к чему-либо еще 
+  вы просто выполняете это без использования отдельного класса. Однако, как можно 
+  было видеть в предыдущем примере, доступ также прост как и использование внутреннего 
+  класса&nbsp;</font><a href="#fn70">[70]</a><font face="Georgia">.</font><a NAME="_Toc375545476"></a><a NAME="_Toc481064850"></a><a NAME="Heading485"></a> 
+</p>
+<h3>
+<font face="Verdana">Создание множества процессов</font></h3>
+<p><font face="Georgia">Рассмотрим создание множества различных процессов. Поскольку 
+  это нельзя сделать с помощью предыдущего примера, то необходимо вернуться к 
+  использованию отдельных классов, унаследованных от <b>Thread</b> для инкапсуляции 
+  <b>run()</b>. Но это наиболее общее и легкое для понимания решение, так что, 
+  пока предыдущий пример показывал стиль кодирования, который вы чаще всего увидите, 
+  я не могу рекомендовать его, поскольку он несколько запутанный и не очень гибкий.</font></p>
+<p><font face="Georgia"> Следующий пример повторяет форму примера выше со счетчиками 
+  и кнопками переключателями. Но теперь вся информация о каком либо счетчике, 
+  включая кнопку и текстовое поле, внутри собственного объекта, который унаследован 
+  от <b>Thread</b>. Все поля в <b>Ticker</b> являются <b>private</b>, а это значит, 
+  что реализация <b>Ticker</b> может быть изменена по желанию, включая количество 
+  и тип компонентов данных для сбора и отображения информации. Когда создается 
+  объект <b>Ticker</b>, конструктор добавляет его визуальные компоненты на панель 
+  внешнего объекта:</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Counter4.java</font>
+<font color=#009900>// By keeping your thread as a distinct class,</font>
+<font color=#009900>// you can have as many threads as you want. </font>
+<font color=#009900>// &lt;applet code=Counter4 width=200 height=600&gt;</font>
+<font color=#009900>// &lt;param name=size value="12"&gt;&lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Counter4 <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> JButton start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> started = <font color=#0000ff>false</font>;
+  <font color=#0000ff>private</font> Ticker[] s;
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> isApplet = <font color=#0000ff>true</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> size = 12;
+  <font color=#0000ff>class</font> Ticker <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>private</font> JButton b = <font color=#0000ff>new</font> JButton(<font color=#004488>"Toggle"</font>);
+    <font color=#0000ff>private</font> JTextField t = <font color=#0000ff>new</font> JTextField(10);
+    <font color=#0000ff>private</font> <font color=#0000ff>int</font> count = 0;
+    <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> runFlag = <font color=#0000ff>true</font>;
+    <font color=#0000ff>public</font> Ticker() {
+      b.addActionListener(<font color=#0000ff>new</font> ToggleL());
+      JPanel p = <font color=#0000ff>new</font> JPanel();
+      p.add(t);
+      p.add(b);
+      <font color=#009900>// Calls JApplet.getContentPane().add():</font>
+      getContentPane().add(p); 
+    }
+    <font color=#0000ff>class</font> ToggleL <font color=#0000ff>implements</font> ActionListener {
+      <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+        runFlag = !runFlag;
+      }
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+        <font color=#0000ff>if</font> (runFlag)
+          t.setText(Integer.toString(count++));
+        <font color=#0000ff>try</font> {
+          sleep(100);
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        }
+      }
+    }
+  }
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>if</font>(!started) {
+        started = <font color=#0000ff>true</font>;
+        <font color=#0000ff>for</font> (<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+          s[i].start();
+      }
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    <font color=#009900>// Get parameter "size" from Web page:</font>
+    <font color=#0000ff>if</font> (isApplet) {
+      String sz = getParameter(<font color=#004488>"size"</font>);
+      <font color=#0000ff>if</font>(sz != <font color=#0000ff>null</font>)
+        size = Integer.parseInt(sz);
+    }
+    s = <font color=#0000ff>new</font> Ticker[size];
+    <font color=#0000ff>for</font> (<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+      s[i] = <font color=#0000ff>new</font> Ticker();
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    cp.add(start);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Counter4 applet = <font color=#0000ff>new</font> Counter4();
+    <font color=#009900>// This isn't an applet, so set the flag and</font>
+    <font color=#009900>// produce the parameter values from args:</font>
+    applet.isApplet = <font color=#0000ff>false</font>;
+    <font color=#0000ff>if</font>(args.length != 0)
+      applet.size = Integer.parseInt(args[0]);
+    Console.run(applet, 200, applet.size * 50);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia"><b>Ticker</b> содержит не только необходимые для выполнения 
+  структуры, но также способ для управления и отображения процесса. Можно создать 
+  столько процессов сколько нужно без явного создания оконного компонента.</font></p>
+<p><font face="Georgia"> В <b>Counter4</b> объект, содержащий массив процессов 
+  <b>Ticker</b>, назван <b>s</b>. Для максимальной гибкости размер этого массива 
+  инициализируется из вне с использованием параметров апплета. Вот как параметр 
+  размера массива выглядит на странице внутри тэга апплета:</font> </p>
+<blockquote>
+<pre><font size=+1>&lt;param name=size value=<font color="#004488">"20"</font>></font></pre>
+</blockquote>
+<p><font face="Georgia">Здесь&nbsp;<a NAME="Index1910"></a><a NAME="Index1911"></a><b>param</b>,&nbsp;<a NAME="Index1912"></a><a NAME="Index1913"></a><b>name</b>, 
+  и&nbsp;<a NAME="Index1914"></a><a NAME="Index1915"></a><b>value</b> являются 
+  ключевыми словами HTML. <b>name</b> это то, что вы передаете в свою программу, 
+  а <b>value</b> может быть любой строкой, но только той, что определяет число.</font></p>
+<p><font face="Georgia"> Обратите внимание, что определение размера массива s 
+  выполняется внутри <b>init()</b> и не является частью определения <b>s</b>. 
+  Таким образом, вы <i>не можете</i> сказать какая часть класса определена (вне 
+  любого объекта):</font> </p>
+<blockquote>
+<pre><font size=+1><font color="#0000FF">int</font> size = Integer.parseInt(getParameter(<font color="#004488">"size"</font>));
+Ticker[] s = <font color="#0000FF">new</font> Ticker[size];</font></pre>
+</blockquote>
+<p><font face="Georgia">Можно попытаться скомпилировать данный код, но получите 
+  странную ошибку "null-pointer exception" во время выполнения.</font> <font face="Georgia">В 
+  то же время все прекрасно работает если переместить инициализацию <b>getParameter() 
+  </b>внутрь <b>init( )</b>. Среда выполнения апплетов&nbsp;<a NAME="Index1916"></a> 
+  выполняет все необходимые действия по перехвату параметров до вызова <b>init()</b>.</font></p>
+<p><font face="Georgia"> К тому же данный код является одновременно и&nbsp;<a NAME="Index1917"></a> 
+  апплетом и&nbsp;<a NAME="Index1918"></a> приложением. Когда он выполняется как 
+  приложение аргумент <b>size</b> передается как параметр командной строки (или 
+  используется значение по умолчанию).</font></p>
+<p><font face="Georgia"> После того как размер массива установлен, создается новый 
+  объект <b>Ticker</b>, как часть конструктора, кнопка и текстовое поле добавляются 
+  к апплету.</font></p>
+<p><font face="Georgia"> Нажатие на кнопку <b>start</b> обозначает цикл по всему 
+  массиву <b>Ticker</b> и вызывает <b>start()</b> для каждого.&nbsp; Запомните, 
+  <b>start()</b> выполняет необходимую инициализацию процесса и, затем, вызывает 
+  <b>run( )</b> для каждого процесса.</font></p>
+<p><font face="Georgia"> Слушатель <b>ToggleL</b> просто инвертирует флаг в <b>Ticker</b> 
+  и, когда связанный с ним процесс в следующий раз проверит значение, он среагирует 
+  соответственно.</font></p>
+<p><font face="Georgia"> Одно достоинство данного примера в том, что он позволяет 
+  вам просто создавать большое количество независимых подзадач и отслеживать их 
+  поведение. В этом случае вы увидите, что по мере того как количество подзадач 
+  становится все больше ваш компьютер, вероятнее всего, будет показывать различные 
+  значения счетчика, что связано со способом обработки процессов.</font></p>
+<p><font face="Georgia">Можно также поэкспериментировать и убедиться в том, насколько 
+  <b>sleep(100)</b>&nbsp; важен внутри <b>Tricker.run()</b>. Если убрать <b>sleep()</b> 
+  все будет прекрасно работать пока вы не нажмете кнопку переключатель, что установит 
+  значение <b>runFlag</b> в false после чего <b>run()</b> просто заморозится в 
+  бесконечном цикле, который будет трудно прервать во время мульти процессорности, 
+  так что время отклика программы и скорость выполнения заметно ухудшаться.</font><a NAME="_Toc375545477"></a><a NAME="_Toc481064851"></a><a NAME="Heading486"></a> 
+</p>
+<h3>
+<font face="Verdana">Процессы демоны</font><br>
+<a NAME="Index1919"></a><a NAME="Index1920"></a></h3>
+<p><font face="Georgia">Процесс "демон" это процесс, который выполняет основные 
+  сервисный задачи в фоном режиме, так долго, пока запущена основная программа, 
+  но не является основной частью программы. Таким образом, когда все процессы 
+  не-демона завершаются программа останавливается. И наоборот, пока хоть один 
+  процесс не-демон выполняется программа не остановлена. (Как, например, процесс 
+  выполняющий <b>main()</b>).</font></p>
+<p><font face="Georgia"> Можно выяснить, является ли процесс демоном через вызов&nbsp;<a NAME="Index1921"></a><a NAME="Index1922"></a><b>isDaemon( 
+  )</b>, и можно установить или отменить параметры для процесса демона функцией&nbsp;<a NAME="Index1923"></a><a NAME="Index1924"></a><b>setDaemon( 
+  )</b>. Если процесс является демоном, то любой созданный им процесс также является 
+  демоном.</font></p>
+<p><font face="Georgia"> Следующий пример демонстрирует создание процесса демона:</font> 
+</p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Daemons.java</font>
+<font color=#009900>// Daemonic behavior.</font>
+<font color=#0000ff>import</font> java.io.*;
+
+<font color=#0000ff>class</font> Daemon <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>final</font> <font color=#0000ff>int</font> SIZE = 10;
+  <font color=#0000ff>private</font> Thread[] t = <font color=#0000ff>new</font> Thread[SIZE];
+  <font color=#0000ff>public</font> Daemon() { 
+    setDaemon(<font color=#0000ff>true</font>);
+    start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; SIZE; i++)
+      t[i] = <font color=#0000ff>new</font> DaemonSpawn(i);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; SIZE; i++)
+      System.out.println(
+        <font color=#004488>"t["</font> + i + <font color=#004488>"].isDaemon() = "</font> 
+        + t[i].isDaemon());
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) 
+      yield();
+  }
+}
+
+<font color=#0000ff>class</font> DaemonSpawn <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>public</font> DaemonSpawn(<font color=#0000ff>int</font> i) {
+    System.out.println(
+      <font color=#004488>"DaemonSpawn "</font> + i + <font color=#004488>" started"</font>);
+    start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) 
+      yield();
+  }
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Daemons {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) 
+  <font color=#0000ff>throws</font> IOException {
+    Thread d = <font color=#0000ff>new</font> Daemon();
+    System.out.println(
+      <font color=#004488>"d.isDaemon() = "</font> + d.isDaemon());
+    <font color=#009900>// Allow the daemon threads to</font>
+    <font color=#009900>// finish their startup processes:</font>
+    System.out.println(<font color=#004488>"Press any key"</font>);
+    System.in.read();
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Процесс <b>Daemon</b> устанавливает соответствующий флаг 
+  в значение "true" и затем плодит кучу процессов чтобы показать, что они также 
+  демоны. Затем он переходит в бесконечный цикл и вызывает <b>yield()</b> для 
+  передачи управления другому приложению. В ранних версиях этой программы бесконечный 
+  цикл увеличивал значение счетчика <b>int</b>, но похоже, что это приводило к 
+  остановке всей программы. Использование <b>yield()</b> делает программу более 
+  устойчивой.</font></p>
+<p><font face="Georgia"> Ничего не удерживает программу от завершения после выполнения 
+  основной функции <b>main()</b>, поскольку ничего нет, кроме запущенных процессов 
+  демонов. Можно видеть результат работы всех процессов демонов, значение <b>System.in</b> 
+  установлено в "чтение", поэтому программа ждет нажатия клавишы. Без этого вы 
+  бы увидели только часть результатов от создания процессов демонов. (Попробуйте 
+  заменить <b>read()</b> вызовом <b>sleep()</b> с различной продолжительностью, 
+  чтобы понаблюдать за выполнением.)</font><a NAME="_Toc375545478"></a><a NAME="_Toc481064852"></a><a NAME="Heading487"></a> 
+</p>
+<h2>
+<font face="Verdana">Использование ограниченных ресурсов</font><br>
+<a NAME="Index1925"></a></h2>
+<p><font face="Georgia">Можете думать о программе с одним процессом как об одиноком 
+  объекте, решающим ваши проблемы и выполняющем только одно действие за единицу 
+  времени. Из-за того, что это единственный объект, вам никогда не придется думать 
+  о проблеме использования одного и того же ресурса разными объектами в одно и 
+  то же время, подобно тому, как два человека пытаются припарковаться в одном 
+  и том же месте, или пройти через дверь в одно и то же время, или даже говорить 
+  в одно и то же время.</font></p>
+<p><font face="Georgia"> Столкновения при использовании ресурса должны быть предотвращены, 
+  иначе у вас будет два процесса, пытающихся одновременно изменить значение одного 
+  денежного вклада в базе данных банка, или печатать на один принтер, или изменять 
+  значения переменной и т.д.</font><a NAME="_Toc375545479"></a><a NAME="_Toc481064853"></a><a NAME="Heading488"></a> 
+</p>
+<h3>
+<font face="Verdana">Неправильный доступ к ресурсам</font></h3>
+<font face="Georgia">Рассмотрим изменение значения счетчиков, использованных
+в данной главе. В следующем примере каждый процесс имеет два счетчика,
+которые увеличивают свои значения и отображаются внутри вызова <b>run()</b>.
+Дополнительно существует другой процесс класса <b>Watcher</b>, который
+отслеживает равенство значений показаний счетчиков. Это выглядит как необязательное
+дополнение, поскольку посмотрев на исходный код можно предположить, что
+значения счетчиков всегда будут одинаковые. Однако нас ждут сюрпризы. Ниже
+приведена первая версия программы:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Sharing1.java</font>
+<font color=#009900>// Problems with resource sharing while threading.</font>
+<font color=#009900>// &lt;applet code=Sharing1 width=350 height=500&gt;</font>
+<font color=#009900>// &lt;param name=size value="12"&gt;</font>
+<font color=#009900>// &lt;param name=watchers value="15"&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Sharing1 <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>int</font> accessCount = 0;
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> JTextField aCount = 
+    <font color=#0000ff>new</font> JTextField(<font color=#004488>"0"</font>, 7);
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> incrementAccess() {
+    accessCount++;
+    aCount.setText(Integer.toString(accessCount));
+  }
+  <font color=#0000ff>private</font> JButton 
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    watcher = <font color=#0000ff>new</font> JButton(<font color=#004488>"Watch"</font>);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> isApplet = <font color=#0000ff>true</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> numCounters = 12;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> numWatchers = 15;
+  <font color=#0000ff>private</font> TwoCounter[] s;
+  <font color=#0000ff>class</font> TwoCounter <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> started = <font color=#0000ff>false</font>;
+    <font color=#0000ff>private</font> JTextField 
+      t1 = <font color=#0000ff>new</font> JTextField(5),
+      t2 = <font color=#0000ff>new</font> JTextField(5);
+    <font color=#0000ff>private</font> JLabel l = 
+      <font color=#0000ff>new</font> JLabel(<font color=#004488>"count1 == count2"</font>);
+    <font color=#0000ff>private</font> <font color=#0000ff>int</font> count1 = 0, count2 = 0;
+    <font color=#009900>// Add the display components as a panel:</font>
+    <font color=#0000ff>public</font> TwoCounter() {
+      JPanel p = <font color=#0000ff>new</font> JPanel();
+      p.add(t1);
+      p.add(t2);
+      p.add(l);
+      getContentPane().add(p);
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> start() {
+      <font color=#0000ff>if</font>(!started) {
+        started = <font color=#0000ff>true</font>;
+        <font color=#0000ff>super</font>.start();
+      }
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+        t1.setText(Integer.toString(count1++));
+        t2.setText(Integer.toString(count2++));
+        <font color=#0000ff>try</font> {
+          sleep(500);
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        }
+      }
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> synchTest() {
+      Sharing1.incrementAccess();
+      <font color=#0000ff>if</font>(count1 != count2)
+        l.setText(<font color=#004488>"Unsynched"</font>);
+    }
+  }
+  <font color=#0000ff>class</font> Watcher <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>public</font> Watcher() { start(); }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+        <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+          s[i].synchTest();
+        <font color=#0000ff>try</font> {
+          sleep(500);
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        }
+      }
+    }
+  }
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+        s[i].start();
+    }
+  }
+  <font color=#0000ff>class</font> WatcherL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; numWatchers; i++)
+        <font color=#0000ff>new</font> Watcher();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    <font color=#0000ff>if</font>(isApplet) {
+      String counters = getParameter(<font color=#004488>"size"</font>);
+      <font color=#0000ff>if</font>(counters != <font color=#0000ff>null</font>)
+        numCounters = Integer.parseInt(counters);
+      String watchers = getParameter(<font color=#004488>"watchers"</font>);
+      <font color=#0000ff>if</font>(watchers != <font color=#0000ff>null</font>)
+        numWatchers = Integer.parseInt(watchers);
+    }
+    s = <font color=#0000ff>new</font> TwoCounter[numCounters];
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+      s[i] = <font color=#0000ff>new</font> TwoCounter();
+    JPanel p = <font color=#0000ff>new</font> JPanel();
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    p.add(start);
+    watcher.addActionListener(<font color=#0000ff>new</font> WatcherL());
+    p.add(watcher);
+    p.add(<font color=#0000ff>new</font> JLabel(<font color=#004488>"Access Count"</font>));
+    p.add(aCount);
+    cp.add(p);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Sharing1 applet = <font color=#0000ff>new</font> Sharing1();
+    <font color=#009900>// This isn't an applet, so set the flag and</font>
+    <font color=#009900>// produce the parameter values from args:</font>
+    applet.isApplet = <font color=#0000ff>false</font>;
+    applet.numCounters = 
+      (args.length == 0 ? 12 :
+        Integer.parseInt(args[0]));
+    applet.numWatchers =
+      (args.length &lt; 2 ? 15 :
+        Integer.parseInt(args[1]));
+    Console.run(applet, 350, 
+      applet.numCounters * 50);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Как и прежде, каждый счетчик содержит свой собственный 
+  компонент для отображения значения: два текстовых поля и надпись, первоначально 
+  показывающую что счетчики равны. Эти компоненты добавляются на панель родительского 
+  объекта в конструкторе <b>TwoCounter</b>. Так как два процесса начинают выполнение 
+  после нажатия пользователем кнопки, можно сделать так, чтобы <b>start()</b> 
+  мог быть вызван более одного раза. Так как <b>Thread.start( )</b> не может быть 
+  вызван более одного раза для процесса (иначе генерируется исключение), то в 
+  приведенном алгоритме переопределен метод <b>start()</b> и используется флаг 
+  <b>started</b>.</font></p>
+<p><font face="Georgia">В вызове <b>run()</b>, функции <b>count1</b> и <b>count2</b> 
+  увеличивают и отображают значение, так, что все кажется идентично. Затем вызывается&nbsp;<a NAME="Index1926"></a><a NAME="Index1927"></a><b>sleep( 
+  )</b>; без этого вызова программа "повиснет" поскольку CPU будет трудно переключаться 
+  между процессами.</font></p>
+<p><font face="Georgia"> Метод <b>synchTest( )</b> выполняет очевидные функции 
+  по сравнению на равенство значения счетчиков <b>count1</b> и <b>count2</b>; 
+  если они не равны то он установит значение надписи на панели в "<i>Unsynched</i>". 
+  Но в начале, он вызывает статический член класса <b>Sharing1</b>, который увеличит 
+  и отобразит значение счетчика доступа, чтобы показать сколько раз проверка закончилась 
+  успешно. (Причина использования данного счетчика будет понятна из следующих 
+  примеров.)</font></p>
+<p><font face="Georgia"> Класс <b>Watcher</b> является процессом, работа которого 
+  заключается в вызове <b>synchTest()</b> для всех активных объектов <b>TwoCounter</b>. 
+  Он выполняет это используя массив, хранящий объекты <b>Sharing1</b>. Можете 
+  считать, что <b>Watcher</b> постоянно читает объекты из <b>TwoCounter</b>.</font></p>
+<p><font face="Georgia"> <b>Sharing1</b> содержит массив объектов <b>TwoCounter</b> 
+  инициализируемый при <b>init()</b> и запускаемый как процесс когда нажимается 
+  кнопка "<i>start</i>". Позже, когда будет нажата кнопка "<i>Watch</i>", создаются 
+  два или более наблюдателя и уничтожают ничего неподозревающие процессы <b>TwoCounter</b>.</font></p>
+<p><font face="Georgia"> Запомните, чтобы запустить данный пример как апплет в 
+  броузере, в вызове апплета должны быть следующий строки:</font> </p>
+<blockquote>
+<pre><font size=+1>&lt;param name=size value=<font color="#004488">"20"</font>>
+&lt;param name=watchers value=<font color="#004488">"1"</font>></font></pre>
+</blockquote>
+<p><font face="Georgia">Можете экспериментировать изменяя значение высоты и ширины 
+  и прочие параметры. Изменяя <b>size</b> и <b>watchers</b> вы изменяете поведение 
+  программы. Данная программа настроена на выполнение как одиночное приложение 
+  с передачей всех параметров через командную строку (или с использованием значений 
+  по умолчанию).</font></p>
+<p><font face="Georgia"> А вот и наиболее интересная часть. В вызове TwoCounter.run(), 
+  бесконечный цикле просто повторяет следующие строки:</font> </p>
+<blockquote>
+<pre><font size=+1>t1.setText(Integer.toString(count1++));
+t2.setText(Integer.toString(count2++));</font></pre>
+</blockquote>
+<p><font face="Georgia">(так же как и sleep, но здесь это не важно). Однако, когда 
+  программа будет запущена, вы увидите, что значения <b>count1</b> и <b>count2</b> 
+  будут временами различны (что покажет <b>Watcher</b>)! Это связано с особенностями 
+  процесса, он может быть временно приостановлен&nbsp;<a NAME="Index1928"></a> 
+  в любое время. Таким образом в то время, когда приостановка произошла при выполнение 
+  двух приведенных выше строк, а процесс Watcher произвел сравнение как раз в 
+  это время, то как раз два счетчика и будут различны.</font></p>
+<p><font face="Georgia"> Данный пример показывает фундаментальную проблему использования 
+  процессов. Никогда неизвестно когда процесс должен быть запущен. Представьте, 
+  что вы сидите за столом, держите вилку и уже готовы взять последний кусочек 
+  колбасы со своей тарелке, но как только вилка касается колбасы, она (колбаса 
+  конечно) внезапно исчезает (поскольку ваш процесс был приостановлен, то пришел&nbsp; 
+  другой процесс и украл всю колбасу). Вот эту проблему вам и надо решить.</font></p>
+<p><font face="Georgia"> Иногда можно не беспокоиться о том, что какие-либо ресурс 
+  могут быть использованы в тот момент, когда вы пытаетесь получить к нему доступ. 
+  Но в случае множества нитей процессов необходим способ для исключения возможности 
+  использования ресурса двумя процессами хотя бы в критические периоды.</font></p>
+<p><font face="Georgia"> Предотвращение подобных коллизий решается просто установкой 
+  блокировки на ресурс в момент использования. Первый процесс, который получил 
+  доступ к ресурсу блокирует его, после чего другие процессы не могут получить 
+  доступ к тому же ресурсу до тех пор, пока он не будет разблокирован. В это момент 
+  другой процесс может его заблокировать и использовать. Например, если переднее 
+  сиденье в машине представить как ограниченный ресурс, то ребенок с криком "Dibs" 
+  может занять это место.</font><a NAME="_Toc375545480"></a><a NAME="_Toc481064854"></a><a NAME="Heading489"></a> 
+</p>
+<h3>
+<font face="Verdana">Как Java получает доступ к ресурсам</font></h3>
+<font face="Georgia">В Java есть встроенная поддержка предотвращения коллизий
+при использовании одного типа ресурсов - объектов в памяти. Поскольку элементы
+данных класса объявляются как&nbsp;<a NAME="Index1929"></a><b>private</b>
+и доступ к этой области памяти возможен только посредством методов, то
+можно избежать коллизий объявив эти методы как&nbsp;<a NAME="Index1930"></a><b>synchronized</b>.
+Одновременно только один процесс может вызвать <b>synchronized</b> метод
+для определенного объекта (хотя этот процесс может вызывать более одного
+синхронизированного метода объекта). Ниже приведены простые <b>synchronized</b>
+методы:</font>
+<blockquote>
+<pre><font size=+1><font color="#0000FF">synchronized</font> <font color="#0000FF">void</font> f() { <font color="#009900">/* ... */</font> }
+<font color="#0000FF">synchronized</font> <font color="#0000FF">void</font> g(){ <font color="#009900">/* ... */</font> }</font></pre>
+</blockquote>
+
+<p><br>
+  <font face="Georgia">Каждый объект имеет простой&nbsp;<a NAME="Index1931"></a><a NAME="Index1932"></a> 
+  замок (также называемый&nbsp;<a NAME="Index1933"></a><i> monitor</i>), который 
+  является автоматической частью объекта (т.е. нет необходимости писать специальный 
+  код). При вызове любого <b>synchronized</b> метода, этот объект блокируется 
+  и ни один другой <b>synchronized</b> метод этого объекта не может быть вызван 
+  до тех пор, пока первый не закончиться и не разблокирует объект. В выше приведенном 
+  примере, если <b>f()</b> вызвана для объекта, то <b>g()</b> не может быть вызвана 
+  для того же объекта до тех, пока&nbsp; <b>f()</b> не завершится и не снимет 
+  блокировку. Таким образом, это единственная (в смысле одна - Прим. пер.) блокировка, 
+  используемая всеми <b>synchronized</b> методами отдельного объекта и эта блокировка 
+  предотвращает возможность записи в память более чем одному методу в одно и тоже 
+  время (т.е. более одного процесса в одно и то же время).</font>
+<p><font face="Georgia"> Также существует по одной блокировке на каждый класс 
+  (как часть объекта&nbsp;<a NAME="Index1934"></a><a NAME="Index1935"></a><b>Class</b> 
+  для класса), таким образом методы&nbsp;<a NAME="Index1936"></a><a NAME="Index1937"></a><b> 
+  synchronized static</b> могут заблокировать друг друга от одновременного доступа 
+  к <b>static</b> данным на много-классовой основе.</font>
+<p><font face="Georgia"> Запомните, если вы хотите защитить какие-либо ресурсы 
+  от одновременного доступа со стороны нескольких процессов, можно сделать это 
+  разрешив доступ к этому ресурсу через <b>synchronized</b> методы.</font><a NAME="Heading490"></a> 
+<h4>
+<font face="Verdana">Синхронизация счетчиков</font></h4>
+<font face="Georgia">Вооружившись новым ключевым словом решим нашу задачу:
+мы просто добавляем ключевое слово&nbsp; <b>synchronized</b> для методов
+в <b>TwoCounter</b>. Следующий пример такой же как и предыдущим, но добавлено
+одно ключевое слово:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Sharing2.java</font>
+<font color=#009900>// Using the synchronized keyword to prevent</font>
+<font color=#009900>// multiple access to a particular resource.</font>
+<font color=#009900>// &lt;applet code=Sharing2 width=350 height=500&gt;</font>
+<font color=#009900>// &lt;param name=size value="12"&gt;</font>
+<font color=#009900>// &lt;param name=watchers value="15"&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Sharing2 <font color=#0000ff>extends</font> JApplet {
+  TwoCounter[] s;
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>int</font> accessCount = 0;
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> JTextField aCount = 
+    <font color=#0000ff>new</font> JTextField(<font color=#004488>"0"</font>, 7);
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> incrementAccess() {
+    accessCount++;
+    aCount.setText(Integer.toString(accessCount));
+  }
+  <font color=#0000ff>private</font> JButton 
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    watcher = <font color=#0000ff>new</font> JButton(<font color=#004488>"Watch"</font>);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> isApplet = <font color=#0000ff>true</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> numCounters = 12;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> numWatchers = 15;
+
+  <font color=#0000ff>class</font> TwoCounter <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> started = <font color=#0000ff>false</font>;
+    <font color=#0000ff>private</font> JTextField 
+      t1 = <font color=#0000ff>new</font> JTextField(5),
+      t2 = <font color=#0000ff>new</font> JTextField(5);
+    <font color=#0000ff>private</font> JLabel l = 
+      <font color=#0000ff>new</font> JLabel(<font color=#004488>"count1 == count2"</font>);
+    <font color=#0000ff>private</font> <font color=#0000ff>int</font> count1 = 0, count2 = 0;
+    <font color=#0000ff>public</font> TwoCounter() {
+      JPanel p = <font color=#0000ff>new</font> JPanel();
+      p.add(t1);
+      p.add(t2);
+      p.add(l);
+      getContentPane().add(p);
+    }    
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> start() {
+      <font color=#0000ff>if</font>(!started) {
+        started = <font color=#0000ff>true</font>;
+        <font color=#0000ff>super</font>.start();
+      }
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+        t1.setText(Integer.toString(count1++));
+        t2.setText(Integer.toString(count2++));
+        <font color=#0000ff>try</font> {
+          sleep(500);
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        }
+      }
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> synchTest() {
+      Sharing2.incrementAccess();
+      <font color=#0000ff>if</font>(count1 != count2)
+        l.setText(<font color=#004488>"Unsynched"</font>);
+    }
+  }
+  
+  <font color=#0000ff>class</font> Watcher <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>public</font> Watcher() { start(); }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+        <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+          s[i].synchTest();
+        <font color=#0000ff>try</font> {
+          sleep(500);
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        }
+      }
+    }
+  }
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+        s[i].start();
+    }
+  }
+  <font color=#0000ff>class</font> WatcherL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; numWatchers; i++)
+        <font color=#0000ff>new</font> Watcher();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    <font color=#0000ff>if</font>(isApplet) {
+      String counters = getParameter(<font color=#004488>"size"</font>);
+      <font color=#0000ff>if</font>(counters != <font color=#0000ff>null</font>)
+        numCounters = Integer.parseInt(counters);
+      String watchers = getParameter(<font color=#004488>"watchers"</font>);
+      <font color=#0000ff>if</font>(watchers != <font color=#0000ff>null</font>)
+        numWatchers = Integer.parseInt(watchers);
+    }
+    s = <font color=#0000ff>new</font> TwoCounter[numCounters];
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+      s[i] = <font color=#0000ff>new</font> TwoCounter();
+    JPanel p = <font color=#0000ff>new</font> JPanel();
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    p.add(start);
+    watcher.addActionListener(<font color=#0000ff>new</font> WatcherL());
+    p.add(watcher);
+    p.add(<font color=#0000ff>new</font> Label(<font color=#004488>"Access Count"</font>));
+    p.add(aCount);
+    cp.add(p);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Sharing2 applet = <font color=#0000ff>new</font> Sharing2();
+    <font color=#009900>// This isn't an applet, so set the flag and</font>
+    <font color=#009900>// produce the parameter values from args:</font>
+    applet.isApplet = <font color=#0000ff>false</font>;
+    applet.numCounters = 
+      (args.length == 0 ? 12 :
+        Integer.parseInt(args[0]));
+    applet.numWatchers =
+      (args.length &lt; 2 ? 15 :
+        Integer.parseInt(args[1]));
+    Console.run(applet, 350, 
+      applet.numCounters * 50);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Можно заметить, что оба <b>run()</b> и <b>synchTest()</b> 
+  теперь <b>synchronized</b>.&nbsp; Если синхронизировать только один из методов, 
+  то другой свободен в игнорировании блокировки объекта и может быть безнаказанно 
+  вызван. Это очень важное замечание: Каждый метод, который имеет доступ к критическим 
+  общим ресурсам должен быть <b>synchronized</b>, иначе он не будет правильно 
+  работать. </font></p>
+<p><font face="Georgia">Теперь у программы появилось новое поведение. <b>Watcher</b> 
+  никогда не прочитает что происходит потому, что оба метода <b>run()</b> стали 
+  <b>synchronized</b> и, так как <b>run()</b> всегда запущен для каждого объекта, 
+  блокировка всегда установлена и <b>synchTest()</b> никогда не вызовется.&nbsp; 
+  Это видно, так как <b>accessCount</b> никогда не меняется.</font></p>
+<p><font face="Georgia"> Что нам нравится в этом примере, так это возможность 
+  изолировать только <i>часть</i> кода внутри <b>run()</b>. Та часть кода, которую 
+  необходимо изолировать данным способ, называется&nbsp;<a NAME="Index1938"></a><a NAME="Index1939"></a><i> 
+  критическим участком (critical section)</i> и используется ключевое слово <b>synchronized</b>, 
+  чтобы различными способами установить критические участки. Java поддерживает 
+  критические участки с помощью&nbsp;<a NAME="Index1940"></a><i> синхронизированных 
+  блоков;</i> в данном случае <b>synchronized</b> используется для определения 
+  объекта, блокировка которого будет использована для синхронизации прилагаемого 
+  кода:</font> </p>
+<blockquote>
+<pre><font size=+1><font color="#0000FF">synchronized</font>(syncObject) {
+&nbsp; <font color="#009900">// This code can be accessed&nbsp;
+</font>&nbsp; <font color="#009900">// by only one thread at a time
+</font>}</font></pre>
+</blockquote>
+<p><font face="Georgia">До того как синхронизированный блок будет доступен, блокировка 
+  должна быть установлена в <b>syncObject</b>. Если какой-либо процесс уже имеет 
+  данную блокировку, то блок ( часть кода) не может быть доступен, пока не будет 
+  снята блокировка.</font></p>
+<p><font face="Georgia"> Пример <b>Sharing2</b> может быть изменен если убрать 
+  ключевое слово <b>synchronized</b> у обоих методов <b>run()</b> и, вместо этого, 
+  установить блок <b>synnchronized</b> вокруг двух критических строк кода. Но 
+  что объект должен использовать как блокировку? То что уже используется <b>synchTest()</b>, 
+  т.е. ткущий объект (<b>this</b>)! Таким образом измененный <b>run()</b> выглядит 
+  следующим образом:</font> </p>
+<blockquote>
+<pre><font size=+1>&nbsp; <font color="#0000FF">public</font> <font color="#0000FF">void</font> run() {
+&nbsp;&nbsp;&nbsp; <font color="#0000FF">while</font> (<font color="#0000FF">true</font>) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#0000FF">synchronized</font>(<font color="#0000FF">this</font>) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; t1.setText(Integer.toString(count1++));
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; t2.setText(Integer.toString(count2++));
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#0000FF">try</font> {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sleep(500);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; } <font color="#0000FF">catch</font>(InterruptedException e) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; System.err.println(<font color="#004488">"Interrupted"</font>);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; }
+&nbsp; }</font></pre>
+</blockquote>
+<p><font face="Georgia">Это единственные исправления которые необходимо сделать 
+  в <b>Sharing2.java</b> и, как видите, поскольку оба счетчика синхронизированы 
+  (согласно тому, что <b>Watcher</b> теперь может следить за ними), то <b>Watcher</b> 
+  получает соответствующий доступ во время выполнения <b>run()</b>.</font></p>
+<p><font face="Georgia"> Конечно, вся синхронизация зависит от внимания программиста: 
+  каждый кусок кода который должен получать доступ к разделяемым ресурсам должен 
+  быть оформлен соответствующим синхронизированным блоком.</font><a NAME="Heading491"></a> 
+</p>
+<h4>
+<font face="Verdana">Эффективность синхронизации</font><br>
+<a NAME="Index1941"></a><a NAME="Index1942"></a></h4>
+<font face="Georgia">Поскольку наличие двух методов, пишущих в те же самые
+данные, <i>никогда</i> не будут выглядеть хорошей идеей, то имеет смысл
+сделать все методы автоматически <b>synchronized</b> и исключить ключевое
+слово <b>synchronized</b> в целом.&nbsp; (Конечно, пример с <b>synchronized
+run()</b> показал, что это также не будет работать). Но оказывается, что
+установка блокировки не дешевая операция - она умножает стоимость вызова
+метода (такие как вход и выход из метода, а не выполнение тела метода)
+как минимум в четыре раза, а возможно и больше, в зависимости от вашей
+реализации. Таким образом, если вы знаете, что данный метод не вызовет
+проблем в доступе к ресурсам уместнее избегать ключевого слова <b>synchronized</b>.
+С другой стороны, отсутствие ключевого слова synchronized из-за того, что
+вы считаете что он уменьшает производительность вашей системы и надеетесь,
+что не будет ни каких коллизий есть первый шаг к краху системы.</font>
+<br><a NAME="_Toc481064855"></a><a NAME="Heading492"></a>
+<h3>
+<font face="Verdana">Повторное обращение к JavaBeans</font></h3>
+<font face="Georgia">Теперь, после того как вы познакомились с синхронизацией,
+можете иначе взглянуть на<a NAME="Index1943"></a><a NAME="Index1944"></a><a NAME="Index1945"></a>
+JavaBeans. Когда бы вы не создавали Bean, вы должны предполагать, что он
+будет использован в среде с множеством процессов. Это значит, что:</font><a NAME="Index1946"></a><a NAME="Index1947"></a>
+<ol>
+<li>
+<font face="Georgia">Везде, где это возможно, все <b>public</b> методы
+Bean должны быть <b>synchronized</b>. Конечно, это приведет к увеличению
+времени выполнения <b>synchronized</b> методов. Если это будет основной
+загвоздкой, то методы, не вызывающие подобных проблем в критических секциях
+должны быть оставлены без <b>synchronized</b>, но учитывайте, что обычно
+это не разрешается. <b>synchronized</b> должны быть методы, которые могут
+быть оценены как относительно небольшие (например <b>getCircleSize()</b>
+в следующем примере) и/или "атомарные", то есть те, которые вызывают такие
+небольшие куски кода, что объект не может быть изменен во время выполнения.
+Установка подобных методов как не-<b>synchronized</b> может не иметь какого-либо
+особенного эффекта на скорости выполнения программы. Вы можете также определить
+все <b>public</b> методы Bean как <b>synchronized</b> и опустить ключевое
+слово <b>synchronized</b> только тогда, когда вы твердо убеждены, что это
+необходимо и что это не приведет к изменениям.</font></li>
+
+<li>
+<font face="Georgia">При выполнении множественных событий для нескольких
+слушателей заинтересованных в этом событии, необходимо предположить, что
+слушатели могут быть добавлены или удалены при перемещении через список.</font></li>
+</ol>
+<font face="Georgia">Первый пункт совершенно прост для рассмотрения, но
+следующий требует некоторого обдумывания. Рассмотрим пример <b>BangBean.java</b>,
+приведенный в последней главе. Тогда мы ушли от ответа на вопрос о множестве
+процессов игнорированием ключевого слова <b>synchronized</b> (который не
+был еще объяснен) и сделав события одноадресные (unicast).&nbsp; А вот
+тот же пример, измененный для работы в среде с множеством процессов и использованием
+многоадресных событий:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:BangBean2.java</font>
+<font color=#009900>// You should write your Beans this way so they </font>
+<font color=#009900>// can run in a multithreaded environment.</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> java.util.*;
+<font color=#0000ff>import</font> java.io.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> BangBean2 <font color=#0000ff>extends</font> JPanel 
+    <font color=#0000ff>implements</font> Serializable {
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> xm, ym;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> cSize = 20; <font color=#009900>// Circle size</font>
+  <font color=#0000ff>private</font> String text = <font color=#004488>"Bang!"</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> fontSize = 48;
+  <font color=#0000ff>private</font> Color tColor = Color.red;
+  <font color=#0000ff>private</font> ArrayList actionListeners = 
+    <font color=#0000ff>new</font> ArrayList();
+  <font color=#0000ff>public</font> BangBean2() {
+    addMouseListener(<font color=#0000ff>new</font> ML());
+    addMouseMotionListener(<font color=#0000ff>new</font> MM());
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>int</font> getCircleSize() { 
+    <font color=#0000ff>return</font> cSize; 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> 
+  setCircleSize(<font color=#0000ff>int</font> newSize) {
+    cSize = newSize;
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> String getBangText() { 
+    <font color=#0000ff>return</font> text; 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> 
+  setBangText(String newText) {
+    text = newText;
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>int</font> getFontSize() { 
+    <font color=#0000ff>return</font> fontSize; 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> 
+  setFontSize(<font color=#0000ff>int</font> newSize) {
+    fontSize = newSize;
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> Color getTextColor() {
+    <font color=#0000ff>return</font> tColor; 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> 
+  setTextColor(Color newColor) {
+    tColor = newColor;
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> paintComponent(Graphics g) {
+    <font color=#0000ff>super</font>.paintComponent(g);
+    g.setColor(Color.black);
+    g.drawOval(xm - cSize/2, ym - cSize/2, 
+      cSize, cSize);
+  }
+  <font color=#009900>// This is a multicast listener, which is</font>
+  <font color=#009900>// more typically used than the unicast</font>
+  <font color=#009900>// approach taken in BangBean.java:</font>
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> 
+    addActionListener(ActionListener l) {
+    actionListeners.add(l);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> 
+    removeActionListener(ActionListener l) {
+    actionListeners.remove(l);
+  }
+  <font color=#009900>// Notice this isn't synchronized:</font>
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> notifyListeners() {
+    ActionEvent a =
+      <font color=#0000ff>new</font> ActionEvent(BangBean2.<font color=#0000ff>this</font>,
+        ActionEvent.ACTION_PERFORMED, <font color=#0000ff>null</font>);
+    ArrayList lv = <font color=#0000ff>null</font>;
+    <font color=#009900>// Make a shallow copy of the List in case </font>
+    <font color=#009900>// someone adds a listener while we're </font>
+    <font color=#009900>// calling listeners:</font>
+    <font color=#0000ff>synchronized</font>(<font color=#0000ff>this</font>) {
+      lv = (ArrayList)actionListeners.clone();
+    }
+    <font color=#009900>// Call all the listener methods:</font>
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; lv.size(); i++)
+      ((ActionListener)lv.get(i))
+        .actionPerformed(a);
+  }
+  <font color=#0000ff>class</font> ML <font color=#0000ff>extends</font> MouseAdapter {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> mousePressed(MouseEvent e) {
+      Graphics g = getGraphics();
+      g.setColor(tColor);
+      g.setFont(
+        <font color=#0000ff>new</font> Font(
+          <font color=#004488>"TimesRoman"</font>, Font.BOLD, fontSize));
+      <font color=#0000ff>int</font> width = 
+        g.getFontMetrics().stringWidth(text);
+      g.drawString(text, 
+        (getSize().width - width) /2,
+        getSize().height/2);
+      g.dispose();
+      notifyListeners();
+    }
+  }
+  <font color=#0000ff>class</font> MM <font color=#0000ff>extends</font> MouseMotionAdapter {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> mouseMoved(MouseEvent e) {
+      xm = e.getX();
+      ym = e.getY();
+      repaint();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    BangBean2 bb = <font color=#0000ff>new</font> BangBean2();
+    bb.addActionListener(<font color=#0000ff>new</font> ActionListener() {
+      <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e){
+        System.out.println(<font color=#004488>"ActionEvent"</font> + e);
+      }
+    });
+    bb.addActionListener(<font color=#0000ff>new</font> ActionListener() {
+      <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e){
+        System.out.println(<font color=#004488>"BangBean2 action"</font>);
+      }
+    });
+    bb.addActionListener(<font color=#0000ff>new</font> ActionListener() {
+      <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e){
+        System.out.println(<font color=#004488>"More action"</font>);
+      }
+    });
+    Console.run(bb, 300, 300);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Добавление <b>synchronized</b> для методов есть простейшее 
+  изменение. Однако помня, что&nbsp;<a NAME="Index1948"></a><b>addActionListener( 
+  )</b> и<a NAME="Index1949"></a><b>removeActionListener( )</b>, которые относятся 
+  к <b>ActionListener</b> теперь добавлены в и удалены из <b>ArrayList</b>, так, 
+  что можно создать необходимое количество.</font></p>
+<p><font face="Georgia"> Можно видеть, что метод&nbsp;<a NAME="Index1950"></a><b>notifyListeners( 
+  )</b> не <b>synchronized</b>. Он может быть вызван из более чем одного процесса 
+  за раз. Также возможно для <b>addActionListener( )</b> или <b>removeActionListener( 
+  )</b> быть вызванными из самого вызова <b>notifyListeners( )</b>, что является 
+  проблемой поскольку он пересекается (traverse) в <b>ArrayList actionListeners</b>. 
+  Чтобы избежать этой проблемы <b>ArrayList</b> клонирован вне секции <b>synchronized</b> 
+  и клон пересечен (traversed) (в Приложении A объясняются детали клонирования). 
+  Таким образом оригинальный <b>ArrayList</b> может быть использован без воздействия 
+  на <b>notifyListeners( )</b>.</font></p>
+<p><font face="Georgia"> Метод <b>paintComponent( )</b> также не&nbsp;<a NAME="Index1951"></a><a NAME="Index1952"></a><a NAME="Index1953"></a><b>synchronized</b>. 
+  Решение, стоит ли синхронизировать переопределенный (overridden) метод не такое 
+  же простое как в случае когда добавляется собственный метод. В данном примере 
+  кажется, что <b>paint()</b> выполняется успешно, независимо от того синхронизирован 
+  он или нет. Но дополнительно необходимо рассмотреть:</font><a NAME="Index1954"></a><a NAME="Index1955"></a> 
+</p>
+<ol>
+<li>
+<font face="Georgia">Изменяет ли метод значения "критических" переменных
+внутри объекта? Чтобы определить, является ли переменные "критическими",
+необходимо определить будут ли значения прочитаны или установлены другими
+процессами в программе. (В этом случае чтение и установка значения фактически
+всегда происходит через <b>synchronized</b> методы, так что можно их просто
+проверить.) В случае с <b>paint()</b> ни каких изменений нет.</font></li>
+
+<li>
+<font face="Georgia">Зависит ли метод от значения этих "критических" переменных?
+Если synchronized метод изменяет значение той переменной, которую использует
+ваш метод, то вам просто необходимо также объявить ваш метод как <b>synchronized</b>.&nbsp;
+В связи с этим, можно видеть, что значение переменной <b>cSize</b> изменяется
+<b>synchronized</b>
+методами и, следовательно, <b>paint()</b> также должен быть <b>synchronized</b>.
+Однако в данном случае можно спросить, "А что ужасного произойдет в том
+случае, если <b>cSize</b> измениться во время
+<b>paint()</b>?" Когда видно,
+что ничего плохого, к тому же присутствует эффект самовосстановления (transient
+effect), можно решить оставить <b>paint()</b> не <b>synchronized</b> во
+избежании излишних накладных расходов при вызове <b>synchronized</b> метода.</font></li>
+
+<li>
+<font face="Georgia">И в третьих, необходимо убедиться, является ли базовый
+класс для <b>paint()</b> <b>synchronized</b> или нет. Это не просто высказывание
+для сотрясания воздуха, а просто подсказка. В нашем случае например, поля,
+<i>изменяемые</i>
+через <b>synchronized</b> методы (такие как <b>cSize</b>), были перемешены
+в <b>paint()</b> формуле и могли изменить ситуацию. Однако обратите внимание,
+что <b>synchronized</b> не наследуется, так например, если метод является
+<b>synchronized</b> в базовом классе, то он <i>не будет</i> автоматически
+<b>synchronized</b> в переопределенном методе наследующего класса.</font></li>
+</ol>
+<font face="Georgia">Тестовая программа <b>TestBangBean2</b> была изменена
+по сравнению с версией из предыдущей главы так, чтобы показать способность
+множественного приведение типов в <b>BangBean2</b> через добавление дополнительных
+слушателей.</font><a NAME="_Toc375545481"></a><a NAME="_Toc481064856"></a><a NAME="Heading493"></a>
+<h2>
+<font face="Verdana">Блокировки</font><br>
+<a NAME="Index1956"></a><a NAME="Index1957"></a><a NAME="Index1958"></a><a NAME="Index1959"></a><a NAME="Index1960"></a><a NAME="Index1961"></a><a NAME="Index1962"></a><a NAME="Index1963"></a><a NAME="Index1964"></a></h2>
+<font face="Georgia">Процесс может быть в одном из четырех состояний:</font>
+<ol>
+<li>
+<font face="Georgia"><i>&nbsp;New</i>: Процесс был создан, но не был еще
+запущен, так что он не может выполняться.</font></li>
+
+<li>
+<font face="Georgia"><i>&nbsp;Runnable</i>: Это означает, что процесс <i>может</i>
+быть выполнен когда механизм распределения квантов времени CPU даст возможность
+выполняться процессу. Так, процесс может, а может и не быть выполняемым,
+но ему ни чего не препятствует&nbsp; быть выполняемым в том момент, когда
+пришла его очередь (квант времени); он не мертв и не заблокирован.</font></li>
+
+<li>
+<font face="Georgia"><i>&nbsp;Dead</i>: Нормальный способ процесса завершиться
+является возврат из его <b>run()</b> метода. Можно также&nbsp; вызвать
+<b>stop(
+)</b>, но это вызовет исключение являющееся подклассом <b>Error</b> (что
+означает, что вы не поместили вызов в блок <b>try</b>). Помните, что генерация
+исключения должно быть специальным событием и не является частью нормального
+хода выполнения программы; так, использование <b>stop()</b> запрещено (deprecated)
+в Java2. Также существует&nbsp; метод destroy() (который ни когда не был
+реализован), который вы не должны вызывать если можно этого избежать поскольку
+это радикальное решение и не снимает блокировку объекта.</font></li>
+
+<li>
+<i><font face="Verdana">&nbsp;</font><font face="Georgia">Blocked</font></i><font face="Georgia">:
+Процесс может быть запущен, но не будет выполняться. Пока процесс находиться
+в блокированном состоянии планировщик просто пропускает его и не выделяет
+квантов времени. До тех пор, пока процесс не перейдет в состояние runnable,
+процесс не выполнит ни одной операции.</font><a NAME="_Toc375545482"></a><a NAME="_Toc481064857"></a></li>
+</ol>
+<a NAME="Heading494"></a>
+<h3>
+<font face="Verdana">Установка блокировки</font></h3>
+<font face="Georgia">Блокированное состояние одно из наиболее интересных
+и стоит последующего рассмотрения. Процесс может стать блокированным в
+пяти случаях:</font><a NAME="Index1965"></a><a NAME="Index1966"></a><a NAME="Index1967"></a><a NAME="Index1968"></a><a NAME="Index1969"></a><a NAME="Index1970"></a><a NAME="Index1971"></a><a NAME="Index1972"></a><a NAME="Index1973"></a><a NAME="Index1974"></a><a NAME="Index1975"></a><a NAME="Index1976"></a><a NAME="Index1977"></a><a NAME="Index1978"></a><a NAME="Index1979"></a><a NAME="Index1980"></a><a NAME="Index1981"></a>
+<ol>
+  <li><font face="Georgia">Установка процесса в спящее состояние посредством вызова 
+    <b>sleep(milliseconds),</b> в этом случае он не будет выполняться определенный 
+    промежуток времени.</font></li>
+
+  <li><font face="Georgia">Приостановка выполнения процесса вызовом <b>suspend( 
+    )</b>. Он не будет выполняться до тех пор, пока не получит сообщение <b>resume( 
+    )</b> (что запрещено в Java 2, и дальше будет описано).</font></li>
+
+  <li><font face="Georgia">Приостановка выполнения с помощью <b>wait( )</b>. Процесс 
+    не будет повторно запущен на выполнение до тех, пор пока не получит сообщение 
+    <b>notify( )</b> или <b>notifyAll( )</b>. (Это похоже на пункт 2, но существуют 
+    определенные различия, которые будут также показаны.)</font></li>
+
+  <li><font face="Georgia">Процесс ожидает завершения каких-то операций ввода/вывода.</font></li>
+
+  <li><font face="Georgia">Процесс пытается вызвать <b>synchronized </b>метод другого 
+    объекта и блокировка этого объекта невозможна.</font></li>
+</ol>
+<p><font face="Georgia">Можно также вызвать&nbsp;<a NAME="Index1982"></a><a NAME="Index1983"></a><b>yield( 
+  )</b> (один из методов класса <b>Thread</b>), чтобы добровольно передать свой 
+  квант времени другим процессам. Однако, то же самое произойдет если планировщик 
+  решит, что ваш процесс уже выполняется достаточно долго и передать управление 
+  другому. Таким образом, ничего не мешает планировщику покинуть процесс и перейти 
+  на другой. Когда процесс блокирован, то существуют какие-то причины, корые мешают 
+  ему выполняться.</font></p>
+<p><font face="Georgia"> Следующий пример показывает все пять способов установки 
+  блокировки. Все они реализованы в единственном файле под названием <b>Blocking.java</b>, 
+  но будут рассмотрены здесь частично. (Вы столкнетесь с "продолженным" и "продолжающим" 
+  тэгами, что позволяет средству изъятия кода сложить все это вместе.)</font></p>
+<p><font face="Georgia"> В связи с тем, что данный пример показывает некоторые 
+  запрещенные (deprecated) при компиляции будет выдано соответствующее сообщение.</font></p>
+<p><font face="Georgia"> В начале основная программы:</font></p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Blocking.java</font>
+<font color=#009900>// Demonstrates the various ways a thread</font>
+<font color=#009900>// can be blocked.</font>
+<font color=#009900>// &lt;applet code=Blocking width=350 height=550&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> java.io.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#009900>//////////// The basic framework ///////////</font>
+<font color=#0000ff>class</font> Blockable <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> Peeker peeker;
+  <font color=#0000ff>protected</font> JTextField state = <font color=#0000ff>new</font> JTextField(30);
+  <font color=#0000ff>protected</font> <font color=#0000ff>int</font> i;
+  <font color=#0000ff>public</font> Blockable(Container c) {
+    c.add(state);
+    peeker = <font color=#0000ff>new</font> Peeker(<font color=#0000ff>this</font>, c);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>int</font> read() { <font color=#0000ff>return</font> i; }
+  <font color=#0000ff>protected</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> update() {
+    state.setText(getClass().getName()
+      + <font color=#004488>" state: i = "</font> + i);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> stopPeeker() { 
+    <font color=#009900>// peeker.stop(); Deprecated in Java 1.2</font>
+    peeker.terminate(); <font color=#009900>// The preferred approach</font>
+  }
+}
+
+<font color=#0000ff>class</font> Peeker <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> Blockable b;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> session;
+  <font color=#0000ff>private</font> JTextField status = <font color=#0000ff>new</font> JTextField(30);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> stop = <font color=#0000ff>false</font>;
+  <font color=#0000ff>public</font> Peeker(Blockable b, Container c) {
+    c.add(status);
+    <font color=#0000ff>this</font>.b = b;
+    start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> terminate() { stop = <font color=#0000ff>true</font>; }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font> (!stop) {
+      status.setText(b.getClass().getName()
+        + <font color=#004488>" Peeker "</font> + (++session)
+        + <font color=#004488>"; value = "</font> + b.read());
+       <font color=#0000ff>try</font> {
+        sleep(100);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    }
+  }
+} <font color=#009900>///:Continued</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Предполагается, что класс <b>Blockable</b> будет базовым 
+  для всех остальных классов в данном примере, который демонстрирует блокировку. 
+  Объект <b>Blockable</b> содержит <b>JTextField</b> называемое <b>state</b>, 
+  используемое для показа информации об объекте. Метод, который выводит эту информацию 
+  - <b>update()</b>.&nbsp; Как видно, он использует <b>getClass().getName()</b> 
+  для получения имени класса вместо простого его вывода; это сделанно из-за того, 
+  что <b>update()</b> не может знать действительное имя объекта вызвавшего его 
+  поскольку этот класс наследник от <b>Blockable</b>.</font></p>
+<p><font face="Georgia"> <b>int i</b> это индикатор изменений в <b>Blockable</b>, 
+  который увеличивает свое значение через метод <b>run()</b> наследуемого класса.</font></p>
+<p><font face="Georgia"> Также есть процесс класса <b>Peeker</b>, который запускается 
+  для каждого объекта <b>Blockable</b> и его работа заключается в наблюдении за 
+  изменением переменной i в ассоциированном с ним объекте <b>Blockable</b> через 
+  вызов <b>read()</b> и выводом значения в его <b>status JTextField</b> поле. 
+  Вот что важно: оба метода <b>read()</b> и <b>update()</b> являются synchronized, 
+  что означает необходимость в отсутствии блокировки объекта для их выполнения.</font><a NAME="Heading495"></a> 
+</p>
+<h4>
+<font face="Verdana">Засыпание</font></h4>
+<font face="Georgia">Первый тест в этой программе&nbsp;<a NAME="Index1984"></a><a NAME="Index1985"></a><b>sleep(
+):</b></font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>///:Continuing</font>
+<font color=#009900>///////////// Blocking via sleep() ///////////</font>
+<font color=#0000ff>class</font> Sleeper1 <font color=#0000ff>extends</font> Blockable {
+  <font color=#0000ff>public</font> Sleeper1(Container c) { <font color=#0000ff>super</font>(c); }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      i++;
+      update();
+       <font color=#0000ff>try</font> {
+        sleep(1000);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    }
+  }
+}
+  
+<font color=#0000ff>class</font> Sleeper2 <font color=#0000ff>extends</font> Blockable {
+  <font color=#0000ff>public</font> Sleeper2(Container c) { <font color=#0000ff>super</font>(c); }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      change();
+       <font color=#0000ff>try</font> {
+        sleep(1000);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> change() {
+      i++;
+      update();
+  }
+} <font color=#009900>///:Continued</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">В <b>Sleeper1</b> весь метод <b>run( )</b> объявлен как 
+  <b>synchronized</b>. Можно видеть, что ассоциированный с этим объектом Peeker 
+  весело выполняется <i>до тех пор</i>, пока вы не запустите процесс, после чего 
+  <b>Peeker</b> замораживается. Это одна из форм блокировки: поскольку <b>Sleeper1.run()</b> 
+  объявлен <b>synchronized</b>, а как только процесс запускается&nbsp; он всегда 
+  находиться внутри <b>run()</b>, то метод никогда не снимет блокировку объекта 
+  и <b>Peeker</b> блокирован.</font></p>
+<p><font face="Georgia"> <b>Sleeper2</b> предоставляет решение сделав <b>run()</b> 
+  не-<b>synchronized</b>. Только метод <b>change()</b> объявлен как <b>synchronized</b>, 
+  что означает, что пока <b>run()</b> в <b>sleep()</b>, <b>Peeker</b> может получить 
+  доступ к необходимым ему synchronized методам, в данном случае <b>read()</b>. 
+  И в данном случае видно, что <b>Peeker</b> продолжает выполняться и после старта 
+  процесса <b>Sleeper2</b>.</font><a NAME="Heading496"></a> </p>
+<h4>
+<font face="Verdana">Приостановка и возобновление выполнения</font></h4>
+<font face="Georgia">Следующая часть примера демонстрирует понятие приостановки.
+В класс <b>Thread</b> присутствует метод<a NAME="Index1986"></a><a NAME="Index1987"></a><b>
+suspend( )</b> для временной остановки процесса и метод&nbsp;<a NAME="Index1988"></a><a NAME="Index1989"></a><b>
+resume( )</b>, перезапускающий процесс с той же самой точки где он был
+остановлен. Метод <b>resume()</b> должен быть вызван каким-либо процессом
+из вне, и в данном случае мы имеем отдельный класс названный <b>Resumer</b>,
+которые это и делает. Каждый класс, демонстрирующий приостановку/возабновление
+имеет свой собственный <b>Resumer</b>:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>///:Continuing</font>
+<font color=#009900>/////////// Blocking via suspend() ///////////</font>
+<font color=#0000ff>class</font> SuspendResume <font color=#0000ff>extends</font> Blockable {
+  <font color=#0000ff>public</font> SuspendResume(Container c) {
+    <font color=#0000ff>super</font>(c);    
+    <font color=#0000ff>new</font> Resumer(<font color=#0000ff>this</font>); 
+  }
+}
+
+<font color=#0000ff>class</font> SuspendResume1 <font color=#0000ff>extends</font> SuspendResume {
+  <font color=#0000ff>public</font> SuspendResume1(Container c) { <font color=#0000ff>super</font>(c);}
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      i++;
+      update();
+      suspend(); <font color=#009900>// Deprecated in Java 1.2</font>
+    }
+  }
+}
+
+<font color=#0000ff>class</font> SuspendResume2 <font color=#0000ff>extends</font> SuspendResume {
+  <font color=#0000ff>public</font> SuspendResume2(Container c) { <font color=#0000ff>super</font>(c);}
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      change();
+      suspend(); <font color=#009900>// Deprecated in Java 1.2</font>
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> change() {
+      i++;
+      update();
+  }
+}
+
+<font color=#0000ff>class</font> Resumer <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> SuspendResume sr;
+  <font color=#0000ff>public</font> Resumer(SuspendResume sr) {
+    <font color=#0000ff>this</font>.sr = sr;
+    start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+       <font color=#0000ff>try</font> {
+        sleep(1000);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+      sr.resume(); <font color=#009900>// Deprecated in Java 1.2</font>
+    }
+  }
+} <font color=#009900>///:Continued</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia"><b>SuspendResume1</b> также имеет метод <b>synchronized 
+  run( )</b>. Еще раз, когда будет запущен данный процесс, то видно, что ассоциированный 
+  с ним блокированный <b>Peeker</b> ожидает блокировки, чего ни когда не произойдет. 
+  Это устраняется, как и прежде, в <b>SuspendResume2</b>, у которого не синхронизирован 
+  весь метод <b>run()</b>, но вместо этого, используется отдельный синхронизированный 
+  метод <b>change( )</b>.</font></p>
+<p><font face="Georgia"> Вы должны быть осведомлены о том, что в Java2 не разрешено 
+  (deprecated) использовать <b>suspend()</b> и <b>resume()</b>, так как <b>suspend()</b> 
+  захватывает блокировку объекта и поэтому может возникнуть зависание (deadlock-prone). 
+  Таким образом можно запросто прийти к ситуации, когда имеется несколько объектов, 
+  ожидающих друг друга, что вызовет подвисание программы. Хотя вы и можете увидеть 
+  их использование в старых программах вы не должны использовать <b>suspend()</b> 
+  и <b>resume()</b>. Более подходящее решение будет описано в данной главе несколько 
+  позднее.</font><a NAME="Heading497"></a> </p>
+<h4>
+<font face="Verdana">Ожидание и уведомление</font></h4>
+<p><font face="Georgia">Из первых двух примеров очень важно понять, как <b>sleep()</b>, 
+  так и <b>suspend()</b> <i>не</i> освобождают блокировку во время своего вызова. 
+  Вы должны знать об этом когда работает с блокировками. С другой стороны, метод<a NAME="Index1992"></a><a NAME="Index1993"></a><b>wait( 
+  )</b> освобождает блокировку во время своего вызова, что означает, что другие,&nbsp;<a NAME="Index1994"></a><b> 
+  synchronized</b> методы в объекте процесса могут быть вызваны во время <b>wait()</b>. 
+  В следующих двух классах видно, что метод <b>run()</b> полностью <b>synchronized</b> 
+  в обоих классах, однако <b>Peeker</b> все также имеет полный доступ к <b>synchronized</b> 
+  методам во время <b>wait()</b>. Это происходит из-за того, что <b>wait()</b> 
+  освобождает блокировку объекта после приостановки метода из которого он вызван.</font></p>
+<p><font face="Georgia"> Также видно, что существуют две формы <b>wait()</b>. 
+  Первая принимает аргумент в миллисекундах, что имеет то же значение как и в 
+  <b>sleep()</b>: остановку на это время. Различие в том, что в <b>wait()</b> 
+  блокировка объекта освобождается <i>и</i> вы можете выйти из <b>wait()</b> с 
+  помощью <b>notify()</b> так же как и после истечения времени.</font></p>
+<p><font face="Georgia"> Вторая форма без передачи параметров означает, что wait() 
+  будет выполняться до тех пор пока не будет вызвано notify() и не остановится 
+  автоматически по истечению времени.</font></p>
+<p><font face="Georgia"><a NAME="Index1995"></a>Один, довольно уникальный аспект 
+  <b>wait( )</b> и <b>notify( )</b> в том, что оба метода являются частью базового 
+  класса <b>Object</b>, а не частью <b>Thread</b>, как <b>sleep( )</b>, <b>suspend( 
+  )</b> и r<b>esume( )</b>. Хотя это и выглядит немного странно в начале - сделать 
+  то, что должно относиться исключительно к процессу доступным для базового класса 
+  - это необходимо, так как он управляет блокировками, которые являются частью 
+  каждого объекта. В результате можно поместить <b>wait()</b> в любой <b>syncronized</b> 
+  метод, в зависимости от того, будет ли какой-либо процесс выполнять именно данный 
+  класс. Фактически, единственное применение для <b>wait()</b> быть вызванным 
+  из <b>synchronized</b> метода или блокировки. Если вызвать <b>wait()</b> или 
+  <b>notify()</b> в необъявленном как <b>synchronuzed</b> методе, то программа 
+  будет прекрасно компилироваться, но когда вы ее запустите, то получите&nbsp;<a NAME="Index1996"></a><b>IllegalMonitorStateException</b> 
+  с каким-то не сразу понятным сообщением "current thread not owner" (текущий 
+  процесс не владелец). Запомните, что <b>sleep()</b>, <b>suspend()</b> и <b>resume()</b> 
+  могут быть вызваны из не-<b>syncronized</b> методов, поскольку они не управляют 
+  блокировкой.</font></p>
+<p><font face="Georgia"> Вы можете вызвать <b>wait()</b> или <b>notify()</b> только 
+  для вашей собственной блокировки. Еще раз, вы сможете скомпилировать код, который 
+  пытается использовать неверную блокировку, но это приведет вас к тому самому 
+  <b>IllegalMonitorStateException</b> сообщению как и прежде. Также ни чего не 
+  получиться с чужой блокировкой, но можно попросить другой объект выполнить операцию 
+  с его собственной блокировкой. Таким образом одна из попыток заключается в создании 
+  <b>syncronized</b> метода, который вызывает <b>notify()</b> для своего собственного 
+  объекта. Однако в <b>Notifier</b> видим вызов <b>notify()</b> из <b>syncronized</b> 
+  блока:</font> </p>
+<blockquote>
+<pre><font size=+1><font color="#0000FF">synchronized</font>(wn2) {
+&nbsp; wn2.notify();
+}</font></pre>
+</blockquote>
+<font face="Georgia">где <b>wn2</b> объекта типа <b>WaitNotify2</b>. Этот,
+не являющийся частью WaitNotifier2, метод, имеет&nbsp; блокировку на объект
+wn2 и с этого момента он совершенно спокойно может вызвать notify() для
+wn2 и не получить <b>IllegalMonitorStateException</b>.</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>///:Continuing</font>
+<font color=#009900>/////////// Blocking via wait() ///////////</font>
+<font color=#0000ff>class</font> WaitNotify1 <font color=#0000ff>extends</font> Blockable {
+  <font color=#0000ff>public</font> WaitNotify1(Container c) { <font color=#0000ff>super</font>(c); }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      i++;
+      update();
+       <font color=#0000ff>try</font> {
+        wait(1000);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    }
+  }
+}
+
+<font color=#0000ff>class</font> WaitNotify2 <font color=#0000ff>extends</font> Blockable {
+  <font color=#0000ff>public</font> WaitNotify2(Container c) {
+    <font color=#0000ff>super</font>(c);
+    <font color=#0000ff>new</font> Notifier(<font color=#0000ff>this</font>); 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      i++;
+      update();
+       <font color=#0000ff>try</font> {
+        wait();
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    }
+  }
+}
+
+<font color=#0000ff>class</font> Notifier <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> WaitNotify2 wn2;
+  <font color=#0000ff>public</font> Notifier(WaitNotify2 wn2) {
+    <font color=#0000ff>this</font>.wn2 = wn2;
+    start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+       <font color=#0000ff>try</font> {
+        sleep(2000);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+      <font color=#0000ff>synchronized</font>(wn2) {
+        wn2.notify();
+      }
+    }
+  }
+}  <font color=#009900>///:Continued</font></PRE></FONT></BLOCKQUOTE>
+<font face="Georgia"><b>wait( )</b> обычно используется тогда, когда вы
+пришли к той точке программы, в которой вы ожидаете каких-либо других состояний,
+изменяемых под воздействием из вне вашего процесса, и не хотите пустого
+ожидания внутри вашего процесса.&nbsp; То есть <b>wait()</b> позволяет
+вам перевести процесс в сонное состояние в ожидании изменения мира и его
+сможет разбудить только <b>notify()</b> или <b>notifyAll()</b>, после чего
+он проснется и посмотрит что изменилось. Таким образом обеспечивается способ
+синхронизации между процессами.</font><a NAME="_Ref368085592"></a><a NAME="Heading498"></a>
+<h4>
+<font face="Verdana">Блокировка во время операций ввода/вывода</font><br>
+<a NAME="Index1997"></a><a NAME="Index1998"></a></h4>
+<p><font face="Georgia">Если поток ожидает какой-либо активности по вводу/выводу, 
+  то он автоматически блокируется. В следующей части примера два класса работают 
+  с универсальными объектами&nbsp;<a NAME="Index1999"></a><b>Reader</b> и<a NAME="Index2000"></a><b>Writer</b>, 
+  но для тестового примера&nbsp;<a NAME="Index2001"></a><a NAME="Index2002"></a> 
+  канал данных будет установлен так, чтобы позволить двум процессам безопасно 
+  передавать данные друг другу (что и есть цель каналов данных).</font></p>
+<p><font face="Georgia"> <b>Sender</b> помещает данные в <b>Writer</b> и засыпает 
+  на случайный промежуток времени. Однако, <b>Receiver</b> не имеет <b>sleep()</b>, 
+  <b>suspend()</b> или <b>wait()</b> и когда происходит вызов <b>read()</b> он 
+  автоматически блокируется до тех пор пока есть данные.</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>///:Continuing</font>
+<font color=#0000ff>class</font> Sender <font color=#0000ff>extends</font> Blockable { <font color=#009900>// send</font>
+  <font color=#0000ff>private</font> Writer out;
+  <font color=#0000ff>public</font> Sender(Container c, Writer out) { 
+    <font color=#0000ff>super</font>(c);
+    <font color=#0000ff>this</font>.out = out; 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      <font color=#0000ff>for</font>(<font color=#0000ff>char</font> c = 'A'; c &lt;= 'z'; c++) {
+        <font color=#0000ff>try</font> {
+          i++;
+          out.write(c);
+          state.setText(<font color=#004488>"Sender sent: "</font> 
+            + (<font color=#0000ff>char</font>)c);
+          sleep((<font color=#0000ff>int</font>)(3000 * Math.random()));
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        } <font color=#0000ff>catch</font>(IOException e) {
+          System.err.println(<font color=#004488>"IO problem"</font>);
+        }
+      }
+    }
+  }
+}
+
+<font color=#0000ff>class</font> Receiver <font color=#0000ff>extends</font> Blockable {
+  <font color=#0000ff>private</font> Reader in;
+  <font color=#0000ff>public</font> Receiver(Container c, Reader in) { 
+    <font color=#0000ff>super</font>(c);
+    <font color=#0000ff>this</font>.in = in; 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>try</font> {
+      <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+        i++; <font color=#009900>// Show peeker it's alive</font>
+        <font color=#009900>// Blocks until characters are there:</font>
+        state.setText(<font color=#004488>"Receiver read: "</font>
+          + (<font color=#0000ff>char</font>)in.read());
+      }
+    } <font color=#0000ff>catch</font>(IOException e) {
+      System.err.println(<font color=#004488>"IO problem"</font>);
+    }
+  }
+} <font color=#009900>///:Continued</font></PRE></FONT></BLOCKQUOTE>
+<font face="Georgia">Оба класса также помещают информацию в их поле <b>state</b>
+и изменяют значение <b>i</b>, так что Peeker контролирует выполнение процессов.&nbsp;</font><a NAME="Heading499"></a>
+<h4>
+<font face="Verdana">Тестирование</font></h4>
+<p><font face="Georgia">Главный класс апплета на удивление простой, потому что 
+  основной код перемещен в <b>Blockable</b>. В основном создаются массивы объектов 
+  <b>Blockable</b>, и, поскольку каждый из есть процесс, то каждый выполняют свою 
+  работу&nbsp; когда вы нажимаете кнопку "start". Есть также кнопка и ее <b>actionPerformed()</b> 
+  для остановки всех объектов <b>Peekers</b>, демонстрирующая альтернативу вызову 
+  запрещенному (в Java 2) методу <b>stop()</b> для <b>Thread</b>.</font></p>
+<p><font face="Georgia"> Для установления соединения между объектами <b>Sender</b> 
+  и <b>Reciever</b> создаются <b>PipedWriter</b> и <b>PipedReader</b>. Учтите, 
+  что <b>PipedReaderin</b> должен быть соединен с <b>PipedWriteout</b> через аргумент 
+  конструктора. После этого, все, что помещается в <b>out</b> в скором времени 
+  должно быть получено из <b>in</b>, так, как если бы это было отправлено через 
+  pipe (трубу, в соответствии с названием). Объекты <b>in</b> и <b>out</b> далее 
+  передаются конструкторам <b>Receiver</b> и <b>Sender</b> соответственно, которые 
+  расценивают их как оъекты <b>Reader</b> и <b>Writer</b> для различных типов. 
+  (таким образом, их можно привести&nbsp; к любому типу).</font></p>
+<p><font face="Georgia"> Массив указателей <b>b</b> типа <b>Blockable</b> не инициализируется 
+  определениями в этом месте поскольку потоки не могут быть установлены до их 
+  описания (необходимость блока try предотвращает это).</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>///:Continuing</font>
+<font color=#009900>/////////// Testing Everything ///////////</font>
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Blocking <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> JButton 
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    stopPeekers = <font color=#0000ff>new</font> JButton(<font color=#004488>"Stop Peekers"</font>);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> started = <font color=#0000ff>false</font>;
+  <font color=#0000ff>private</font> Blockable[] b;
+  <font color=#0000ff>private</font> PipedWriter out;
+  <font color=#0000ff>private</font> PipedReader in;
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>if</font>(!started) {
+        started = <font color=#0000ff>true</font>;
+        <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; b.length; i++)
+          b[i].start();
+      }
+    }
+  }
+  <font color=#0000ff>class</font> StopPeekersL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#009900>// Demonstration of the preferred </font>
+      <font color=#009900>// alternative to Thread.stop():</font>
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; b.length; i++)
+        b[i].stopPeeker();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+     Container cp = getContentPane();
+     cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+     out = <font color=#0000ff>new</font> PipedWriter();
+    <font color=#0000ff>try</font> {
+      in = <font color=#0000ff>new</font> PipedReader(out);
+    } <font color=#0000ff>catch</font>(IOException e) {
+      System.err.println(<font color=#004488>"PipedReader problem"</font>);
+    }
+    b = <font color=#0000ff>new</font> Blockable[] {
+      <font color=#0000ff>new</font> Sleeper1(cp),
+      <font color=#0000ff>new</font> Sleeper2(cp),
+      <font color=#0000ff>new</font> SuspendResume1(cp),
+      <font color=#0000ff>new</font> SuspendResume2(cp),
+      <font color=#0000ff>new</font> WaitNotify1(cp),
+      <font color=#0000ff>new</font> WaitNotify2(cp),
+      <font color=#0000ff>new</font> Sender(cp, out),
+      <font color=#0000ff>new</font> Receiver(cp, in)
+    };
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    cp.add(start);
+    stopPeekers.addActionListener(
+      <font color=#0000ff>new</font> StopPeekersL());
+    cp.add(stopPeekers);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Blocking(), 350, 550);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">В <b>init()</b> обратите внимание на цикл, проходящий 
+  по всему массиву и добавляющий <b>state</b> и текстовое поле <b>peeker.status</b> 
+  на страницу.</font></p>
+<p><font face="Georgia"> Когда процесс <b>Blockable</b> первоначально создается, 
+  то каждый из них создает и запускает свой собственный <b>Peeker</b>. Поэтому 
+  можно видеть работающие <b>Peeker</b> еще до того, как процессы <b>Blockable</b> 
+  запущены. Это важно, так некоторый из <b>Peeker</b> будут блокированы и остановлены 
+  когда запускаются процессы <b>Blockable</b>, и очень существенно увидеть это, 
+  чтобы понять данный аспект блокировки.</font><a NAME="_Toc375545483"></a><a NAME="_Toc481064858"></a><a NAME="Heading500"></a> 
+</p>
+<h3>
+<font face="Verdana">Мертвая блокировка</font><br>
+<a NAME="Index2003"></a><a NAME="Index2004"></a></h3>
+<p><font face="Georgia">Из-за того, что процесс может быть блокирован и из-за 
+  того, что объекты могут иметь <b>synchronized</b> методы, запрещающие процессам 
+  доступ к этим объектам до тех пор, пока не будет снята блокировка синхронизации, 
+  то возможен случай, когда один процесс ожидает другой процесс, который в свою 
+  очередь ожидает третий процесс и так далее, до тех пор пока цепочка не вернется 
+  к первому ожидающему процессу. В этом случае мы получаем бесконечный цикл процессов 
+  ожидающих друг друга, причем ни один не может продолжить выполнение. Это называется 
+  <i>мертвая блокировка</i> (deadlock). Можно утверждать, что это не происходит 
+  слишком часто, но когда это произойдет с вашим кодом, то будет очень сложно 
+  обнаружить ошибку.</font></p>
+<p><font face="Georgia"> В языке Java не существует специальных средств для того, 
+  чтобы помочь предотвратить мертвую блокировку; все действия по предотвращению 
+  возложены на программиста и заключаются в аккуратном проектировании. Хотя это 
+  и не утешение для того, кто пытается отлаживать программу с такой блокировкой.</font><a NAME="Heading501"></a> 
+</p>
+<h4>
+<font face="Verdana">Запрещение stop( ), suspend( ),&nbsp;<br>
+resume( ), и destroy( ) в Java 2</font><br>
+<a NAME="Index2005"></a><a NAME="Index2006"></a><a NAME="Index2007"></a><a NAME="Index2008"></a><a NAME="Index2009"></a><a NAME="Index2010"></a></h4>
+<p><font face="Georgia">Одно из изменений, которое было сделано в Java2 для уменьшения 
+  возможности возникновения мертвых блокировок заключалось в запрещении для <b>Thread</b> 
+  методов <b>stop()</b>, <b>suspend()</b>, <b>resume()</b> и <b>destroy( )</b>.</font></p>
+<p><font face="Georgia"><a NAME="Index2011"></a><a NAME="Index2012"></a>Причина, 
+  по которой метод <b>stop()</b> запрещен в том, что он не снимал блокировки полученные 
+  процессом и, если объект находился в неустойчивом состоянии ("разрушенный"), 
+  другие процессы могли просмотреть и изменить его состояние. Возникающие при 
+  этом проблемы с трудом могли быть определены. Вместо использования <b>stop()</b> 
+  лучше следовать примеру <b>Blocking.java</b> и использовать флаг для уведомления 
+  своего процесса о том, когда следует выйти из метода <b>run()</b>.</font></p>
+<p><font face="Georgia"> Иногда процесс блокирован, например когда ожидает ввода, 
+  и не может просмотреть флаг как это сделано в Blocking.java. В этом случае также 
+  не следует использовать <b>stop( )</b>, а использовать вместо этого метод<a NAME="Index2013"></a><a NAME="Index2014"></a><b>interrupt( 
+  )</b> в&nbsp;<a NAME="Index2015"></a><b>Thread</b> для разрыва блокированного 
+  кода:</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Interrupt.java</font>
+<font color=#009900>// The alternative approach to using </font>
+<font color=#009900>// stop() when a thread is blocked.</font>
+<font color=#009900>// &lt;applet code=Interrupt width=200 height=100&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>class</font> Blocked <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>try</font> {
+      wait(); <font color=#009900>// Blocks</font>
+    } <font color=#0000ff>catch</font>(InterruptedException e) {
+      System.err.println(<font color=#004488>"Interrupted"</font>);
+    }
+    System.out.println(<font color=#004488>"Exiting run()"</font>);
+  }
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Interrupt <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> JButton 
+    interrupt = <font color=#0000ff>new</font> JButton(<font color=#004488>"Interrupt"</font>);
+  <font color=#0000ff>private</font> Blocked blocked = <font color=#0000ff>new</font> Blocked();
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    cp.add(interrupt);
+    interrupt.addActionListener(
+      <font color=#0000ff>new</font> ActionListener() {
+        <font color=#0000ff>public</font> 
+        <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+          System.out.println(<font color=#004488>"Button pressed"</font>);
+          <font color=#0000ff>if</font>(blocked == <font color=#0000ff>null</font>) <font color=#0000ff>return</font>;
+          Thread remove = blocked;
+          blocked = <font color=#0000ff>null</font>; <font color=#009900>// to release it</font>
+          remove.interrupt();
+        }
+      });
+    blocked.start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Interrupt(), 200, 100);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><br>
+  <font face="Georgia">Метод <b>wait()</b> внутри <b>Blocked.run()</b> блокирует 
+  процесс. Когда вы нажимаете кнопку, ссылка <b>blocked</b> установлена в <b>null</b>, 
+  так что сборщик мусора удаляет ее, после чего для этого объекта вызывается метод 
+  <b>interrupt()</b>. Первый раз когда вы нажимаете кнопку видно, что процесс 
+  завершается, когда процессов для завершения не останется кнопка останется в 
+  нажатом состоянии.</font>
+<p><font face="Georgia"><a NAME="Index2016"></a>Методы <b>suspend()</b> и <b>resume()</b> 
+  по умолчанию являются склонными к созданию мертвых блокировок. Когда вызывается 
+  <b>suspend()</b> целевой процесс останавливается, но он все равно может получить 
+  блокировку установленную в этот момент. Таким образом, ни один ни другой процесс 
+  не сможет получить доступ к блокированным ресурсам пока процесс не разблокируется. 
+  Любой процесс, который хочет разблокировать целевой процесс и также пытается 
+  использовать любой из заблокированных ресурсов приведет к мертвой блокировке. 
+  Вы не должны использовать <b>suspend()</b> и <b>resume()</b>, а вместо этого 
+  следует установить флаг в ваш класс <b>Thread</b> для отображения того факта 
+  должен ли быть процесс активным или временно приостановлен.&nbsp;<a NAME="Index2017"></a><a NAME="Index2018"></a><a NAME="Index2019"></a><a NAME="Index2020"></a> 
+  процесс переход в ожидание используя <b>wait()</b>. Когда флаг показывает, что 
+  процесс должен быть возобновлен процесс перезапускается с помощью <b>notify()</b>. 
+  Пример может быть создан с помощью переделки <b>Counter2.java</b>. Хотя эффект 
+  одинаков, можно заметить, что сам код совершенно отличен ў<a NAME="Index2021"></a><a NAME="Index2022"></a><a NAME="Index2023"></a> 
+  анонимные внутренние классы используются для всех слушателей, а также <b>Thread</b> 
+  является внутренним классом, что делает программирование немного более удобным 
+  поскольку это предотвращает учета дополнительно использованных системных ресурсов 
+  необходимых в <b>Counter2.java</b>:</font> 
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Suspend.java</font>
+<font color=#009900>// The alternative approach to using suspend()</font>
+<font color=#009900>// and resume(), which are deprecated in Java 2.</font>
+<font color=#009900>// &lt;applet code=Suspend width=300 height=100&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Suspend <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> JTextField t = <font color=#0000ff>new</font> JTextField(10);
+  <font color=#0000ff>private</font> JButton 
+    suspend = <font color=#0000ff>new</font> JButton(<font color=#004488>"Suspend"</font>),
+    resume = <font color=#0000ff>new</font> JButton(<font color=#004488>"Resume"</font>);
+  <font color=#0000ff>private</font> Suspendable ss = <font color=#0000ff>new</font> Suspendable();
+  <font color=#0000ff>class</font> Suspendable <font color=#0000ff>extends</font> Thread {
+    <font color=#0000ff>private</font> <font color=#0000ff>int</font> count = 0;
+    <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> suspended = <font color=#0000ff>false</font>;
+    <font color=#0000ff>public</font> Suspendable() { start(); }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> fauxSuspend() { 
+      suspended = <font color=#0000ff>true</font>;
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>synchronized</font> <font color=#0000ff>void</font> fauxResume() {
+      suspended = <font color=#0000ff>false</font>;
+      notify();
+    }
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+      <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+        <font color=#0000ff>try</font> {
+          sleep(100);
+          <font color=#0000ff>synchronized</font>(<font color=#0000ff>this</font>) {
+            <font color=#0000ff>while</font>(suspended)
+              wait();
+          }
+        } <font color=#0000ff>catch</font>(InterruptedException e) {
+          System.err.println(<font color=#004488>"Interrupted"</font>);
+        }
+        t.setText(Integer.toString(count++));
+      }
+    }
+  } 
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    cp.add(t);
+    suspend.addActionListener(
+      <font color=#0000ff>new</font> ActionListener() {
+        <font color=#0000ff>public</font> 
+        <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+          ss.fauxSuspend();
+        }
+      });
+    cp.add(suspend);
+    resume.addActionListener(
+      <font color=#0000ff>new</font> ActionListener() {
+        <font color=#0000ff>public</font> 
+        <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+          ss.fauxResume();
+        }
+      });
+    cp.add(resume);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Suspend(), 300, 100);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">Флаг <b>suspended</b> внутри <b>Suspendable</b> используется 
+  для включения или отключения временной приостановки. Для приостановки флаг устанавливается 
+  в <b>true</b> через вызов <b>fauxSuspend()</b> и это определяется внутри <b>run()</b>. 
+  <b>wait()</b>, как было описано в этом разделе раннее, должен быть <b>synchronized</b>, 
+  так что он может иметь блокировку объекта. В <b>fauxResume()</b>, флаг suspended 
+  устанавливается в <b>false</b> и вызывается <b>notify()</b>, поскольку это разбудит 
+  <b>wait()</b> внутри блока <b>synchronized</b>, то метод <b>fauxRsume()</b> 
+  должен быть также объявлен как <b>synchronized</b> так, что он получает блокировку 
+  до вызова <b>notify()</b> (таким образом блокировка доступна для <b>wait()</b> 
+  чтобы проснуться). Если следовать стилю этой программы, то можно избежать использования 
+  <b>suspend()</b> и <b>resume()</b>.</font></p>
+<p><font face="Georgia"> Метод&nbsp;<a NAME="Index2024"></a><a NAME="Index2025"></a><b>destroy( 
+  )</b> для <b>Thread</b> никогда не будет реализован; это аналогично <b>suspend()</b> 
+  который не может продолжить выполнение, и поэтому он имеет те же самые склонности 
+  к мертвой блокировке как и <b>suspend()</b>. Однако это не запрещенный (deprecated) 
+  метод и может быть реализован в следующих версиях Java (после 2) для специальных 
+  ситуаций, в которых риск мертвой блокировки приемлем.</font></p>
+<p><font face="Georgia"> Можно удивляться, почему эти методы, в настоящее время 
+  запрещенные, были включены в Java в начале. Похоже была допущена довольно существенная 
+  ошибка чтобы просто полностью убрать их (и сделать еще один прокол в аргументации 
+  об особенном дизайне Java и в агитации безотказной работы меркетологами Sun). 
+  Слова же в поддержку изменений заключается в том, что это ясно показывает, что 
+  программисты, а не маркетологи играют в спектакль - одни находят проблемы, другие 
+  исправляют их. Я считаю это более перспективным и обнадеживающим, чем уход от 
+  проблемы только из-за того, что "исправление ошибки приводи к ошибке". Это также 
+  означает, что Java продолжает улучшаться, даже если это вызывает дискомфорт 
+  у части Java программистов. Уж лучше я буду испытывать временный дискомфорт 
+  чем наблюдать застой языка.</font><a NAME="_Toc375545484"></a><a NAME="_Toc481064859"></a><a NAME="Heading502"></a> 
+</p>
+<h2>
+<font face="Verdana">Приоритеты</font></h2>
+<p><a NAME="Index2026"></a><a NAME="Index2027"></a><font face="Georgia"><i>Приоритеты 
+  </i>процессов показывают насколько данный процесс важен. Если существует несколько 
+  блокированных и ждущих запуска процессов, то планировщик выберет первым тот, 
+  у которого больше значение приоритета. Однако, это не означает, что процесс 
+  с наименьшим приоритетом никогда не запуститься (так например, никогда не произойдет 
+  зависания из-за наличия разных приоритетов). Просто процесс с меньшим приоритетом 
+  будет запускаться реже.</font></p>
+<p><font face="Georgia"> Также интересно просто знать о приоритетах&nbsp; и "поиграться" 
+  с ним, но на практике вам практически никогда не придется устанавливать приоритеты 
+  самостоятельно. Так что можете спокойно пропустить эту часть, если приоритеты 
+  не очень вам интересны.</font><a NAME="_Toc481064860"></a><a NAME="Heading503"></a> 
+</p>
+<h3>
+<font face="Verdana">Чтение и установка приоритетов</font></h3>
+<font face="Georgia">Можно определить приоритет процесса с помощью&nbsp;<a NAME="Index2028"></a><a NAME="Index2029"></a><b>getPriority(
+)
+</b>и изменить его&nbsp;<a NAME="Index2030"></a><a NAME="Index2031"></a><b>
+setPriority( )</b>. Форму предыдущих примеров счетчиков "counter" можно
+использовать для демонстрации эффекта изменния приоритетов. В данном апплете
+можно видеть как счетчик замедляется по мере того, как его процесс получает
+низший приоритет:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:Counter5.java</font>
+<font color=#009900>// Adjusting the priorities of threads.</font>
+<font color=#009900>// &lt;applet code=Counter5 width=450 height=600&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>class</font> Ticker2 <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> JButton
+    b = <font color=#0000ff>new</font> JButton(<font color=#004488>"Toggle"</font>),
+    incPriority = <font color=#0000ff>new</font> JButton(<font color=#004488>"up"</font>),
+    decPriority = <font color=#0000ff>new</font> JButton(<font color=#004488>"down"</font>);
+  <font color=#0000ff>private</font> JTextField
+    t = <font color=#0000ff>new</font> JTextField(10),
+    pr = <font color=#0000ff>new</font> JTextField(3); <font color=#009900>// Display priority</font>
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> count = 0;
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> runFlag = <font color=#0000ff>true</font>;
+  <font color=#0000ff>public</font> Ticker2(Container c) {
+    b.addActionListener(<font color=#0000ff>new</font> ToggleL());
+    incPriority.addActionListener(<font color=#0000ff>new</font> UpL());
+    decPriority.addActionListener(<font color=#0000ff>new</font> DownL());
+    JPanel p = <font color=#0000ff>new</font> JPanel();
+    p.add(t);
+    p.add(pr);
+    p.add(b);
+    p.add(incPriority);
+    p.add(decPriority);
+    c.add(p);
+  }
+  <font color=#0000ff>class</font> ToggleL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      runFlag = !runFlag;
+    }
+  }
+  <font color=#0000ff>class</font> UpL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>int</font> newPriority = getPriority() + 1;
+      <font color=#0000ff>if</font>(newPriority &gt; Thread.MAX_PRIORITY)
+        newPriority = Thread.MAX_PRIORITY;
+      setPriority(newPriority);
+    }
+  }
+  <font color=#0000ff>class</font> DownL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>int</font> newPriority = getPriority() - 1;
+      <font color=#0000ff>if</font>(newPriority &lt; Thread.MIN_PRIORITY)
+        newPriority = Thread.MIN_PRIORITY;
+      setPriority(newPriority);
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font> (<font color=#0000ff>true</font>) {
+      <font color=#0000ff>if</font>(runFlag) {
+        t.setText(Integer.toString(count++));
+        pr.setText(
+          Integer.toString(getPriority()));
+      }
+      yield();
+    }
+  }
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Counter5 <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> JButton
+    start = <font color=#0000ff>new</font> JButton(<font color=#004488>"Start"</font>),
+    upMax = <font color=#0000ff>new</font> JButton(<font color=#004488>"Inc Max Priority"</font>),
+    downMax = <font color=#0000ff>new</font> JButton(<font color=#004488>"Dec Max Priority"</font>);
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> started = <font color=#0000ff>false</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>final</font> <font color=#0000ff>int</font> SIZE = 10;
+  <font color=#0000ff>private</font> Ticker2[] s = <font color=#0000ff>new</font> Ticker2[SIZE];
+  <font color=#0000ff>private</font> JTextField mp = <font color=#0000ff>new</font> JTextField(3);
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> FlowLayout());
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+      s[i] = <font color=#0000ff>new</font> Ticker2(cp);
+    cp.add(<font color=#0000ff>new</font> JLabel(
+      <font color=#004488>"MAX_PRIORITY = "</font> + Thread.MAX_PRIORITY));
+    cp.add(<font color=#0000ff>new</font> JLabel(<font color=#004488>"MIN_PRIORITY = "</font>
+      + Thread.MIN_PRIORITY));
+    cp.add(<font color=#0000ff>new</font> JLabel(<font color=#004488>"Group Max Priority = "</font>));
+    cp.add(mp);
+    cp.add(start);
+    cp.add(upMax);
+    cp.add(downMax);
+    start.addActionListener(<font color=#0000ff>new</font> StartL());
+    upMax.addActionListener(<font color=#0000ff>new</font> UpMaxL());
+    downMax.addActionListener(<font color=#0000ff>new</font> DownMaxL());
+    showMaxPriority();
+    <font color=#009900>// Recursively display parent thread groups:</font>
+    ThreadGroup parent =
+      s[0].getThreadGroup().getParent();
+    <font color=#0000ff>while</font>(parent != <font color=#0000ff>null</font>) {
+      cp.add(<font color=#0000ff>new</font> Label(
+        <font color=#004488>"Parent threadgroup max priority = "</font>
+        + parent.getMaxPriority()));
+      parent = parent.getParent();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> showMaxPriority() {
+    mp.setText(Integer.toString(
+      s[0].getThreadGroup().getMaxPriority()));
+  }
+  <font color=#0000ff>class</font> StartL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>if</font>(!started) {
+        started = <font color=#0000ff>true</font>;
+        <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+          s[i].start();
+      }
+    }
+  }
+  <font color=#0000ff>class</font> UpMaxL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>int</font> maxp =
+        s[0].getThreadGroup().getMaxPriority();
+      <font color=#0000ff>if</font>(++maxp &gt; Thread.MAX_PRIORITY)
+        maxp = Thread.MAX_PRIORITY;
+      s[0].getThreadGroup().setMaxPriority(maxp);
+      showMaxPriority();
+    }
+  }
+  <font color=#0000ff>class</font> DownMaxL <font color=#0000ff>implements</font> ActionListener {
+    <font color=#0000ff>public</font> <font color=#0000ff>void</font> actionPerformed(ActionEvent e) {
+      <font color=#0000ff>int</font> maxp =
+        s[0].getThreadGroup().getMaxPriority();
+      <font color=#0000ff>if</font>(--maxp &lt; Thread.MIN_PRIORITY)
+        maxp = Thread.MIN_PRIORITY;
+      s[0].getThreadGroup().setMaxPriority(maxp);
+      showMaxPriority();
+    }
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Console.run(<font color=#0000ff>new</font> Counter5(), 450, 600);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia"><b>Ticker2</b> следует установленной раннее в данной главе 
+  форме, но здесь есть дополнительное <b>JTextField</b> для отображения приоритета 
+  процесса и две дополнительные кнопки для увеличения и уменьшения значения приоритета.</font></p>
+<p><font face="Georgia"> Также обратите внимание на использование yield() добровольно 
+  отдающему блок управления планировщику. Без этого механизм с множеством процессов 
+  также будет работать, но вы заметите, что все будет выполняться медленнее (удалите 
+  вызов <b>yield( )</b> чтобы убедиться в этом). Можно также вызывать <b>sleep( 
+  )</b>, но тогда значение счетчика будет определяться продолжительностью задержки 
+  заданной при вызове <b>sleep( )</b>, а не приоритетом процесса.</font></p>
+<p><font face="Georgia"> Метод <b>init( )</b> в <b>Counter5 </b>создает массив 
+  из десяти <b>Ticker2</b>, их кнопки и поля ввода размещаются на форме конструктором 
+  <b>Ticker2</b>. <b>Counter5</b> добавляет кнопки для общего запуска, а также 
+  кнопки для увеличения и уменьшения максимального значения приоритета для группы 
+  процессов. Добавочно существуют строки (label), для отображения возможных максимальных 
+  и минимальных значений приоритетов для процесса и <b>JTextField</b>, для отображения 
+  максимального приоритета для группы (мы рассмотрим группу процессов в следующем 
+  разделе). В заключении всего, приоритеты групп процессов потомков также отображаются 
+  как строки (labels).</font></p>
+<p><font face="Georgia"> Когда нажимается кнопка "up" или "down", то выбирается 
+  приоритет этого <b>Ticker2</b> и он, соответственно, увеличивается или уменьшается.</font></p>
+<p><font face="Georgia"> Когда вы запустите эту программу, обратите внимание на 
+  несколько вещей. Во-первых, приоритет по умолчанию для группы&nbsp;<a NAME="Index2032"></a><a NAME="Index2033"></a> 
+  равен пяти. Даже если вы уменьшите максимальное значение приоритета ниже пяти 
+  перед запуском процессов (или перед созданием процессов, что потребует изменение 
+  кода), каждый процесс будет иметь приоритет по умолчанию равный пяти.</font></p>
+<p><font face="Georgia"> Простая проверка - взять один из счетчиков и уменьшать 
+  значение его приоритета на единицу, и наблюдать как он подсчитывается более 
+  медленнее.&nbsp; А теперь попробуйте увеличит его снова. Вы можете его вернуть 
+  до уровня приорета группы процессов, но не более. Теперь уменьшим приоритет 
+  группы на некоторое время. Приоритет процессов не изменился, но если попытаться 
+  опять увеличить или уменьшить его то видно, что они автоматически принимают 
+  значение приоритета группы. Также новым процессам будет установлено значение 
+  приоритета по умолчанию, даже если оно больше значение приоритета для группы. 
+  (Таким образом приоритет для группы не мешает новым процессам получить большее 
+  значение приоритета по сравнению с существующим).</font></p>
+<p><font face="Georgia"> В конце, попробуйте увеличить максимальный приоритет 
+  для группы. Это не возможно сделать. Можно только уменьшить максимальное значение 
+  приоритета для группы, но не увеличить его.</font><a NAME="_Toc375545485"></a><a NAME="_Toc481064861"></a><a NAME="Heading504"></a> 
+</p>
+<h3>
+<font face="Verdana">Группы процессов</font></h3>
+<p><font face="Georgia">Все процессы принадлежат к&nbsp;<a NAME="Index2034"></a> 
+  группам процессов. Это может быть группа процессов по умолчанию, или группа 
+  явно указанная при создании процесса.&nbsp; Во время создания процесс привязан 
+  к группе и не может сменить ее на другую группу. Каждое приложение имеет, по 
+  крайне мере, один процесс, который принадлежит системной группе процессов. При 
+  создании нескольких процессов без указания группы, они также будут принадлежать 
+  системной группе. Одна группа процессов также может принадлежать другой группе 
+  процессов.</font></p>
+<p><font face="Georgia"> Группа процессов, к которой принадлежит только что созданная 
+  (не понятно, созданная(ый) кто - группа или процесс - <i>прим. перев.</i>), 
+  должна быть указана в конструкторе. Если создается группа процессов без указания 
+  группы, к которой она должна принадлежать, то она помещается в системную группу. 
+  Таким образом, все процессы приложения в конечном счете имеют системную группу 
+  в качестве предка.</font></p>
+<p><font face="Georgia"> Причина существования групп процессов трудно понять из 
+  литературы, которые обычно не четко описывают данную область. Чаще всего цитируется 
+  "по причине защиты". Соглачно Arnold &amp; Gosling,</font><a href="#fn71">[71]</a><font face="Georgia"> 
+  "Threads within a thread group can modify the other threads in the group, including 
+  any farther down the hierarchy. A thread cannot modify threads outside of its 
+  own group or contained groups." (Процессы в группе могут изменять другие процессы 
+  этой группы, включая все последующие согласно иерархии. Процесс не может изменять 
+  процессы не входящие в его группу или группы в его группе). Довольно трудно 
+  понять, что означает "изменять" в приведенной цитате. Следующий пример показывает 
+  процесс в подгруппе "leaf", который изменяет приоритеты всех процессов в его 
+  дереве группы процессов, а также и сам метод, вызываемый для всех процессов 
+  в дереве.</font> </p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:TestAccess.java</font>
+<font color=#009900>// How threads can access other threads</font>
+<font color=#009900>// in a parent thread group.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> TestAccess {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    ThreadGroup 
+      x = <font color=#0000ff>new</font> ThreadGroup(<font color=#004488>"x"</font>),
+      y = <font color=#0000ff>new</font> ThreadGroup(x, <font color=#004488>"y"</font>),
+      z = <font color=#0000ff>new</font> ThreadGroup(y, <font color=#004488>"z"</font>);
+    Thread
+      one = <font color=#0000ff>new</font> TestThread1(x, <font color=#004488>"one"</font>),
+      two = <font color=#0000ff>new</font> TestThread2(z, <font color=#004488>"two"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> TestThread1 <font color=#0000ff>extends</font> Thread {
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> i;
+  TestThread1(ThreadGroup g, String name) {
+    <font color=#0000ff>super</font>(g, name);
+  }
+  <font color=#0000ff>void</font> f() {
+    i++; <font color=#009900>// modify this thread</font>
+    System.out.println(getName() + <font color=#004488>" f()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> TestThread2 <font color=#0000ff>extends</font> TestThread1 {
+  TestThread2(ThreadGroup g, String name) {
+    <font color=#0000ff>super</font>(g, name);
+    start();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    ThreadGroup g =
+      getThreadGroup().getParent().getParent();
+    g.list();
+    Thread[] gAll = <font color=#0000ff>new</font> Thread[g.activeCount()];
+    g.enumerate(gAll);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; gAll.length; i++) {
+      gAll[i].setPriority(Thread.MIN_PRIORITY);
+      ((TestThread1)gAll[i]).f();
+    }
+    g.list();
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">В <b>main()</b> создается несколько <b>ThreadGroup</b> 
+  накладываясь друг на друга: <b>х</b> не имеет аргументов, за исключением своего 
+  имени (<b>String</b>) , так что он автоматически помещается в "системную" группу 
+  процессов, до тех пор пока <b>y</b> меньше <b>х</b> и <b>z</b> меньше <b>у</b>. 
+  Обратите внимание, что инициализация происходит в той же последовательности 
+  как написано, так что этот код правилен.</font></p>
+<p><font face="Georgia"> Два процесса создаются и помещаются в разные группы процессов. 
+  <b>TestThread1</b> не имеет метода <b>run()</b>, но имеет метод <b>f()</b>, 
+  который изменяет процесс и выводит сообщение, чтобы вы знали, что он был вызван. 
+  <b>TestThread2</b> является подклассом <b>TestThread1</b> и его <b>run()</b> 
+  довольно сложен. В начале он определяет группу процессов текущего процесса, 
+  затем перемещается по дереву наследования на два уровня используя <b>getParent()</b>. 
+  (Это задумано поскольку я специально поместил объект <b>TestThread2</b> на два 
+  уровня ниже по иерархии.) В этом месте создается массив ссылок на <b>Thread</b> 
+  используя метод <b>activeCount()</b>, чтобы знать, сколько процессов в данной 
+  группе и во всех подгруппах. Метод <b>enumerate()</b> помещает ссылки на все 
+  процессы в массив <b>gAll</b>, а затем я просто перемещаюсь по всему массиву 
+  вызывая метод <b>f()</b> для каждого процесса, заодно меняя приоритет. Таким 
+  образом, процесс в группе "leaf" изменяет процессы в группах родителя.</font></p>
+<p><font face="Georgia"> Отладочный метод <b>list()</b> выводит всю информацию 
+  о группе процессов на стандартный вывод, что полезно при изучении поведения 
+  процессов. Ниже приведена работа программы:</font> </p>
+<blockquote>
+<pre><font size=+1>java.lang.ThreadGroup[name=x,maxpri=10]
+&nbsp;&nbsp;&nbsp; Thread[one,5,x]
+&nbsp;&nbsp;&nbsp; java.lang.ThreadGroup[name=y,maxpri=10]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; java.lang.ThreadGroup[name=z,maxpri=10]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[two,5,z]
+one f()
+two f()
+java.lang.ThreadGroup[name=x,maxpri=10]
+&nbsp;&nbsp;&nbsp; Thread[one,1,x]
+&nbsp;&nbsp;&nbsp; java.lang.ThreadGroup[name=y,maxpri=10]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; java.lang.ThreadGroup[name=z,maxpri=10]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[two,1,z]</font></pre>
+</blockquote>
+<p><font face="Georgia">Метод <b>list()</b> не только выводит имя класса для <b>ThreadGroup</b> 
+  или <b>Thread</b>, но также и имя группы и ее максимальный приоритет. Для процессов 
+  имя процесса выводится после приоритета и имени группы, к которой он принадлежит. 
+  Обратите внимание, что <b>list()</b> вставляет отступы для процессов и групп 
+  процессов, чтобы показать, что они являются дочерни по отношении к группе без 
+  отступа.</font></p>
+<p><font face="Georgia"> Можно видеть, что <b>f()</b> вызывается методом <b>run()</b> 
+  из <b>TestThread2</b>, так что совершенно очевидно, что все процессы в группе 
+  уязвимы (vulnerable). Однако доступ возможен только к процессам являющимися 
+  подветвью вашей <b>системной</b> группы процессов и, вероятно, это и подразумевают 
+  под "безопастностью". Доступ к чужим системным группам не возможен.</font><a NAME="Heading505"></a> 
+</p>
+<h4>
+<font face="Verdana">Управление группами процессов</font></h4>
+<font face="Georgia">Возвращаясь к обсуждению темы безопасности можно сказать,
+что одна вещь похоже будет полезной для управления процессами: можно выполнить
+определенную операцию над всей группой процессов с помощью одной команды.
+Следующий пример демонстрирует это, а также ограничение приоритетов внутри
+групп процессов. Закомментированный цифры в круглых скобках обеспечивают
+ссылку для сравнения результата работы.</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:ThreadGroup1.java</font>
+<font color=#009900>// How thread groups control priorities</font>
+<font color=#009900>// of the threads inside them.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> ThreadGroup1 {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#009900>// Get the system thread &amp; print its Info:</font>
+    ThreadGroup sys = 
+      Thread.currentThread().getThreadGroup();
+    sys.list(); <font color=#009900>// (1)</font>
+    <font color=#009900>// Reduce the system thread group priority:</font>
+    sys.setMaxPriority(Thread.MAX_PRIORITY - 1);
+    <font color=#009900>// Increase the main thread priority:</font>
+    Thread curr = Thread.currentThread();
+    curr.setPriority(curr.getPriority() + 1);
+    sys.list(); <font color=#009900>// (2)</font>
+    <font color=#009900>// Attempt to set a new group to the max:</font>
+    ThreadGroup g1 = <font color=#0000ff>new</font> ThreadGroup(<font color=#004488>"g1"</font>);
+    g1.setMaxPriority(Thread.MAX_PRIORITY);
+    <font color=#009900>// Attempt to set a new thread to the max:</font>
+    Thread t = <font color=#0000ff>new</font> Thread(g1, <font color=#004488>"A"</font>);
+    t.setPriority(Thread.MAX_PRIORITY);
+    g1.list(); <font color=#009900>// (3)</font>
+    <font color=#009900>// Reduce g1's max priority, then attempt</font>
+    <font color=#009900>// to increase it:</font>
+    g1.setMaxPriority(Thread.MAX_PRIORITY - 2);
+    g1.setMaxPriority(Thread.MAX_PRIORITY);
+    g1.list(); <font color=#009900>// (4)</font>
+    <font color=#009900>// Attempt to set a new thread to the max:</font>
+    t = <font color=#0000ff>new</font> Thread(g1, <font color=#004488>"B"</font>);
+    t.setPriority(Thread.MAX_PRIORITY);
+    g1.list(); <font color=#009900>// (5)</font>
+    <font color=#009900>// Lower the max priority below the default</font>
+    <font color=#009900>// thread priority:</font>
+    g1.setMaxPriority(Thread.MIN_PRIORITY + 2);
+    <font color=#009900>// Look at a new thread's priority before</font>
+    <font color=#009900>// and after changing it:</font>
+    t = <font color=#0000ff>new</font> Thread(g1, <font color=#004488>"C"</font>);
+    g1.list(); <font color=#009900>// (6)</font>
+    t.setPriority(t.getPriority() -1);
+    g1.list(); <font color=#009900>// (7)</font>
+    <font color=#009900>// Make g2 a child Threadgroup of g1 and</font>
+    <font color=#009900>// try to increase its priority:</font>
+    ThreadGroup g2 = <font color=#0000ff>new</font> ThreadGroup(g1, <font color=#004488>"g2"</font>);
+    g2.list(); <font color=#009900>// (8)</font>
+    g2.setMaxPriority(Thread.MAX_PRIORITY);
+    g2.list(); <font color=#009900>// (9)</font>
+    <font color=#009900>// Add a bunch of new threads to g2:</font>
+    <font color=#0000ff>for</font> (<font color=#0000ff>int</font> i = 0; i &lt; 5; i++)
+      <font color=#0000ff>new</font> Thread(g2, Integer.toString(i));
+    <font color=#009900>// Show information about all threadgroups</font>
+    <font color=#009900>// and threads:</font>
+    sys.list(); <font color=#009900>// (10)</font>
+    System.out.println(<font color=#004488>"Starting all threads:"</font>);
+    Thread[] all = <font color=#0000ff>new</font> Thread[sys.activeCount()];
+    sys.enumerate(all);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; all.length; i++)
+      <font color=#0000ff>if</font>(!all[i].isAlive())
+        all[i].start();
+    <font color=#009900>// Suspends &amp; Stops all threads in </font>
+    <font color=#009900>// this group and its subgroups:</font>
+    System.out.println(<font color=#004488>"All threads started"</font>);
+    sys.suspend(); <font color=#009900>// Deprecated in Java 2</font>
+    <font color=#009900>// Never gets here...</font>
+    System.out.println(<font color=#004488>"All threads suspended"</font>);
+    sys.stop(); <font color=#009900>// Deprecated in Java 2</font>
+    System.out.println(<font color=#004488>"All threads stopped"</font>);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<font face="Georgia">Результат работы программы, представленный ниже, был
+отредактирован, чтобы уместиться на странице (<b>java.lang.</b> удалено),
+а также добавлены цифры, чтобы ссылаться на закомментированные цифры по
+тексту программы приведенной выше.</font>
+<blockquote>
+<pre><font size=+1>(1) ThreadGroup[name=system,maxpri=10]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[main,5,system]
+(2) ThreadGroup[name=system,maxpri=9]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[main,6,system]
+(3) ThreadGroup[name=g1,maxpri=9]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+(4) ThreadGroup[name=g1,maxpri=8]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+(5) ThreadGroup[name=g1,maxpri=8]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+(6) ThreadGroup[name=g1,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[C,6,g1]
+(7) ThreadGroup[name=g1,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[C,3,g1]
+(8) ThreadGroup[name=g2,maxpri=3]
+(9) ThreadGroup[name=g2,maxpri=3]
+(10)ThreadGroup[name=system,maxpri=9]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[main,6,system]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ThreadGroup[name=g1,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[C,3,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ThreadGroup[name=g2,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[0,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[1,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[2,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[3,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[4,6,g2]
+Starting all threads:
+All threads started</font></pre>
+</blockquote>
+<font face="Georgia">У всех программ есть как минимум один запущенный процесс
+и первое действие в <b>main()</b> является вызовом <b>static</b> метода
+для <b>Thread</b> называемого <b>currentThread()</b>. Из этого процесса
+создается группа процессов и вызывается <b>list()</b> для отображения следующего
+результата:</font>
+<blockquote>
+<pre><font size=+1>(1) ThreadGroup[name=system,maxpri=10]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[main,5,system]</font></pre>
+</blockquote>
+<p><font face="Georgia">Можно видеть, что имя основной группы <b>system</b>, а 
+  имя основного процесса <b>main</b> и он принадлежит группе процессов <b>system</b>.</font></p>
+<p><font face="Georgia"> Второй пример (exercise) показывает, что максимальный 
+  приоритет группы <b>system</b> может быть уменьшен, а процесс <b>main</b> может 
+  увеличить свой приоритет:</font> </p>
+<blockquote>
+<pre><font size=+1>(2) ThreadGroup[name=system,maxpri=9]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[main,6,system]</font></pre>
+</blockquote>
+<font face="Georgia">Третий пример создает группу процессов<b> g1</b>,
+которая автоматически принадлежит <b>системной</b> группе процессов поскольку
+для нее не установлено что-то иное. Новый процесс <b>А</b> помещается в
+<b>g1</b>.&nbsp;
+После попытки установить наивысшее значение для максимального приоритета
+этой группы и наивысшее значение для приоритет процесса <b>А</b> результат
+будет следующий:</font>
+<blockquote>
+<pre><font size=+1>(3) ThreadGroup[name=g1,maxpri=9]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]</font></pre>
+</blockquote>
+<p><font face="Georgia">Таким образом, не возможно установить более высокое максимальное 
+  значение приоритета группы чем у ее предка.</font></p>
+<p><font face="Georgia"> Четвертый пример уменьшает максимальное значение приоритета 
+  для <b>g1</b>, а затем пытается вернуть его обратно к <b>Thread.MAX_PRIORITY</b>. 
+  Результат следующий:</font> </p>
+<blockquote>
+<pre><font size=+1>(4) ThreadGroup[name=g1,maxpri=8]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]</font></pre>
+</blockquote>
+<p><font face="Georgia">Можно видеть, что обратное увеличение до максимального 
+  приоритета не работает. Можно только уменьшить максимальное значение приоритета 
+  группы, но не увеличить его. Также обратите внимание, что приоритет процесса 
+  <b>A</b> не изменился и стал больше чем значение максимального приоритета для 
+  группы.</font></p>
+<p><font face="Georgia"> В пятом пример делается попытка установить у нового процесса 
+  максимальное значение приоритета:</font> </p>
+<blockquote>
+<pre><font size=+1>(5) ThreadGroup[name=g1,maxpri=8]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]</font></pre>
+</blockquote>
+<p><font face="Georgia">Приоритет нового процесса не может быть изменен на большее, 
+  чем макимальное значение приорита группы.</font></p>
+<p><font face="Georgia"> Приоритет процесса по умолчанию для данной программы 
+  равен шести; это приоритет с которым будет создан новый процесс и с которым 
+  он останется, если не пытаться как-то его изменить. В примере 6 будем уменьшать 
+  максимальный приоритет группы до меньшего значения, чем приоритет процесса по 
+  умолчанию, чтобы увидеть, что произойдет в этих условиях:</font> </p>
+<blockquote>
+<pre><font size=+1>(6) ThreadGroup[name=g1,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[C,6,g1]</font></pre>
+</blockquote>
+<p><font face="Georgia">Хотя максимальный приоритет для группы и равен трем, новый 
+  процесс все равно создается с приоритетом по умолчанию, то есть шесть. Таким 
+  образом, максимальное значение приоритета группы процессов не влияет на приоритет 
+  по умолчанию. (Фактически не существует способа установить другое значение проритета 
+  по умолчанию для новых процессов.)</font></p>
+<p><font face="Georgia"> После изменения приоритета, попытка уменьшить его на 
+  единицу приводит к следующему:</font> </p>
+<blockquote>
+<pre><font size=+1>(7) ThreadGroup[name=g1,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[C,3,g1]</font></pre>
+</blockquote>
+<p><font face="Georgia">Только когда вы пытаетесь изменить значение приоритета 
+  принудительно изменяется максимальное значение приоритета группы процессов.</font></p>
+<p><font face="Georgia"> Аналогичный эксперимент проводился в (8) и (9), в котором 
+  создается новая дочерняя группа процессов <b>g2</b> от <b>g1</b>, а затем максимальное 
+  значение ее приоритета изменяется. И видно, что невозможно установить максимальное 
+  значение приоритета для <b>g2</b> выше, чем у <b>g1</b>:</font> </p>
+<blockquote>
+<pre><font size=+1>(8) ThreadGroup[name=g2,maxpri=3]
+(9) ThreadGroup[name=g2,maxpri=3]</font></pre>
+</blockquote>
+<p><font face="Georgia">Также видно, что в момент создания, <b>g2</b> автоматически 
+  устанавливает приоритет в значение, равное максимальному приоритету группы <b>g1</b>.</font></p>
+<p><font face="Georgia"> После всех этих экспериментов выводиться полный список 
+  всех групп и процессов:</font> </p>
+<blockquote>
+<pre><font size=+1>(10)ThreadGroup[name=system,maxpri=9]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[main,6,system]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ThreadGroup[name=g1,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[A,9,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[B,8,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[C,3,g1]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ThreadGroup[name=g2,maxpri=3]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[0,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[1,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[2,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[3,6,g2]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thread[4,6,g2]</font></pre>
+</blockquote>
+<p><font face="Georgia">Таким образом, согласно правилу для групп процессов, дочерняя 
+  группа всегда будет иметь приоритет, который меньше или равен максимальному 
+  значению приоритета группы предка.</font></p>
+<p><font face="Georgia"> Последняя часть данной программы демонстрирует методы 
+  для всей группы процессов. В начале программа перемещается по всему дереву процессов 
+  и запускает те из них, который еще не запущены. Чтобы все было не безоблачно, 
+  системная группа затем временно отключается (suspend) и, в конце концов, останавливается. 
+  (Также довольно интересно наблюдать как <b>suspend()</b> и <b>work()</b> работают 
+  со всей группой процессов, но помните, что данные методы запрещены (depricated) 
+  в Java 2.) Но в тот момент когда вы приостановили группу <b>system</b>, вы также 
+  приостанавливаете процесс main и вся программа падает (shut down), и она ни 
+  когда не дойдет до той точки, где программа останавливается. В действительности, 
+  при попытке остановить процесс main он генерирует исключение <b>ThreadDeath</b>, 
+  то есть не типичная ситуация. Поскольку <b>ThreadGroup</b> является наследником 
+  <b>Object</b> содержащий метод <b>wait()</b>, то можно также приостановить выполнение 
+  программы на какой-то промежуток времени вызовом <b>wait(seconds * 1000)</b>. 
+  Конечно это должно установить блокировку внутри синхронизированного блока.</font></p>
+<p><font face="Georgia"> Класс <b>ThreadGroup</b> имеет также методы <b>suspend( 
+  )</b> и <b>resume( ),</b> так что можно остановить и запустить всю группу процессов 
+  и все процессы и подгруппы в этой группе с помощью простых команд. (И еще раз, 
+  <b>suspend( )</b> и <b>resume( )</b> запрещены в Java 2.)</font></p>
+<p><font face="Georgia"> Группы процессов могут выглядеть мистическими на первый 
+  взгляд, но просто помните, что вам не придется слишком часто пользоваться ими 
+  непосредственно.</font><a NAME="_Toc375545486"></a><a NAME="_Toc481064862"></a><a NAME="Heading506"></a> 
+</p>
+<h2>
+<font face="Verdana">Повторное изучение Runnable</font></h2>
+<font face="Georgia">Ранее в этой главе я советовал, чтобы вы тщательно
+подумали прежде чем сделать апплет или основной <b>Frame</b> реализацией
+от&nbsp;<a NAME="Index2035"></a><a NAME="Index2036"></a><a NAME="Index2037"></a><b>Runnable</b>.
+Конечно, если вы должны наследовать от класса <i>и</i> хотите добавить
+поведение как у процесса для класса, то <b>Runnable</b> будет правильным
+решением. Последний пример в этой главе показывает это создав класс <b>RunnableJPanel</b>
+рисующий различные цвета. Данное приложение сделано так, что принимает
+различные значения из командной строки чтобы определить размер таблицы
+цветов и какой промежуток времени <b>sleep()</b> между перерисовкой другим
+цветом. Играясь с этими параметрами можно обнаружить некоторое интересное
+и, возможно, необъяснимое поведение процесса:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:ColorBoxes.java</font>
+<font color=#009900>// Using the Runnable interface.</font>
+<font color=#009900>// &lt;applet code=ColorBoxes width=500 height=400&gt;</font>
+<font color=#009900>// &lt;param name=grid value="12"&gt;</font>
+<font color=#009900>// &lt;param name=pause value="50"&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>class</font> CBox <font color=#0000ff>extends</font> JPanel <font color=#0000ff>implements</font> Runnable {
+  <font color=#0000ff>private</font> Thread t;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> pause;
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>final</font> Color[] colors = { 
+    Color.black, Color.blue, Color.cyan, 
+    Color.darkGray, Color.gray, Color.green,
+    Color.lightGray, Color.magenta, 
+    Color.orange, Color.pink, Color.red, 
+    Color.white, Color.yellow 
+  };
+  <font color=#0000ff>private</font> Color cColor = newColor();
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>final</font> Color newColor() {
+    <font color=#0000ff>return</font> colors[
+      (<font color=#0000ff>int</font>)(Math.random() * colors.length)
+    ];
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> paintComponent(Graphics  g) {
+    <font color=#0000ff>super</font>.paintComponent(g);
+    g.setColor(cColor);
+    Dimension s = getSize();
+    g.fillRect(0, 0, s.width, s.height);
+  }
+  <font color=#0000ff>public</font> CBox(<font color=#0000ff>int</font> pause) {
+    <font color=#0000ff>this</font>.pause = pause;
+    t = <font color=#0000ff>new</font> Thread(<font color=#0000ff>this</font>);
+    t.start(); 
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      cColor = newColor();
+      repaint();
+      <font color=#0000ff>try</font> {
+        t.sleep(pause);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    } 
+  }
+} 
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> ColorBoxes <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> isApplet = <font color=#0000ff>true</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> grid = 12;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> pause = 50;
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    <font color=#009900>// Get parameters from Web page:</font>
+    <font color=#0000ff>if</font> (isApplet) {
+      String gsize = getParameter(<font color=#004488>"grid"</font>);
+      <font color=#0000ff>if</font>(gsize != <font color=#0000ff>null</font>)
+        grid = Integer.parseInt(gsize);
+      String pse = getParameter(<font color=#004488>"pause"</font>);
+      <font color=#0000ff>if</font>(pse != <font color=#0000ff>null</font>)
+        pause = Integer.parseInt(pse);
+    }
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> GridLayout(grid, grid));
+    <font color=#0000ff>for</font> (<font color=#0000ff>int</font> i = 0; i &lt; grid * grid; i++)
+      cp.add(<font color=#0000ff>new</font> CBox(pause));
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    ColorBoxes applet = <font color=#0000ff>new</font> ColorBoxes();
+    applet.isApplet = <font color=#0000ff>false</font>;
+    <font color=#0000ff>if</font>(args.length &gt; 0)
+      applet.grid = Integer.parseInt(args[0]);
+    <font color=#0000ff>if</font>(args.length &gt; 1) 
+      applet.pause = Integer.parseInt(args[1]);
+    Console.run(applet, 500, 400);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia"><b>ColorBoxes</b> обычный апплет/приложение с <b>init( 
+  ) </b>реализующим GUI. Это устанавливает&nbsp;<a NAME="Index2038"></a><b>GridLayout</b> 
+  так, что он имеет ячейки <b>таблицы</b> (grid) в каждом направлении. Затем, 
+  для заполнения таблцы, добавляется соответствующее количество объектов <b>CBox</b> 
+  передав значение переменной <b>pause</b> для каждой из них. В методе <b>main()</b> 
+  можно видеть как <b>pause</b> и <b>grid</b> имеют значения по умолчанию, которые 
+  можно изменить передав их через параметры командной строки, либо изменив параметры 
+  апплета.</font></p>
+<p><font face="Georgia"> Вся работа происходит в <b>CBox</b>, который является 
+  наследником от&nbsp;<a NAME="Index2039"></a><b>JPanel</b> и реализует интерфейс 
+  <b>Runnable</b> так, что каждый <b>JPanel</b> может быть также и <b>Thread</b>. 
+  Запомните, что когда вы реализуете <b>Runnable</b> вы не создаете объекта <b>Thread</b>, 
+  а просто класс, имеющий метод <b>run()</b>. Таким образом, можно явно создать 
+  объект <b>Thread</b> и применить объект <b>Runnable</b> в конструкторе, затем 
+  вызвать <b>start()</b> (что происходит в конструкторе). В <b>CBox</b> данный 
+  процесс называется <b>t</b>.</font></p>
+<p><font face="Georgia"> Обратите внимание на массив <b>color</b> являющейся списком 
+  всех цветовых значений в классе <b>Color</b>. Это используется в <b>NewColor</b> 
+  для случайного выбора цвета. Текущее значение цвета для ячейки определяется 
+  как <b>cColor.</b></font></p>
+<p><font face="Georgia"><b>paintComponent()</b> совершенно просто - устанавливается 
+  значение цвета для <b>cColor</b> и весь <b>JPanel</b> закрашивается данным цветом.</font></p>
+<p><font face="Georgia"> Бесконечный цикл в <b>run()</b> устанавливает <b>cColor</b> 
+  в новое, случайно выбранное значение, а затем вызывает метод <b>repaint()</b> 
+  для отображения. Затем процесс <b>sleep()</b> (засыпает) на какое-то время, 
+  определенное в командной строке.</font></p>
+<p><font face="Georgia"> Именно из-за того, что данный пример гибок, и каждый 
+  элемент <b>JPanel</b> действует как процесс, можно поэксперементировать создавая 
+  столько процессов сколько необходимо. (На самом деле существует ограничение 
+  на количество выполняемых процессов, которыми JVM может эффективно управлять.)</font></p>
+<p><font face="Georgia"> Данная программа также показывает интересную статистику, 
+  поскольку можно наблюдать разницу в понижение производительности между различными 
+  реализациями процессов в JVM.</font><a NAME="_Toc375545487"></a><a NAME="_Toc481064863"></a><a NAME="Heading507"></a> 
+</p>
+<h3>
+<font face="Verdana">Когда процессов слишком много</font></h3>
+<font face="Georgia">В некоторый момент вы увидите, что <b>ColorBoxes</b>
+совсем увяз в выполнении. На моей машине это возникало примерно после таблицы
+10х10. Но почему такое происходит? Вы подозрительны если считаете, что
+возможно Swing может что-то творить с этим, так что, вот пример, который
+проверяет данное утверждение путем создания небольшого количества процессов.
+Следующий исходный код переделан так, чтобы <b>ArrayList</b> реализует
+<b>Runnable</b>
+и данный <b>ArrayList</b> содержит номера цветовых блоков и случайным образом
+выбирает один для обновления. В результате мы имеем гораздо меньше процессов,
+чем цветовых блоков, так что при увеличении скорости выполнения мы знаем,
+что это именно из-за гораздо меньшего количества процессов по сравнению
+с предыдущим примером:</font>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c14:ColorBoxes2.java</font>
+<font color=#009900>// Balancing thread use.</font>
+<font color=#009900>// &lt;applet code=ColorBoxes2 width=600 height=500&gt;</font>
+<font color=#009900>// &lt;param name=grid value="12"&gt;</font>
+<font color=#009900>// &lt;param name=pause value="50"&gt;</font>
+<font color=#009900>// &lt;/applet&gt;</font>
+<font color=#0000ff>import</font> javax.swing.*;
+<font color=#0000ff>import</font> java.awt.*;
+<font color=#0000ff>import</font> java.awt.event.*;
+<font color=#0000ff>import</font> java.util.*;
+<font color=#0000ff>import</font> com.bruceeckel.swing.*;
+
+<font color=#0000ff>class</font> CBox2 <font color=#0000ff>extends</font> JPanel {
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>final</font> Color[] colors = { 
+    Color.black, Color.blue, Color.cyan, 
+    Color.darkGray, Color.gray, Color.green,
+    Color.lightGray, Color.magenta, 
+    Color.orange, Color.pink, Color.red, 
+    Color.white, Color.yellow 
+  };
+  <font color=#0000ff>private</font> Color cColor = newColor();
+  <font color=#0000ff>private</font> <font color=#0000ff>static</font> <font color=#0000ff>final</font> Color newColor() {
+    <font color=#0000ff>return</font> colors[
+      (<font color=#0000ff>int</font>)(Math.random() * colors.length)
+    ];
+  }
+  <font color=#0000ff>void</font> nextColor() {
+    cColor = newColor();
+    repaint();
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> paintComponent(Graphics g) {
+    <font color=#0000ff>super</font>.paintComponent(g);
+    g.setColor(cColor);
+    Dimension s = getSize();
+    g.fillRect(0, 0, s.width, s.height);
+  }
+}
+
+<font color=#0000ff>class</font> CBoxList 
+  <font color=#0000ff>extends</font> ArrayList <font color=#0000ff>implements</font> Runnable {
+  <font color=#0000ff>private</font> Thread t;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> pause;
+  <font color=#0000ff>public</font> CBoxList(<font color=#0000ff>int</font> pause) {
+    <font color=#0000ff>this</font>.pause = pause;
+    t = <font color=#0000ff>new</font> Thread(<font color=#0000ff>this</font>);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> go() { t.start(); }
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> run() {
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)(Math.random() * size());
+      ((CBox2)get(i)).nextColor();
+      <font color=#0000ff>try</font> {
+        t.sleep(pause);
+      } <font color=#0000ff>catch</font>(InterruptedException e) {
+        System.err.println(<font color=#004488>"Interrupted"</font>);
+      }
+    } 
+  }
+  <font color=#0000ff>public</font> Object last() { <font color=#0000ff>return</font> get(size() - 1);}
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> ColorBoxes2 <font color=#0000ff>extends</font> JApplet {
+  <font color=#0000ff>private</font> <font color=#0000ff>boolean</font> isApplet = <font color=#0000ff>true</font>;
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> grid = 12;
+  <font color=#009900>// Shorter default pause than ColorBoxes:</font>
+  <font color=#0000ff>private</font> <font color=#0000ff>int</font> pause = 50;
+  <font color=#0000ff>private</font> CBoxList[] v;
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> init() {
+    <font color=#009900>// Get parameters from Web page:</font>
+    <font color=#0000ff>if</font> (isApplet) {
+      String gsize = getParameter(<font color=#004488>"grid"</font>);
+      <font color=#0000ff>if</font>(gsize != <font color=#0000ff>null</font>)
+        grid = Integer.parseInt(gsize);
+      String pse = getParameter(<font color=#004488>"pause"</font>);
+      <font color=#0000ff>if</font>(pse != <font color=#0000ff>null</font>)
+        pause = Integer.parseInt(pse);
+    }
+    Container cp = getContentPane();
+    cp.setLayout(<font color=#0000ff>new</font> GridLayout(grid, grid));
+    v = <font color=#0000ff>new</font> CBoxList[grid];
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; grid; i++)
+      v[i] = <font color=#0000ff>new</font> CBoxList(pause);
+    <font color=#0000ff>for</font> (<font color=#0000ff>int</font> i = 0; i &lt; grid * grid; i++) {
+      v[i % grid].add(<font color=#0000ff>new</font> CBox2());
+      cp.add((CBox2)v[i % grid].last());
+    }
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; grid; i++)
+      v[i].go();
+  }   
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    ColorBoxes2 applet = <font color=#0000ff>new</font> ColorBoxes2();
+    applet.isApplet = <font color=#0000ff>false</font>;
+    <font color=#0000ff>if</font>(args.length &gt; 0)
+      applet.grid = Integer.parseInt(args[0]);
+    <font color=#0000ff>if</font>(args.length &gt; 1) 
+      applet.pause = Integer.parseInt(args[1]);
+    Console.run(applet, 500, 400);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<p><font face="Georgia">В <b>ColorBoxes2</b> создается массив <b>CBoxList</b> 
+  и инициализируется для хранения <b>grid CBoxList</b>, каждый из которых знает 
+  на сколько долго необходимо засыпать. Затем в каждый <b>CBoxList</b> добавляется 
+  аналогичное количество объектов <b>CBox2</b> и&nbsp; каждый список вызывает 
+  <b>go()</b>, что запускает процесс.</font></p>
+<p><font face="Georgia"> <b>CBox2</b> аналогичен <b>CBox</b>: он рисует себя произвольно 
+  выбранным цветом. Но это <i>и все</i> что <b>CBox2</b> делает. Вся работа с 
+  процессами теперь перемещена в <b>CBoxList</b>.</font></p>
+<p><font face="Georgia"> <b>CBoxList</b> также может иметь унаследованный <b>Thread</b> 
+  и иметь объект член типа <b>ArrayList</b>. Данное решение имеет преимущества 
+  в том, что методам <b>add()</b> и <b>get()</b> затем может быть передан особый 
+  аргумент и возвращаемое значение, вместо общих <b>Object</b>'ов. (И их имя также 
+  может быть изменено на что-то более кортокое.) На первый взгляд кажется, что 
+  приведенном здесь пример требует меньше кодирования. Дополнительно, он автоматически 
+  сохраняет все функции выполняемые <b>ArrayList</b>.&nbsp; Со всеми приведениями 
+  и скобками, необходимыми для <b>get()</b> это не будет выходом при росте основного 
+  кода программы.</font></p>
+<p><font face="Georgia"> Как и прежде, при реализации Runnable вы не получаете 
+  все, что предоставляется вместе с <b>Thread</b>, так что вам необходимо создать 
+  новый <b>Thread</b> и самим определить его конструктор, чтобы иметь что-либо 
+  для <b>start()</b>, так, как это было сделано в конструкторе <b>CBosList</b> 
+  и в <b>go()</b>.&nbsp; Метод run() просто выбирает случайны номер элемента в 
+  листе и вызывает nextCollor() для этого элемента, чтобы он применил новый, солучайно 
+  выбранный цвет.</font></p>
+<p><font face="Georgia"> Во время работы этой программы можно видеть, что она 
+  действительно выполняется быстрее и быстрее реагирует на действия (например, 
+  при попытке завершения все происходит намного быстрее), и похоже, она не затормаживается 
+  при бОльших размерах таблицы. Таким образом, в уравнение процессов был добавлен 
+  новый фактор: вы должны быть наблюдательны, чтобы заметить, что у вас не "слишком 
+  много процессов" (чтобы это не означало в вашем конкретной программе или платформе, 
+  как например в нашем случае, ColorBoxes имеет только один процесс, который ответственен 
+  за всю перерисовку, что приводит к снижению производительности из-за слишком 
+  большого количества запросов). Если у вас слишком много процессов, то можно 
+  попробовать использовать одну из техник приведенных выше для "балансировки" 
+  количества процессов в вашей программе. Если наблюдается проблема с производительностью 
+  в программе с множеством процессов, то необходимо проверить следующее:</font> 
+</p>
+<ol>
+<li>
+<font face="Georgia">&nbsp;Достаточно ли у вас вызовов <b>sleep( )</b>,
+<b>yield(
+),</b> и/или
+<b>wait( )</b>?</font></li>
+
+<li>
+<font face="Verdana">&nbsp;</font><font face="Georgia">Насколько продолжителен
+вызов
+<b>sleep( )</b>?</font></li>
+
+<li>
+<font face="Verdana">&nbsp;</font><font face="Georgia">Запустили ли вы
+слишком много процессов?</font></li>
+
+<li>
+<font face="Verdana">&nbsp;</font><font face="Georgia">Пробовали ли вы
+различные платформы и JVM?</font></li>
+</ol>
+<font face="Georgia">Вопросы подобные этим считаются одной из причин, почему
+программирование с применением множества процессов часто трактуется как
+искусство.</font><a NAME="_Toc375545489"></a><a NAME="_Toc481064864"></a><a NAME="Heading508"></a>
+<h2>
+<font face="Verdana">Резюме</font></h2>
+<p><font face="Georgia">Крайне необходимо выучить, когда необходимо использовать&nbsp;<a NAME="Index2040"></a><a NAME="Index2041"></a>множество 
+  процессов и когда можно избежать этого. Основная причина их использования заключается 
+  в возможности управления несколькими задачами, смешивание которых приводит к 
+  более эффективному использованию компьютера (включая возможность прозрачно распределять 
+  задачи между несколькими процессорами) или к удобству пользователя. Классический 
+  пример использования ресурсов - это использование процессора во время ожидания 
+  операций ввода/вывода. Классический пример удобства для пользователя - это опрос 
+  кнопки "stop" во время продолжительного копирования.</font></p>
+<p><font face="Georgia"> Основные же недостатки процессов следующие:</font><a NAME="Index2042"></a><a NAME="Index2043"></a> 
+</p>
+<ol>
+<li>
+<font face="Georgia">&nbsp;Падение производительности при ожидании использования
+общего ресурса</font></li>
+
+<li>
+<font face="Verdana">&nbsp;</font><font face="Georgia">Требуются дополнительные
+ресурсы процессора (CPU) для управления процессами</font></li>
+
+<li>
+<font face="Verdana">&nbsp;</font><font face="Georgia">Непомерная сложность,
+из-за глупой идеи создать еще один процесса для обновления каждого элемента
+в массиве</font></li>
+
+<li>
+<font face="Verdana">&nbsp;</font><font face="Georgia">Патологии, включающие
+нехватку ресурсов (starving), разность в скорости выполнения (racing) и
+мертвые блокировки (deadlock)</font></li>
+</ol>
+<p><font face="Georgia">Дополнительное превосходство процессов в том, что они 
+  заменяют "тяжелое" переключение контекста приложения (в пересчете на 100 инструкций) 
+  на "легкое" переключение контекста выполнения (в пересчете на 100 инструкций). 
+  Поскольку все процессы в данном приложении разделяют одно и то же адресное пространство, 
+  то легкое переключение контекста изменяет только выполнение программы и локальные 
+  переменные. С другой стороны, изменение приложения - тяжелое переключение контекста 
+  - должно поменять всю память.</font></p>
+<p><font face="Georgia"> Использование процессов схоже с шагом в совершенно иной 
+  мир и изучение совершенно нового языка программирования, или, по крайне мере, 
+  новой концепции языка. С появление поддержки процессов в большинстве операционных 
+  систем микрокомпьютеров, расширения для процессов также появились в языках программирования 
+  или библиотеках. В любом случае, программирование процессов выглядит мистикой 
+  (1)&nbsp; и требует смещения в способе понимания программирования: и (2) выглядит 
+  похожей на реализацию поддержки процессов в других языках программирования, 
+  таким образом, если вы поймете процессы, вы поймете и большинство языков. И 
+  хотя поддержка процессов может сделать Java похожей на достаточно трудный язык 
+  программирования, Java в этом не виновата. Процессы слишком хитрые.</font></p>
+<p><font face="Georgia"> Наибольшее затруднение с процессами возникает из-за того, 
+  что более чем один процесс может использовать ресурсы - такие как память в объектах 
+  - и необходимо быть уверенным, что несколько процессов не пытаются прочитать 
+  и изменить данные в один и тот же момент. Это требует рассудительного использования 
+  ключевого слова <b>synchronized</b>, которое является весьма полезным, но должно 
+  быть тщательно понято, так как может незаметно привести к ситуациям с мертвой 
+  блокировкой.</font></p>
+<p><font face="Georgia"> В дополнении, приложение с процессами является в какой-то 
+  степени искусством. Теоретически Java создавалась для возможности создания такого 
+  количества объектов сколько необходимо для решения стоЯщей проблемы. (Хотя создание 
+  нескольких миллионов объектов для инженерного анализа конечного множества, например, 
+  вряд ли будет практично на Java.) Однако похоже, что существует верхняя граница 
+  количеству процессов, которые возможно создать в приложении, поскольку с определнной 
+  точки наличие большего количества процессов приложение становится громоздким. 
+  Эта критическая точки исчисляется не несколькими тысячами, как это может быть 
+  с объектами, а всего лишь парой сотен, иногда даже менее 100. Поскольку в большинстве 
+  случаев создается только процессы для решения проблемы, то обычно их количество 
+  не превышает установленный лимит, даже в большинстве главных приложений их количество 
+  невелико.</font></p>
+<p><font face="Georgia"> Существенный, не интуитивный момент с процессами заключается 
+  в том, что поскольку процессы управляются планировщиком, то можно достаточно 
+  просто заставить приложение выполняться <i>быстрее</i> поместив вызов <b>sleep()</b> 
+  внутри основного цикла в теле <b>run()</b>. Это определнно делает все это похожим 
+  на искусство, в особенности, когда продолжительная пауза увеличивает скорость 
+  выполнения. Конечно, причина здесь в том, что более короткие задержки могут 
+  стать причиной того, что прерывания планировщика в конце sleep() произойдет 
+  до того, как выполняемый процесс готов заснуть, заставляя планировщик все остановить 
+  и возобновить выполнение того, что должно было быть сделано, позднее и только 
+  затем перейти в спячку. Это дает дополнительные размышления для понимания того, 
+  какое месиво может получиться.</font></p>
+<p><font face="Georgia"> Стоит обратить внимание на одну вещь, которая пропущена 
+  в данной главе, пример с анимацией, что является одной из популярнейших приложений 
+  для апплетов. Однако, полное решение этой задачи (со звуком) представлено в 
+  Java JDK (доступном на <i>java.sun.com</i>) в разделе примеров. В дополнение 
+  можно ожидать лучшей поддержки анимации, что станет частью будущих версий Java, 
+  несмотря на то, что появляются полностью различные, не-Java, без необходимости 
+  программирования решения для анимации в Web, которые вероятно будут лучше традиционных 
+  решений. Для понимания того, как работает анимации в Java можно прочитать <i>Core 
+  Java 2</i> от Horstmann &amp; Cornell, Prentice-Hall, 1997. За дополнительным 
+  объяснением процессов смотрите <i>Concurrent Programming in Java</i> написанную 
+  Doug Lea, Addison-Wesley, 1997, или <i>Java Threads</i> от Oaks &amp; Wong, 
+  O'Reilly, 1997.</font><a NAME="_Toc375545490"></a><a NAME="_Toc481064865"></a><a NAME="Heading509"></a> 
+</p>
+<h2>
+<font face="Verdana">Упражнения</font></h2>
+<font face="Georgia"><font size=-1>Решения отдельных заданий можно посмотреть
+в электронной книжке <i>The Thinking in Java Annotated Solution Guide</i>,
+доступную за небольшую плату на сайте <i>www.BruceEckel.com</i>.</font></font>
+<ol>
+<li>
+<font face="Georgia">Наследуйте класс от <b>Thread</b> и переопределите
+метод <b>run( )</b>. Внутри run() напечатайте сообщение и вызовите sleep().
+Повторите это три раза и выйдете (return)&nbsp; из run(). Поместите приветственное
+сообщение в конструктор и переопределите finalaize() чтобы вывести прощальное
+сообщение. Создайте отдельный вызов процесса, назовите его System.gc()
+и System.runFinalization() внутри run(), напечатав сообщение, так как они
+выполняются. Создайте несколько объектов от процессов обоих типов и запустите
+их чтобы посмотреть, что произойдет.</font></li>
+
+  <li><font face="Georgia">Измените <b>Sharing2.java</b> добавив блок <b>synchronized</b> 
+    внутрь метода <b>run( )</b> для <b>TwoCounter</b> вместо синхронизации всего 
+    <b>run( )</b> метода.</font></li>
+
+  <li> <font face="Georgia">Создайте два подкласса <b>Thread</b>, один, использующий 
+    <b>run( )</b> для запуска, и перехватывающий ссылку на второй процесс <b>Thread, 
+    </b>а затем вызывающий <b>wait( )</b>. Вызов <b>run()</b> второго класса должен 
+    вызывать <b>notifyAll( )</b> для первого процесса после нескольких секунд 
+    ожидания, так, чтобы первый процесс при этом вывел сообщение.</font></li>
+
+  <li><font face="Georgia">В <b>Counter5.java</b> внутри <b>Ticker2</b>, удалите 
+    <b>yield( )</b> и объясните результат работы. Потом замените <b>yield( )</b> 
+    на <b>sleep( )</b> и объясните этот результат.</font></li>
+
+  <li><font face="Georgia">В <b>ThreadGroup1.java</b>, замените вызов <b>sys.suspend( 
+    )</b> на вызов <b>wait( )</b> для группы процессов, установив для них ожидание 
+    в две секунды. Для того чтобы это работало корректно необходимо установить 
+    блокировку для <b>sys </b>внутри блока <b>synchronized</b>.</font></li>
+
+  <li><font face="Georgia">Измените <b>Daemons.java</b> так, чтобы <b>main( )</b> 
+    был <b>sleep( )</b> вместо <b>readLine( )</b>. Поэкспериментируйте с различным 
+    значением времени засыпания чтобы увидеть что произойдет.</font></li>
+
+  <li><font face="Georgia">В Главе 8 найдите пример <b>GreenhouseControls.java</b>, 
+    состоящий их трех файлов. В <b>Event.java</b>, класс <b>Event</b> основан 
+    на наблюдении времени. Замените <b>Event</b> так, чтобы оно стало процессом 
+    <b>Thread</b>, и замените весь пример так, чтобы он работал с новым, основанным 
+    на <b>Thread </b>событием<b> Event</b>.</font></li>
+
+  <li><font face="Georgia">Измените Exercise 7 так, чтобы для запуска системы использовался 
+    класс <b>java.util.Timer</b> из JDK 1.3.</font></li>
+
+  <li><font face="Georgia">Начиная с <b>SineWave.java</b> Главы 13, создайте программу 
+    (апплет/приложение используя класс <b>Console</b>) рисующих анимированную 
+    синусоиду которая движется аналогично тому, как это происходит в осциллографе, 
+    перемещая рисунок с помощью <b>Thread</b>. Скорость перемещения должна управляться 
+    с помощью элемента управления <b>java.swing.JSlider</b>.</font></li>
+
+  <li><font face="Georgia">Измените Exercise 9 так, чтобы было создано несколько 
+    звуковых панелей внутри приложения. Количество панелей должно контролироваться 
+    либо HTML тэгами, либо параметрами из командной строки.</font></li>
+
+  <li><font face="Georgia">Измените Exercise 9 так, чтобы класс <b>java.swing.Timer</b> 
+    использовался для вывода анимации. Обратите внимание на различия с <b>java.util.Timer</b>.</font></li>
+</ol>
+
+<hr>
+<p><a NAME="fn70">[70] </a><font face="Georgia"><font size=-1><b>Runnable</b> 
+  было введено в Java 1.0, в то время как внутренние классы появились только в 
+  Java 1.1, что необходимо принимать во внимание при объяснение причины существования&nbsp; 
+  <b>Runnable</b>. Также, традиционная архитектура множества процессов сосредоточена 
+  на выполняемых функциях, а не объектах. Я предпочитаю всегда создавать наследника 
+  от <b>Thread</b> если возможно; для меня это выглядит более понятно и гибче 
+  в использовании.</font></font></p>
+<p><a NAME="fn71">[71]</a><font face="Georgia"><font size=-1><i>The Java Programming 
+  Language</i>, написано Ken Arnold и James Gosling, Addison-Wesley 1996 pp 179.</font></font> 
+</p>
+<center>
+  <font face="Verdana"><font size=-1>[ <a href="Chapter13.html">Предыдущая глава</a> 
+  ] [ <a href="SimpleContents.html">Оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+  ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="Chapter15.html">Следующая 
+  глава </a> ]</font></font> 
+</center>
+
+</body>
+</html>

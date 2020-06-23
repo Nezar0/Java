@@ -1,0 +1,1303 @@
+<HTML>
+<HEAD>
+<TITLE> 7: Полиморфизм</TITLE>
+<meta http-equiv="author" content="KVV SoftWare">
+<meta http-equiv="description" content="Советы разработчику программ на Java">
+<meta http-equiv="keywords" content="java, ява, джава, script, скрипт, javascript, яваскрипт, programm, программа, programming, программирование, html, info, информация, information, инфо, sun, faq, чаво, frequently, часто, asked, задаваемые, questions, вопросы, odbc, jdbc, tips, советы, разработчику ">
+<meta http-equiv="distribution" content="global">
+<meta http-equiv="resource-type" content="document">
+<META HTTP-EQUIV="Content-type" CONTENT="text/html; charset=Windows-1251">
+</HEAD>
+<BODY  bgcolor="#FCFCFC">
+<div align="center"> 
+  <h2><font face="Verdana">Thinking in Java, 2nd edition, Revision 11</font></h2>
+  <h3><font face="Verdana">&copy;2000 by Bruce Eckel</font></h3>
+  <p><font size = "-1">[ <a href="Chapter06.html">Предыдущая глава</a> ] [ <a href="SimpleContents.html">Короткое 
+    оглавление</a> ] [ <a href="Contents.html">Оглавление</a> ] [ <a href="DocIndex.html">Список</a> 
+    ] [ <a href="Chapter08.html">Следующая глава</a> ] </font> </p>
+</div>
+<p></p>
+<a name="Chapter_7"></a><a name="_Toc375545326"></a><a name="_Toc477690727"></a><a name="_Toc481064624"></a><a name="Heading234"></a>
+<h1 align="LEFT">
+7: Полиморфизм<a name="A"></a><br>
+  <a name="Index666"></a></h1>
+<div align="LEFT">
+  <p><font size=4>Полиморфизм - третья неотъемлемая часть объектно-ориентированного программирования, после абстракции и наследования соответственно. </font><br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Полиморфизм предоставляет другое измерение разделения интерфейса и реализации, т.е. отделяет <i>что</i> от <i>как</i>.  Полиморфизм позволяет повысить возможности по организации кода и читабельность исходных текстов, так же, как создание расширяемых программ, которые могут расти не только во время их создания, но и после, когда к ним нужно добавить новую требуемую возможность.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p> Инкапсуляция создает новые инкапсулированные типы данных, комбинируя их характеристики и типы поведения. Имплементация скрывает интерфейс от дальнейшей имплементации делая некоторые элементы <b>private</b>. Этот вид механической организации может быть нов для кого-то, кто имеет большие познания в процедурном программировании. Но полиморфизм работает с
+<a name="Index667"></a>разделением типов. В <a href="Chapter06.html">предыдущей</a> главе Вы увидели, что <a name="Index668"></a>наследование обращается с объектом  с его собственным типом или с базовым типом. Эта особенность критична, поскольку при этом могут поддерживаться многие типы (дочерних от одного и того же базового типа), которые обрабатываются, как если бы они были одного типа и один и тот же код работает одинаково с этими различными типами. Вызов <a name="Index669"></a>полиморфного метода поддерживает один тип для выражения его отличия от другого, такого же типа, и это из-за того, что они произошли от одного базового типа. Данное различие выражено через различие в поведении методов, которые Вы можете вызвать через базовый класс.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В этой главе, Вы узнаете о полиморфизме (так же называемом
+<a name="Index670"></a><a name="Index671"></a><a name="Index672"></a><a name="Index673"></a><i>динамически связыванием</i> или <i>поздним  связыванием</i> или <i>связыванием во время выполнения</i>), начиная от основ с простыми примерами с последующим раскрытием всего поведения полиморфизма в программах.<a name="_Toc305593263"></a><a name="_Toc305628735"></a><a name="_Toc312374040"></a><a name="_Toc375545327"></a><a name="_Toc481064625"></a><br>
+  </p>
+</div>
+<a name="Heading235"></a>
+<h2 align="LEFT">
+Повторение приведения к базовому типу</h2>
+<div align="LEFT">
+  <p>В <a href="Chapter06.html">главе 6</a>, Вы могли видеть, как можно использовать объект как своего собственного типа или в качестве базового типа. Получение ссылки на объект  и привидение ее к типу базового  класса называется
+<i>&quot;приведение к базовому типу&quot;,<a name="Index674"></a></i> поскольку путь деревьев наследования растет сверху от базового класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Вы так же видели  возникшую проблему истекающую из следующего:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:music:Music.java </font>
+<font color="#009900" size="+1">// Наследование и приведение  к базовому типу.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Note {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value;
+  <font color=#0000ff>private</font> Note(<font color=#0000ff>int</font> val) { value = val; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">final</font><font size="+1"> Note
+    MIDDLE_C = <font color=#0000ff>new</font> Note(0), 
+    C_SHARP  = <font color=#0000ff>new</font> Note(1),
+    B_FLAT   = <font color=#0000ff>new</font> Note(2);
+} <font color=#009900>// И т.д.</font></font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(Note n) {
+    System.out.println(<font color=#004488>"Instrument.play()"</font>);
+  }
+}
+
+<font color=#009900>// Объект Wind так же и  instruments</font></font>
+<font color="#009900" size="+1">// поскольку у них общий интерфейс:</font>
+<font color="#0000ff" size="+1">class</font><font size="+1"> Wind <font color=#0000ff>extends</font> Instrument {
+  <font color=#009900>// Переопределение метода:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(Note n) {
+    System.out.println(<font color=#004488>"Wind.play()"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Music {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Instrument i) {
+    <font color=#009900>// ...</font>
+    i.play(Note.MIDDLE_C);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Wind flute = <font color=#0000ff>new</font> Wind();
+    tune(flute); <font color=#009900>// Приведение к базовому типу</font>
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Метод <b>Music.tune(&#160;)</b>
+принимает ссылки на <b>Instrument</b>, а так же на все, что произошло от
+<b>Instrument</b>. В <b>main(&#160;)</b>, Вы можете увидеть  как это происходит, ссылка на 
+<b>Wind</b> передается <b>tune(&#160;)</b>, без нужного преобразования типов.
+ Интерфейс <b>Instrument</b> при этом должен существовать в
+<b>Wind</b>, поскольку <b>Wind</b> произошел от <b>Instrument</b>. Преобразование типа из <b>Wind</b> к <b>Instrument</b> может уменьшить интерфейс,
+но при этом он не будет меньше, чем весь интерфейс
+<b>Instrument</b>.<a name="_Toc481064626"></a><br>
+  </p>
+</div>
+<a name="Heading236"></a>
+<h3 align="LEFT">
+Забывание типа объекта</h3>
+<div align="LEFT">
+  <p>Это выражение может показаться странным для Вас.
+Почему кто-то должен намеренно забыть тип объекта? А это происходит, когда, Вы производите приведение  к базовому типу, и выглядит это более прямо если бы <b>tune(&#160;)</b> просто брала ссылку на <b>Wind</b> в качестве аргумента. Тем самым приносится еще одна неотъемлемая часть полиморфизма: Если бы Вы сделали так, как написано выше, то Вам было бы необходимо писать новый метод <b>tune(&#160;)</b> для каждого типа  <b>Instrument</b> в вашей системе. Допустим, мы последовали этой технике и добавили инструменты <b>Stringed</b> и
+<b>Brass</b>:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:music2:Music2.java </font>
+<font color="#009900" size="+1">// Перегрузка, вместо приведедния к базовому типу.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Note {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value;
+  <font color=#0000ff>private</font> Note(<font color=#0000ff>int</font> val) { value = val; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">final</font><font size="+1"> Note
+    MIDDLE_C = <font color=#0000ff>new</font> Note(0), 
+    C_SHARP = <font color=#0000ff>new</font> Note(1),
+    B_FLAT = <font color=#0000ff>new</font> Note(2);
+} <font color=#009900>// И т.д.</font></font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(Note n) {
+    System.out.println(<font color=#004488>"Instrument.play()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Wind <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(Note n) {
+    System.out.println(<font color=#004488>"Wind.play()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Stringed <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(Note n) {
+    System.out.println(<font color=#004488>"Stringed.play()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Brass <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(Note n) {
+    System.out.println(<font color=#004488>"Brass.play()"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Music2 {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Wind i) {
+    i.play(Note.MIDDLE_C);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Stringed i) {
+    i.play(Note.MIDDLE_C);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Brass i) {
+    i.play(Note.MIDDLE_C);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Wind flute = <font color=#0000ff>new</font> Wind();
+    Stringed violin = <font color=#0000ff>new</font> Stringed();
+    Brass frenchHorn = <font color=#0000ff>new</font> Brass();
+    tune(flute); <font color=#009900>// Не приведение к базовому типу</font>
+    tune(violin);
+    tune(frenchHorn);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Ура, работает, но при этом возникает большая работа по переписки кода: Вы должны писать типо-зависимые методы, для каждого нового класса <b>Instrument</b>, которые Вы добавите. А это означает, что во-первых нужно больше программировать, во-вторых, если Вы захотите добавить новый метод по типу <b>tune(&#160;)</b> или просто новый тип инструмента, то придется проделать много работы. К этому следует добавить, что компилятор не сообщит о том, что Вы забыли перегрузить некоторые методы или о том, что некоторые методы работают с неуправляемыми типами.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>А не было бы намного лучше, если бы Вы написали  один метод, который получает в качестве аргумента
+<a name="Index675"></a><a name="Index676"></a>базовый класс, а не каждый по отдельности дочерний класс? Было бы, но не было бы хорошо, если бы Вы смогли забыть, что есть какие-то
+<a name="Index677"></a><a name="Index678"></a>дочерние классы и написали бы ваш код только для базового класса?<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Именно это полиморфизм и позволяет делать. Но все равно, многие программисты пришедшие из процедурного программирования имеют небольшие проблемы при работе с полиморфизмом.<a name="_Toc305593264"></a><a name="_Toc305628736"></a><a name="_Toc312374041"></a><a name="_Toc375545329"></a><a name="_Toc481064627"></a><br>
+  </p>
+</div>
+<a name="Heading237"></a>
+<h2 align="LEFT">
+Скручивание</h2>
+<div align="LEFT">
+  <p>Сложности с
+<b>Music</b>.<b>java</b> можно видеть при запуске этой программы. Вывод в
+<b>Wind.play(&#160;)</b>. Причем это почти желаемый вывод, но здесь не должно играть роли, как это будет проигрываться. Посмотрите на метод
+<b>tune(&#160;)</b>:<br>
+  </p>
+</div>
+<blockquote>
+  <pre>  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Instrument i) {
+    <font color=#009900>// ...</font>
+    i.play(Note.MIDDLE_C);
+  }</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Метод воспринимает ссылку на <b>Instrument</b>. А как компилятору узнать, что в действительности эта ссылка на <b>Instrument</b>
+указывает на  <b>Wind</b> в этом случае и не указывает на <b>Brass </b>или
+<b>Stringed</b>? Компилятор не может. Для того, что бы поглубже разобраться в  этом затруднении неплохо было бы разобраться и в самой сущности связывания.<a name="_Toc312374042"></a><a name="_Toc375545330"></a><a name="_Toc481064628"></a><br>
+  </p>
+</div>
+<a name="Heading238"></a>
+<h3 align="LEFT">
+Связывание метод-вызов<br>
+  <a name="Index679"></a><a name="Index680"></a></h3>
+<div align="LEFT">
+  <p>Соединение вызова метода с телом метода называется связывание Когда свзяывание осуществляется до запуска программы
+(компилятором и  компоновщиком, если такой используется), то оно (связывание) называется <i>ранним связыванием<a name="Index681"></a></i>. Вы могли даже и не слышать о таком термине, поскольку такая технология не применялась в процедурных языках. C компиляторы имеют только одну разновидность вызова, и она как раз является ранним связыванием.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В замешательство предыдущей программы находится вокруг раннего связывания, поскольку  компилятор не знает правильный метод для вызова, если есть только ссылка на <b>Instrument</b>.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Решение называется <i>позднее связывание<a name="Index682"></a><a name="Index683"></a></i>, что означает, что связывание происходит во время работы программы и основывается на типе объекта. Позднее связывание так же иногда называют <i>динамическим связыванием<a name="Index684"></a><a name="Index685"></a></i> или
+<i>связыванием  во время выполнения<a name="Index686"></a><a name="Index687"></a></i>. Когда язык поддерживает позднее связывание, то у него должен быть механизм определения типа объекта в время работы программы и вызова соответствующего  метода. Все так и есть, компилятор все еще не знает какого типа этот объект, но механизм вызова методов находит его и вызывает соответствующее  тело метода. Механизм позднего связывания меняется от языка к языку, но Вы можете представить себе, что в объект должна быть встроена некоторая информация о типе объекта.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В Java все методы за исключением
+<a name="Index688"></a><a name="Index689"></a><b>final </b>используют позднее связывание. И это означает, что Вам нет необходимости принимать решения, о необходимости применения позднего связывания в том или ином месте программы, поскольку это происходит автоматически.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Зачем нужно определять метод как
+<b>final</b>? Об этом написано в <a href="Chapter06.html">предыдущей</a> главе, при помощи final осуществляется защита метода от переопределения. Возможно более важно или эффективно выключить динамическое связывание или сказать компилятору, что динамическое связывание не нужно. При этом компилятор может компилировать более эффективный код для элементов <b>final</b>. Однако в большинстве случаев не будет разницы в производительности вашей программы, так что лучше использовать<b> final</b> только как решение, принятое в угоду дизайну программы, а не для того, что бы повысить производительность.<a name="_Toc375545331"></a><a name="_Toc481064629"></a><br>
+  </p>
+</div>
+<a name="Heading239"></a>
+<h3 align="LEFT">
+Выработка правильного поведения</h3>
+<div align="LEFT">
+  <p>Как Вы уже знаете, все методы в
+Java имеют особенности полиморфизма, поскольку используется позднее связывание, Вы можете писать свой код для доступа к базовому классу и знаете, что с этим же кодом будут правильно работать и все классы наследники. Или, если идти другим путем, Вы посылаете сообщение объекту и последует правильная на его реакция.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Классический пример ООП - <a name="Index690"></a>шейпы. Он используется наиболее часто, поскольку его легко нарисовать, но он так же и смущает начинающих программистов, которые думают, что ООП это только рисование таких вот схем.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В примере шейпе имеется класс
+<b>Shape </b>и множество дочерних типов: <b>Circle</b>, <b>Square</b>,
+<b>Triangle</b> и т.д. Причина этого примера проста, так же, как просто сказать &quot;круг это всего лишь разновидность шейпа (геометрической фигуры)&quot; и такое заявление легко понять.<b>
+</b>Диаграмма наследования  показывает связи объектов:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ215.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Приведение  к базовому типу происходит в выражении:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">Shape s = <font color=#0000ff>new</font> Circle();</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Здесь, объект <b>Circle</b> создается и результирующая ссылка немедленно присваивается к <b>Shape</b>, здесь мы бы наверное получили бы ошибку (присвоение одного типа другому); но нет, все чудно прошло, поскольку <b>Circle</b> <i>есть</i>  <b>Shape</b> через наследование. Так что компилятор согласился с выражением и не выдал никакой ошибки.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Предположим, что Вы вызываете метод базового класса (который был переопределен в дочернем классе):<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">s.draw();</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>И снова, Вы можете ожидать, что вызовется метод из
+<b>Shape</b> <b>draw(&#160;),</b> поскольку это он и есть и как компилятору узнать, что это не он?
+А в самом деле вызовется <b>Circle.draw(&#160;)</b>, поскольку используется позднее связывание(полиморфизм).<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Следующий пример поместит его несколько другим путем:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:Shapes.java</font>
+<font color="#009900" size="+1">// Полиморфизм в Java.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Shape { 
+  <font color=#0000ff>void</font> draw() {}
+  <font color=#0000ff>void</font> erase() {} 
+}
+
+<font color=#0000ff>class</font> Circle <font color=#0000ff>extends</font> Shape {
+  <font color=#0000ff>void</font> draw() { 
+    System.out.println(<font color=#004488>"Circle.draw()"</font>); 
+  }
+  <font color=#0000ff>void</font> erase() { 
+    System.out.println(<font color=#004488>"Circle.erase()"</font>); 
+  }
+}
+
+<font color=#0000ff>class</font> Square <font color=#0000ff>extends</font> Shape {
+  <font color=#0000ff>void</font> draw() { 
+    System.out.println(<font color=#004488>"Square.draw()"</font>); 
+  }
+  <font color=#0000ff>void</font> erase() { 
+    System.out.println(<font color=#004488>"Square.erase()"</font>); 
+  }
+}
+
+<font color=#0000ff>class</font> Triangle <font color=#0000ff>extends</font> Shape {
+  <font color=#0000ff>void</font> draw() { 
+    System.out.println(<font color=#004488>"Triangle.draw()"</font>); 
+  }
+  <font color=#0000ff>void</font> erase() { 
+    System.out.println(<font color=#004488>"Triangle.erase()"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Shapes {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font><font size="+1"> Shape randShape() {
+    <font color=#0000ff>switch</font>((<font color=#0000ff>int</font>)(Math.random() * 3)) {
+      <font color=#0000ff>default</font>:
+      <font color=#0000ff>case</font> 0: <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Circle();
+      <font color=#0000ff>case</font> 1: <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Square();
+      <font color=#0000ff>case</font> 2: <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Triangle();
+    }
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Shape[] s = <font color=#0000ff>new</font> Shape[9];
+    <font color=#009900>// Заполним массив шейпами:</font></font>
+    <font color="#0000ff" size="+1">for</font><font size="+1">(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+      s[i] = randShape();
+    <font color=#009900>// Сделаем вызов полиморфного метода:</font></font>
+    <font color="#0000ff" size="+1">for</font><font size="+1">(<font color=#0000ff>int</font> i = 0; i &lt; s.length; i++)
+      s[i].draw();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>
+  Базовый класс <b>Shape</b> предоставляет общий интерфейс для всех наследников от  <b>Shape</b>, это означает, что все шейпы могут быть нарисованы и стерты. Дочерние классы перекрывают эти определения для обеспечения уникального поведения в зависимости от типа шейпа.<br>
+  </p>
+<div align="LEFT"></div>
+<div align="LEFT">
+  <p>Главный класс <b>Shapes</b> содержит 
+<b>static</b> метод - <b>randShape(&#160;)</b>, который возвращает ссылку на случайно выбранный объект <b>Shape</b> каждый раз, когда Вы вызываете его. Заметьте, что приведение к базовому типу происходит каждый раз при  <b>return</b>-е, который ссылается на <b>Circle</b>, <b>Square</b> или <b>Triangle</b> и посылает их из метода, как возвращаемый параметр. Так что, когда Вы вызываете этот метод Вы не можете узнать, какого типа возвращается параметр, поскольку  всегда возвращается базовый тип <b>Shape</b>.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p><b>main(&#160;)</b> содержит массив из ссылок
+<b>Shape</b> заполненный вызовами <b>randShape(&#160;)</b>. На этом этапе Вы знаете, что Вы имеете некоторое множество  ссылок на объекты типа<b> Shape</b>, но Вы не знаете ничего о них больше (и не больше, чем знает компилятор). В любом случае, когда Вы перемещаетесь по этому массиву и вызываете <b>draw(&#160;)</b> для каждого элемента, то автоматически проставляется правильный тип, как Вы можете посмотреть это на примере:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">Circle.draw()
+Triangle.draw()
+Circle.draw()
+Circle.draw()
+Circle.draw()
+Square.draw()
+Triangle.draw()
+Square.draw()
+Square.draw()</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Естественно, поскольку шейпы вызываются случайным  образом, то и результаты вывода могут быть различны. Причина вызова шейпов случайным  образом обусловлена тем, что бы была возможность показать, что компилятор не имеет специальных знаний, для создания правильных вариантов при компиляции. Все вызовы <b>draw(&#160;)</b> сделаны посредством динамической связи.<a name="_Toc375545332"></a><a name="_Toc481064630"></a><br>
+  </p>
+</div>
+<a name="Heading240"></a>
+<h3 align="LEFT">
+Расширяемость</h3>
+<div align="LEFT">
+  <p>Теперь давайте вернемся к нашему примеру с музыкальными инструментами. В полиморфизме, Вы можете добавить столько новых типов, сколько захотите, без изменения метода <b>tune(&#160;)</b>. В хорошо спроектированной ООП программе, большинство или все ваши методы будут следовать модели 
+<b>tune(&#160;)</b> и будут соединятся только с интерфейсом базового класса<a name="Index691"></a><a name="Index692"></a>. Такая программа <i>расширяема<a name="Index693"></a></i>, поскольку Вы можете добавлять новые возможности через наследование новых типов данных от общего базового класса. Методы манипулирующие интерфейсом базового класса не нуждаются в изменении в новых классах.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Рассмотрим, что произойдет, если Вы возьмете пример с инструментами и добавите больше методов в базовый класс и несколько новых классов. Вот диаграмма:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ216.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Все эти новые классы работают нормально со старым, неизмененным методом <b>tune(&#160;)</b>. Даже если <b>tune(&#160;)</b> в другом файле и новые методы добавлены в интерфейс <b>Instrument</b>,
+<b>tune(&#160;)</b> работает без ошибок даже без перекомпиляции. Ниже приведена реализация вышерасположенной диаграммы:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:music3:Music3.java</font>
+<font color="#009900" size="+1">// Расширяемая программа.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>class</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Instrument.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() {
+    <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Instrument"</font><font size="+1">;
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Wind <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Wind.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Wind"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Percussion <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Percussion.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Percussion"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Stringed <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Stringed.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Stringed"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Brass <font color=#0000ff>extends</font> Wind {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Brass.play()"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {
+    System.out.println(<font color=#004488>"Brass.adjust()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Woodwind <font color=#0000ff>extends</font> Wind {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Woodwind.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Woodwind"</font><font size="+1">; }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Music3 {
+  <font color=#009900>// Не беспокойтесь о новых типах</font></font>,
+  <font color="#009900" size="+1">// поскольку добавленные продолжают работать правильно:</font>
+  <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Instrument i) {
+    <font color=#009900>// ...</font>
+    i.play();
+  }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> tuneAll(Instrument[] e) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; e.length; i++)
+      tune(e[i]);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Instrument[] orchestra = <font color=#0000ff>new</font> Instrument[5];
+    <font color=#0000ff>int</font> i = 0;
+    <font color=#009900>// Приведение к базовому типу во время добавления в массив:</font>
+    orchestra[i++] = <font color=#0000ff>new</font> Wind();
+    orchestra[i++] = <font color=#0000ff>new</font> Percussion();
+    orchestra[i++] = <font color=#0000ff>new</font> Stringed();
+    orchestra[i++] = <font color=#0000ff>new</font> Brass();
+    orchestra[i++] = <font color=#0000ff>new</font> Woodwind();
+    tuneAll(orchestra);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Новые методы <b>what(&#160;)</b>,
+который возвращает  <b>String</b> ссылку с описанием класса, и
+<b>adjust(&#160;)</b>, который предоставляет некоторый путь для настройки каждого инструмента.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В <b>main(&#160;)</b>, когда Вы помещаете что-то внутрь массива <b>Instrument </b>Вы автоматически  производите операцию приведения  к базовому типу к
+<b>Instrument</b>.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Вы можете видеть, что метод <b>tune(&#160;)</b>
+удачно игнорирует все изменения кода, которые случились вокруг него и он все еще работает при этом корректно. Такое поведение так же допускается полиморфизмом. Изменения вашего кола не окажут разрушающего влияния на другие части программы. Другими словами полиморфизм предоставляет программисту возможность отделить те вещи, которые нужно изменить от тех вещей, который должны оставаться неизменными.<a name="_Toc375545333"></a><a name="_Toc481064631"></a><br>
+  </p>
+</div>
+<a name="Heading241"></a>
+<h2 align="LEFT">
+Переопределение против
+перегрузки<br>
+  <a name="Index694"></a><a name="Index695"></a></h2>
+<div align="LEFT">
+  <p>Давайте теперь взглянем на первый пример этой главы, но под другим углом зрения. В следующей программе интерфейс метода <b>play(&#160;)</b> изменен в процессе переопределения, что означает, что Вы не переопределили этот метод, а вместо этого перегрузили его. Компилятор позволяет вам перегрузить метод, поэтому и не было никаких жалоб с его стороны. Но поведение метода вероятно отличается от того, что бы Вы хотели.  Пример:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:WindError.java </font>
+<font color="#009900" size="+1">// Случайное изменение интерфейса.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> NoteX {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1">
+    MIDDLE_C = 0, C_SHARP = 1, C_FLAT = 2;
+}
+
+<font color=#0000ff>class</font> InstrumentX {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(<font color=#0000ff>int</font> NoteX) {
+    System.out.println(<font color=#004488>"InstrumentX.play()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> WindX <font color=#0000ff>extends</font> InstrumentX {
+  <font color=#009900>// Упс! Изменился интерфейс метода:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">void</font><font size="+1"> play(NoteX n) {
+    System.out.println(<font color=#004488>"WindX.play(NoteX n)"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> WindError {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(InstrumentX i) {
+    <font color=#009900>// ...</font>
+    i.play(NoteX.MIDDLE_C);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    WindX flute = <font color=#0000ff>new</font> WindX();
+    tune(flute); <font color=#009900>// Не желаемое поведедение!</font>
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Здесь есть еще одна запутывающая  сторона применения полиморфизма. В <b>InstrumentX</b> метод <b>play(&#160;)</b> принимает
+<b>int</b>,  который имеет идентификатор <b>NoteX</b>. Так что, даже если
+<b>NoteX</b> это имя класса, то оно так же может быть использовано и в качестве переменной, без возражений со стороны компилятора. Но в <b>WindX</b>, <b>play(&#160;)</b> берет ссылку <b>NoteX,</b>
+которая имеет идентификатор <b>n.</b> (Хотя Вы никогда не сможете осуществить
+<b>play(NoteX NoteX)</b> без сообщения об ошибке.) Поэтому кажется, что программист собирался переопределить  <b>play(&#160;),</b> но немного опечатался. Компилятор  же в свою очередь понял, что это перегрузка (overload), а не переопределение (override).
+Заметьте, что если Вы следуете соглашению об именах в  Java, то тогда идентификатор был бы <b>noteX</b> (в нижнем регистре &quot;n&quot;), что отделило бы его от имени класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В <b>tune</b>,  <b>InstrumentX</b>
+<b>i</b> посылает сообщение методу <b>play(&#160;)</b>, с одним из членов
+<b>NoteX</b> (<b>MIDDLE_C</b>) в качестве аргумента. Поскольку
+<b>NoteX</b> содержит определение <b>int</b>, то это означает, что будет вызвана <b>int</b>
+версия перегруженного метода <b>play(&#160;)</b> и в силу того, что он не был переопределен, то будет использована версия базового класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Вывод программы:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">InstrumentX.play()</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Несомненно, это не повлияет на вызов полиморфного  метода. Как только Вы поймете что случилось, Вы сможете с легкостью исправить возникшую проблему, но понять причину ошибки тем сложнее, чем больше размер программы.<a name="_Toc375545334"></a><a name="_Toc481064632"></a><br>
+  </p>
+</div>
+<a name="Heading242"></a>
+<h2 align="LEFT">
+Абстрактные методы и классы</h2>
+<div align="LEFT">
+  <p>Во всех примерах с инструментами, методы базового класса <b>Instrument</b> всегда поддельны, фиктивны. В этих методах всегда при вызове происходило что-то неправильное.
+Это происходит из-за того, что цель <b>Instrument</b> - создание общего интерфейса для всех дочерних классов.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Единственная причина для создания этого общего интерфейса<a name="Index696"></a><a name="Index697"></a>, то, что он должен быть реализован по разному для каждого отдельного подтипа. Он создает основную форму, так что Вы можете сказать, что общего во всех дочерних классах. Другой путь сказать то же самое, это вызов <b>Instrument</b>  <i>абстрактного базового класса</i>
+<a name="Index698"></a><a name="Index699"></a><a name="Index700"></a>(или просто <i>абстрактного класса</i>). Вы создаете абстрактный класс, когда Вы хотите управлять набором классов, через этот общий интерфейс. Все методы дочерних классов,  совпадающие с объявлением сигнатуры базового класса, используют динамическое связывание. (Однако  как было написано в предыдущей секции, если имя метода совпадает с именем метода базового класса, а аргументы различны, то это означает перегрузку, что обычно не то, что требуется.)<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Если у Вас есть абстрактный класс типа
+<b>Instrument</b>, объекты этого класса всегда ничего не значат. Это означает, что
+<b>Instrument</b> является только интерфейсом, а не  частным случаем реализации, так что создание объектов <b>Instrument</b> бессмысленно, и Вы вероятно хотели бы оградить пользователей от этой возможности. Это можно осуществить путем внедрения во все методы <b>Instrument</b> вывода сообщения об ошибке, но при этом осуществляется задержка вывода информации при работе программы и требует изнуряющего тестирования пользовательской части. Но всегда все таки лучше ловить проблемы на стадии компиляции.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Java предоставляет механизм для этого, называемый <i>вызов абстрактного метода</i><a name="fnB37" href="#fn37">[37]</a>.
+Такой метод является не законченным; он имеет только объявление и не имеет тела метода. Ниже приведен синтаксис объявления абстрактного метода:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#0000ff" size="+1">abstract</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f();</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Класс, содержащий абстрактные методы, называется абстрактным  классом. Если класс содержит один или больше абстрактных  методов, этот класс должен быть определен как <b>abstract</b>. (В противном случае компилятор выдаст сообщение об ошибке.)<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Если объявлен абстрактный класс, то что компилятор сделает, если кто-то попытается создать объект от этого класса? Поскольку компилятор не может безопасно создать объект абстрактного класса, то Вы получите сообщение об ошибке. Таким образом компилятор заботится о чистоте абстрактного класса и вам нет необходимости беспокоиться об этом.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Если Вы 
+<a name="Index701"></a><a name="Index702"></a><a name="Index703"></a>наследуете от абстрактного класса и Вы хотите создать объект нового типа, то Вы должны предоставить определения всех абстрактных методов  базового класса. Если же Вы этого не сделаете (а Вы можете решить не делать этого), то дочерний класса будет так же абстрактным и компилятор насильно установит модификатор
+<a name="Index704"></a><b>abstract</b> для этого класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Вообще возможно создать 
+<b>abstract</b> класс без включения в него каких либо <b>abstract</b> методов. Такой способ удобно употреблять когда у вас есть класс в котором все равно есть ли в нем какие  либо 
+<b>abstract</b> методы, и тем самым Вы предотвратите наследование от этого класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Класс <b>Instrument</b> может быть с легкостью превращен в  <b>abstract</b> класс. Только некоторые из методов будут
+<b>abstract</b>, поскольку  создание абстрактного метода не требует от вас определение всех методов <b>abstract</b>.<b> </b>Здесь показано, на что это похоже:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ217.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Ниже пример с оркестром, модифицированный для использования  <b>abstract</b> классов и методов:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:music4:Music4.java</font>
+<font color="#009900" size="+1">// Абстрактные методы и классы.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Instrument {
+  <font color=#0000ff>int</font> i; <font color=#009900>// хранилище зарезервировано  для всех</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">abstract</font> <font color="#0000ff" size="+1">void</font><font size="+1"> play();
+  <font color=#0000ff>public</font> String what() {
+    <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Instrument"</font><font size="+1">;
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">abstract</font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust();
+}
+
+<font color=#0000ff>class</font> Wind <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Wind.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Wind"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Percussion <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Percussion.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Percussion"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Stringed <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Stringed.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Stringed"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Brass <font color=#0000ff>extends</font> Wind {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Brass.play()"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() { 
+    System.out.println(<font color=#004488>"Brass.adjust()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Woodwind <font color=#0000ff>extends</font> Wind {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Woodwind.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Woodwind"</font><font size="+1">; }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Music4 {
+  <font color=#009900>// Не беспокойтесь от типах, поскольку новые типы добавляемые</font></font>
+  <font color="#009900" size="+1">// в систему, не мешают ей работать правильно:</font>
+  <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Instrument i) {
+    <font color=#009900>// ...</font>
+    i.play();
+  }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> tuneAll(Instrument[] e) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; e.length; i++)
+      tune(e[i]);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Instrument[] orchestra = <font color=#0000ff>new</font> Instrument[5];
+    <font color=#0000ff>int</font> i = 0;
+    <font color=#009900>// Приведение к базовому типу во время добавления в массив:</font>
+    orchestra[i++] = <font color=#0000ff>new</font> Wind();
+    orchestra[i++] = <font color=#0000ff>new</font> Percussion();
+    orchestra[i++] = <font color=#0000ff>new</font> Stringed();
+    orchestra[i++] = <font color=#0000ff>new</font> Brass();
+    orchestra[i++] = <font color=#0000ff>new</font> Woodwind();
+    tuneAll(orchestra);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Вы можете видеть, что здесь не произошло реального изменения базового класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Так поступать очень удобно, создавая  <b>abstract
+</b>классы и методы, потому что  создается понятное и для пользователя и для компилятора намеренье об его использования<a name="_Toc375545338"></a>.<a name="_Toc481064633"></a><br>
+  </p>
+</div>
+<a name="Heading243"></a>
+<h2 align="LEFT">
+Конструкторы и полиморфизм</h2>
+<div align="LEFT">
+  <p>Обычно
+<a name="Index705"></a><a name="Index706"></a>конструкторы отличаются для разных методов. Это так же верно когда используется полиморфизм. Поскольку конструкторы не полиморфичны (но Вы можете получить разновидность виртуального конструктора, об этом Вы узнаете в <a href="Chapter12.html">главе 12</a>), то важно понять способы работы конструкторов  составной иерархии и с полиморфизмом. Понятие этого позволит вам устранить неприятную запутанность, связанную с конструкторами.<a name="_Toc375545339"></a><a name="_Toc481064634"></a><br>
+  </p>
+</div>
+<a name="Heading244"></a>
+<h3 align="LEFT">
+Порядок вызова конструкторов<br>
+  <a name="Index707"></a><a name="Index708"></a></h3>
+<div align="LEFT">
+  <p>Порядок вызова конструкторов был кратко рассмотрен в <a href="Chapter04.html">главе 4</a> и снова в <a href="Chapter06.html">главе 6</a>, но это было до того, как мы узнали о полиморфизме. <br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Конструктор для базового класса всегда вызывается в конструкторе дочернего класса, и так по всей цепочке наследования, пока не будут вызваны конструкторы всех базовых классов. Такой порядок имеет значение, поскольку конструктор выполняет специальную работу: что бы убедится, что объект был создан правильно. Дочерний класс имеет доступ только к его собственным членам и ни к одному из базового класса (чьи элементы обычно <b>private</b>). Только конструктор  базового класса имеет необходимую информацию и доступ к элементам базового класса. Следовательно, естественно, что вызываются все конструкторы,
+с другой стороны объект целиком не создается. Вот поэтому компилятор и вызывает конструкторы  в конструкторах  дочерних классов. Он просто тихо вызывает конструктор  по умолчанию, если Вы этого сами явно не сделали в теле конструктора. Если же у базового класса нет конструктора  по умолчанию, то компилятор по этому поводу  возразит. (В случае, если класс не имеет конструкторов компилятор автоматически создает конструктор  по умолчанию.)<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Давайте посмотрим на пример, который показывает эффект композиции, наследование и полиморфизма на стадии создания:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:Sandwich.java</font>
+<font color="#009900" size="+1">// Порядок вызова конструкторов.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Meal {
+  Meal() { System.out.println(<font color=#004488>"Meal()"</font>); }
+}
+
+<font color=#0000ff>class</font> Bread {
+  Bread() { System.out.println(<font color=#004488>"Bread()"</font>); }
+}
+
+<font color=#0000ff>class</font> Cheese {
+  Cheese() { System.out.println(<font color=#004488>"Cheese()"</font>); }
+}
+
+<font color=#0000ff>class</font> Lettuce {
+  Lettuce() { System.out.println(<font color=#004488>"Lettuce()"</font>); }
+}
+
+<font color=#0000ff>class</font> Lunch <font color=#0000ff>extends</font> Meal {
+  Lunch() { System.out.println(<font color=#004488>"Lunch()"</font>);}
+}
+
+<font color=#0000ff>class</font> PortableLunch <font color=#0000ff>extends</font> Lunch {
+  PortableLunch() {
+    System.out.println(<font color=#004488>"PortableLunch()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Sandwich <font color=#0000ff>extends</font> PortableLunch {
+  Bread b = <font color=#0000ff>new</font> Bread();
+  Cheese c = <font color=#0000ff>new</font> Cheese();
+  Lettuce l = <font color=#0000ff>new</font> Lettuce();
+  Sandwich() { 
+    System.out.println(<font color=#004488>"Sandwich()"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    <font color=#0000ff>new</font> Sandwich();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Этот пример создает составной класс из других классов и каждый из классов имеет конструктор, который извещает о себе. Важный класс <b>Sandwich</b> отражает три уровня наследования
+(четыре, если считать наследование от <b>Object</b>) и три объекта элемента. Когда объект <b>Sandwich</b> уже создан,
+вывод программы таков:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">Meal()
+Lunch()
+PortableLunch()
+Bread()
+Cheese()
+Lettuce()
+Sandwich()</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Это означает, что существует следующий вызов конструкторов для сложного объекта:
+<a name="Index709"></a><a name="Index710"></a><a name="Index711"></a><a name="Index712"></a><br>
+  </p>
+</div>
+<ol>
+  <li>	Вызван конструктор базового объекта. Этот шаг был повторен пока вызов не добрался до корня иерархии, следуя вниз, до того, как будут обработаны все дочерние классы.
+  <li>	Участники  инициализации вызваны по порядку их декларации.
+  <li>	Вызвано тело дочернего класса.
+</ol>
+<div align="LEFT">
+  <p>Порядок вызова конструкторов чрезвычайно важен. Когда Вы наследуете, Вы знаете все о базовом классе и можете получить доступ к любому <b>public</b> и <b>protected</b> его участнику. Это означает, что вам необходимо быть уверенным в том, что все члены класса приемлемы и допустимы на момент наследования. В нормальном методе, создание объекта уже завершено, поэтому  все члены этого класса соответственно созданы. Внутри конструктора, однако, Вы должны быть уверены в том, что все участники класса созданы нормально. Существует только один путь, гарантирующий это - вызов конструктора базового класса в самую первую очередь. Затем, когда управление уже передается в конструктор дочернего класса, все участники базового класса будут проинициализированы и созданы должным образом. Знание того, что все члены класса приемлемы уже в конструкторе хорошая причина для того, что бы где только возможно инициализировать объекты на стадии их определения. Если Вы будете следовать этой практике, то Вы будете уверены, что все члены классов и члены объектов были правильно проинициализированы. Но, к сожалению, часто  это не играет никакой роли, но об этом читайте в  следующей секции.<a name="_Toc481064635"></a><br>
+  </p>
+</div>
+<a name="Heading245"></a>
+<h3 align="LEFT">
+Наследование и finalize(&#160;)</h3>
+<div align="LEFT">
+  <p>Когда Вы используете композицию для создания нового класса, Вы никогда не беспокоитесь о завершении объекта этого класса. Каждый участник - независимый объект и поэтому <a name="Index713"></a>сборщик мусора не обращают внимание на то, что это член вашего класса. С наследованием Вы должны переопределять
+<a name="Index714"></a><a name="Index715"></a><b>finalize(&#160;)</b> в дочерних классах, если у вас есть какие либо специальные очистки, которые должны произойти  как часть сбора мусора. Когда Вы переопределяете <b>finalize(&#160;)</b> в наследуемом классе, то важно не забыть вызвать 
+<b>finalize(&#160;)</b> базового класса, поскольку в противном случае финализация базового класса не произойдет. Следующий пример доказывает  это утверждение:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:Frog.java</font>
+<font color="#009900" size="+1">// Проверка завершения с наследованием.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> DoBaseFinalization {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">boolean</font><font size="+1"> flag = <font color=#0000ff>false</font>;
+}
+
+<font color=#0000ff>class</font> Characteristic {
+  String s;
+  Characteristic(String c) {
+    s = c;
+    System.out.println(
+      <font color=#004488>"Creating Characteristic "</font> + s);
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> finalize() {
+    System.out.println(
+      <font color=#004488>"finalizing Characteristic "</font> + s);
+  }
+}
+
+<font color=#0000ff>class</font> LivingCreature {
+  Characteristic p = 
+    <font color=#0000ff>new</font> Characteristic(<font color=#004488>"is alive"</font>);
+  LivingCreature() {
+    System.out.println(<font color=#004488>"LivingCreature()"</font>);
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> finalize() <font color=#0000ff>throws</font> Throwable {
+    System.out.println(
+      <font color=#004488>"LivingCreature finalize"</font>);
+    <font color=#009900>// Вызов версии базового класса!</font></font>
+    <font color="#0000ff" size="+1">if</font><font size="+1">(DoBaseFinalization.flag)
+      <font color=#0000ff>super</font>.finalize();
+  }
+}
+
+<font color=#0000ff>class</font> Animal <font color=#0000ff>extends</font> LivingCreature {
+  Characteristic p = 
+    <font color=#0000ff>new</font> Characteristic(<font color=#004488>"has heart"</font>);
+  Animal() {
+    System.out.println(<font color=#004488>"Animal()"</font>);
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> finalize() <font color=#0000ff>throws</font> Throwable {
+    System.out.println(<font color=#004488>"Animal finalize"</font>);
+    <font color=#0000ff>if</font>(DoBaseFinalization.flag)
+      <font color=#0000ff>super</font>.finalize();
+  }
+}
+
+<font color=#0000ff>class</font> Amphibian <font color=#0000ff>extends</font> Animal {
+  Characteristic p = 
+    <font color=#0000ff>new</font> Characteristic(<font color=#004488>"can live in water"</font>);
+  Amphibian() {
+    System.out.println(<font color=#004488>"Amphibian()"</font>);
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> finalize() <font color=#0000ff>throws</font> Throwable {
+    System.out.println(<font color=#004488>"Amphibian finalize"</font>);
+    <font color=#0000ff>if</font>(DoBaseFinalization.flag)
+      <font color=#0000ff>super</font>.finalize();
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Frog <font color=#0000ff>extends</font> Amphibian {
+  Frog() {
+    System.out.println(<font color=#004488>"Frog()"</font>);
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> finalize() <font color=#0000ff>throws</font> Throwable {
+    System.out.println(<font color=#004488>"Frog finalize"</font>);
+    <font color=#0000ff>if</font>(DoBaseFinalization.flag)
+      <font color=#0000ff>super</font>.finalize();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    <font color=#0000ff>if</font>(args.length != 0 &amp;&amp; 
+       args[0].equals(<font color=#004488>"finalize"</font>))
+       DoBaseFinalization.flag = <font color=#0000ff>true</font>;
+    <font color=#0000ff>else</font>
+      System.out.println(<font color=#004488>"Not finalizing bases"</font>);
+    <font color=#0000ff>new</font> Frog(); <font color=#009900>// Тотчас становится мусором</font>
+    System.out.println(<font color=#004488>"Bye!"</font>);
+    <font color=#009900>// Принудительный вызов завершения и очистки:</font>
+    System.gc();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Класс <b>DoBaseFinalization</b>
+просто содержит флаг, который показывает для каждого класса в иерархии вызывать ли
+<a name="Index716"></a><a name="Index717"></a><b>super.finalize(&#160;)</b>. Этот флаг устанавливается как аргумент командной  строки, так что Вы можете посмотреть поведение с и без вызовов завершения базового класса.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Каждый класс в иерархии так же содержит объект класса <b>Characteristic</b>. Вы увидите, что  не обращая внимание на вызов завершителя базового класса объект <b>Characteristic</b> всегда завершается.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Каждое переопределение <b>finalize(&#160;)
+</b>должно иметь доступ к <b>protected </b>членам класса, поскольку метод
+<b>finalize(&#160;) </b>в классе <b>Object </b>является <b>protected</b> и компилятор не позволит вам уменьшить права доступа во время наследования.
+(&quot;<a name="Index718"></a><a name="Index719"></a>Friendly&quot; менее &quot;достижимы&quot; чем <b>protected</b>.)<b> </b><br>
+  </p>
+</div>
+<div align="LEFT">
+  <p><a name="Index720"></a>В
+<b>Frog.main(&#160;)</b>,<b> </b>флаг <b>DoBaseFinalization </b>настраивается и создается единственный объект <b>Frog</b>. Помните, что сборщик мусора и индивидуальное завершение, могут не произойти для отдельного объекта, поэтому, что бы вызвать их насильно вызывается <b>System.gc(&#160;)</b> и оттуда уже завершение. Без завершения базовых классов вывод такой:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">Not finalizing bases
+Creating Characteristic is alive
+LivingCreature()
+Creating Characteristic has heart
+Animal()
+Creating Characteristic can live in water
+Amphibian()
+Frog()
+Bye!
+Frog finalize
+finalizing Characteristic is alive
+finalizing Characteristic has heart
+finalizing Characteristic can live in water</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Вы можете видеть, что не были вызваны завершители для базовых классов  <b>Frog</b> (объекты класса были завершены, как Вы и ожидали). Но если Вы добавите аргумент &quot;finalize&quot; в командную  строку, Вы получите:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">Creating Characteristic is alive
+LivingCreature()
+Creating Characteristic has heart
+Animal()
+Creating Characteristic can live in water
+Amphibian()
+Frog()
+bye!
+Frog finalize
+Amphibian finalize
+Animal finalize
+LivingCreature finalize
+finalizing Characteristic is alive
+finalizing Characteristic has heart
+finalizing Characteristic can live in water</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Поскольку элементы объектов завершены в том же порядке, в каком они были созданы, то технически
+<a name="Index721"></a><a name="Index722"></a><a name="Index723"></a>порядок финализации объектов не определен. С базовыми же классами, Вы можете осуществлять контроль над порядком завершения.
+Следуя форме, которая используется в  C++ для деструкторов, Вы должны осуществить завершение дочернего класса раньше, чем завершение базового класса.
+Потому что финализация дочернего класса может вызвать некоторые методы в базовом классе, которые требуют, что бы компоненты этого базового классы были все еще активны, поэтому Вы не должны уничтожать их принудительно.<a name="_Toc312374057"></a><a name="_Toc375545340"></a><a name="_Toc481064636"></a><br>
+  </p>
+</div>
+<a name="Heading246"></a>
+<h3 align="LEFT">
+Поведение полиморфных методов внутри конструкторов<br>
+  <a name="Index724"></a><a name="Index725"></a><a name="Index726"></a></h3>
+<div align="LEFT">
+  <p>Иерархия вызовов конструкторов принесла нам интересную дилемму. Что происходит, если Вы внутри конструктора  вызовите динамически компонуемый метод существующего объекта? Внутри обычного метода Вы можете представить, что случится - динамически компонуемый метод разрешится во время работы программы, поскольку объект не знает какого типа данный объект или от какого типа он произошел. В силу последовательности, Вы можете думать, что тоже самое случится и внутри конструктора.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>А это уже не точно такой же случай. Если Вы вызываете динамически  связываемый метод внутри конструктора, то используется переопределенное определение этого метода. И все равно, такого эффекта лучше избегать, поскольку  в данном случае возможно возникновение трудно находимых ошибок.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Понятно, что работа конструктора  заключается в оживлении объектов (что на самом деле сродни подвигу). Внутри любого конструктора, целый объект может быть сформирован только по частям, Вы можете знать только то, что базовый объект был проинициализирован, но Вы не можете знать, какие классы наследованы от вашего класса. Динамически связываемые методы в произошедших от них классах. Если Вы сделаете такой фокус внутри конструктора, Вы вызовете метод, который может обрабатывать объекты, которые  еще не были инициализированы. Хороший способ для создания катастрофы!<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Вы можете разглядеть эту проблему в следующем примере:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:PolyConstructors.java</font>
+<font color="#009900" size="+1">// Конструткоры и полиморфизм</font>
+<font color="#009900" size="+1">// не производите то, что вы не можете ожидать.</font>
+
+<font color="#0000ff" size="+1">abstract</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Glyph {
+  <font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> draw();
+  Glyph() {
+    System.out.println(<font color=#004488>"Glyph() before draw()"</font>);
+    draw(); 
+    System.out.println(<font color=#004488>"Glyph() after draw()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> RoundGlyph <font color=#0000ff>extends</font> Glyph {
+  <font color=#0000ff>int</font> radius = 1;
+  RoundGlyph(<font color=#0000ff>int</font> r) {
+    radius = r;
+    System.out.println(
+      <font color=#004488>"RoundGlyph.RoundGlyph(), radius = "</font>
+      + radius);
+  }
+  <font color=#0000ff>void</font> draw() { 
+    System.out.println(
+      <font color=#004488>"RoundGlyph.draw(), radius = "</font> + radius);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> PolyConstructors {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    <font color=#0000ff>new</font> RoundGlyph(5);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>В <b>Glyph</b>, метод <b>draw(&#160;)</b>
+- <b>abstract</b>, так что он спроектирован для переопределения. В замен этого Вы принудительного  переопределяете его в <b>RoundGlyph</b>. Но конструктор  <b>Glyph</b> вызывает этот метод и этот вызов заканчивается в <b>RoundGlyph.draw(&#160;)</b>, что в общем-то выглядит как то, что было нужно. Но посмотрите на вывод:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font size="+1">Glyph() before draw()
+RoundGlyph.draw(), radius = 0
+Glyph() after draw()
+RoundGlyph.RoundGlyph(), radius = 5</font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Когда конструктор  <b>Glyph</b>-а
+вызывает <b>draw(&#160;)</b>, значение <b>radius</b> еще не приняло значение по умолчанию 1. Оно еще равно 0. Это означает, что не будет нарисована точка на экране, Вы будете пытаться нарисовать эту фигуру на экране и пытаться сообразить, почему программа не работает.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>
+<a name="Index727"></a><a name="Index728"></a>Порядок инициализации, описанный в предыдущей секции, не совсем полон и вот Вам ключ для разрешения этой загадки. Настоящий процесс инициализации:<br>
+  </p>
+</div>
+<ol>
+  <li>	Место отведенное под объекты инициализировано в ноль, до того, как что-то произойдет.
+  <li>Вызывается конструктор  базового класса (как и было описано ранее). В этот момент вызывается переопределенный метод <b>draw(&#160;)</b>(да, до того, как будет вызван конструткор
+<b>RoundGlyph</b>), который открывает, что значение <b>radius</b> равно нулю, как и было описано в шаге 1.
+  <li>	Инициализация элементов вызывается в порядке их определения.
+  <li>	Вызывается тело конструткора базового класса.
+</ol>
+<div align="LEFT">
+  <p>Это только вершина айсберга, поскольку  все что еще не инициализировано является нулем (или заменителем нуля в специфичных типах данных), а  не просто мусор.
+Сюда так же входят ссылки  на объекты объявленные внутри класса через композицию, которые становятся   <b>null</b>. Так что, если Вы забыли проинициализировать эти ссылки, то Вы получите исключение во время работы программы. Все остальное возвращает ноль,
+что обычно предательски отображается в выводе.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>С другой стороны, Вы должны быть устрашены результатами  работы этой программы. Вы совершили  совершенно логичную штуку и сейчас поведение   программы непостижимо неправильно, и при этом без возражений со стороны компилятора. (C++ проявляет более рациональное поведение в таких ситуациях.) Ошибки на подобии этой могут быть с легкостью совершены, но в последствии  потребуют много времени на их обнаружение.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В качестве результата, хорошие руководящие принципы для конструктора &quot;Делайте в конструкторе настолько меньше, насколько можете и если это возможно, то не вызывайте никаких методов&quot;. Существует только один тип методов, которые безопасно вызывать из конструктора, это
+<a name="Index729"></a><b>final</b> методы из базового класса. (Это так же применимо и к
+<a name="Index730"></a><a name="Index731"></a><a name="Index732"></a><b>private</b>
+методам, которые так же являются <b>final</b>.) Они не могут быть переопределены и поэтому не могут преподнести своего рода сюрприз.<a name="_Toc375545341"></a><a name="_Toc481064637"></a><br>
+  </p>
+</div>
+<a name="Heading247"></a>
+<h2 align="LEFT">
+Проектировка с наследованием<br>
+  <a name="Index733"></a><a name="Index734"></a></h2>
+<div align="LEFT">
+  <p>Поскольку Вы изучаете полиморфизм, Вы можете видеть, что все следовало бы делать на его основе, поскольку полиморфизм на редкость умная штука. Но чрезмерное использование полиморфизма может значительно утяжелить ваш проект; в частности, если Вы выбираете наследование до того, как Вы используете существующий класс для создания нового класса, то программа будет излишне усложнена.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Лучший подход заключается в выборе для начала
+<a name="Index735"></a><a name="Index736"></a>композиции, если не очевидно, что Вы должны использовать что-то другое. Композиция не превращает проектировку в иерархию наследования. Но композиция так же и более гибкая, поскольку она способна динамически выбирать типы (и линии поведения соответственно), тогда как наследование требует четко определенного типа известного на стадии компиляции. Следующий пример иллюстрирует это высказывание:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:Transmogrify.java</font>
+<font color="#009900" size="+1">// Динамическое изменение поведения</font>
+<font color="#009900" size="+1">// при композиции объекта.</font>
+
+<font color="#0000ff" size="+1">abstract</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Actor {
+  <font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> act();
+}
+
+<font color=#0000ff>class</font> HappyActor <font color=#0000ff>extends</font> Actor {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> act() { 
+    System.out.println(<font color=#004488>"HappyActor"</font>); 
+  }
+}
+
+<font color=#0000ff>class</font> SadActor <font color=#0000ff>extends</font> Actor {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> act() { 
+    System.out.println(<font color=#004488>"SadActor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Stage {
+  Actor a = <font color=#0000ff>new</font> HappyActor();
+  <font color=#0000ff>void</font> change() { a = <font color=#0000ff>new</font> SadActor(); }
+  <font color=#0000ff>void</font> go() { a.act(); }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Transmogrify {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Stage s = <font color=#0000ff>new</font> Stage();
+    s.go(); <font color=#009900>// Выводит "HappyActor"</font>
+    s.change();
+    s.go(); <font color=#009900>// Выводит "SadActor"</font>
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Объект <b>Stage</b> содержит ссылку на <b>Actor</b>, которая проинициализирована на объект <b>HappyActor</b>. Это означает, что <b>go(&#160;)</b> предоставляет специфическое поведение. Но поскольку ссылка может быть перенаправлена на другой объект во время выполнения, то ссылка на объект
+<b>SadActor</b> может быть подставлена в <b>a</b> а затем  посредством <b>go(&#160;)</b> может быть изменена линия поведения. Так Вы наживаетесь на динамическом изменении во время работы программы. (Это так же называется статический шаблон (<i>State Pattern).</i> Смотрите для подробностей &quot; <i>Thinking in
+Patterns with Java</i>&quot;, доступный с <i>www.BruceEckel.com.</i>) В противоположность, Вы не можете решить использовать наследование с различными типами в режиме выполнения, типы должны быть полностью определены на стадии компиляции.
+<a name="Index737"></a><a name="Index738"></a><br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Основная линия поведения при этом может быть выражена фразой &quot;Используй наследование для выражения различия в поведении и поля для выражения различий в значениях&quot;. В предыдущем примере использовались оба принципа из высказывания: два различных класса были наследованы для получения различий в методе <b>act(&#160;)</b>, а
+<b>Stage</b> использует композицию для изменения своего значения. В этом случае,
+такое изменение  означает и изменение в поведении метода.<a name="_Toc375545342"></a><a name="_Toc481064638"></a><br>
+  </p>
+</div>
+<a name="Heading248"></a>
+<h3 align="LEFT">
+Чистое наследование против расширения<br>
+  <a name="Index739"></a><a name="Index740"></a><a name="Index741"></a></h3>
+<div align="LEFT">
+  <p>Во время изучения наследования, всегда преподается наиболее понятный, чистый путь для создания диаграммы наследования, т.н. &quot;чистое&quot; наследование. При этом существуют только методы в интерфейсе базового класса, которые переопределяются в дочерних классах, как и показано на диаграмме:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ218.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Это так называемая чистая
+&quot;<a name="Index742"></a>is-a&quot; связь, поскольку интерфейс класса определяет, что же это есть на самом деле. Наследование гарантирует, что любой дочерний класс будет иметь тот же интерфейс (т.е. не меньше его) как и у базового класса и ничего более. Если Вы последуете представленной диаграмме, то можете увидеть, что дочерние классы так же имеют интерфейс не больший, чем у базового.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Это  разновидность так называемой
+<a name="Index743"></a><i>чистой замены</i>, поскольку объекты дочернего класса могут быть чудным образом заменены для базового класса и вам не нужно знать никакой дополнительной информации о подклассах, когда Вы их будете использовать:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ219.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Так и получается, базовый класс может принимать любые сообщения, которые Вы можете посылать дочернему, поскольку они оба имеют тот же самый интерфейс. Все, что вам нужно сделать это привести к базовому типу от дочернего класса и больше не смотреть, с каким именно типом объекта Вы имеете дело. Все обрабатывается средствами полиморфизма.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Когда Вы видите такой путь, то это означает, что используются чистые связи &quot;is-a&quot;, при этом такой подход является единственным и любой другой <a name="Index744"></a>дизайн сигнализирует о запутанном обдумывании и по определению кривому восприятию кода. Вот и попались Вы в ловушку. Как только Вы начали думать в этом направлении, развернитесь и откройте для себя расширение интерфейса (которое к несчастью подстрекается ключевым словом <a name="Index745"></a><b>extends</b>) являющегося лучшим решением частной проблемы. Такой подход называется <a name="Index746"></a>&quot;is-like-a&quot; (это похоже на то) связью, поскольку дочерний класс <i>похож</i> на базовый класс, из-за того, что они имеют один и тот же фундаментальный интерфейс, но они имеют различные особенности, которые требуют дополнительных методов для своей реализации:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ220.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>У такого удобного и  разумного подхода (в зависимости от ситуации)  имеется и небольшой недостаток. Расширенная часть интерфейса дочернего класса не доступна из базового класса, так что при приведении к базовому типу Вы не можете получить доступ к этим новым методам:<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ221.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Если же Вы не приводите к базовому классу, об этом не стоит беспокоится, но зачастую вам необходимо получить точный тип объекта, так что Вы в последствии можете расширить методы этого типа. Следующая секция показывает, как это можно провернуть.<a name="_Toc375545343"></a><a name="_Toc481064639"></a><br>
+  </p>
+</div>
+<a name="Heading249"></a>
+<h3 align="LEFT">
+Приведение  к дочернему типу и идентификация типов во время работы</h3>
+<div align="LEFT">
+  <p>Из-за того, что Вы теряете информацию о типе при приведении к базовому типу (движение вверх по диаграмме  наследования), то важно получить тип полученной информации, для этого нужно двигаться назад, вниз по иерархии, используя тем самым приведение к дочернему типу<a name="Index747"></a>.
+Однако как Вы знаете приведение к базовому типу безопасно всегда, базовый класс не может иметь больший, интерфейс чем дочерний, поэтому каждое сообщение, которое Вы посылаете через базовый класс гарантированно будет получено. Но при приведении к дочернему типу, Вы в действительности не знаете, что шейп к примеру в действительности круг. А он может быть и треугольником и квадратом или чем еще угодно.<br>
+  </p>
+</div>
+<div align="CENTER"><img src="TIJ222.gif"><br>
+  <p></p>
+</div>
+<div align="LEFT">
+  <p>Для разрешения этой проблемы должен существовать некоторый путь, гарантирующий, что приведение к дочернему типу корректно, поскольку Вы наверняка не хотите привести тип к неверному значению и послать сообщение объекту, который не сможет его принять. Это может быть несколько не безопасно.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В некоторых языках (типа C++) Вы должны осуществлять специальную операцию в  получении типо-безопасного приведения к дочернему типу, но в Java
+<i>любое </i> приведение к типу проверяется! И как бы это не выглядело странно, Вы просто выполняете ординарное родительское приведение, во время работы, это приведение проверяется, для того, что бы убедиться, что это на самом деле то, что нужно. Если что-то не так, то Вы получите
+<b>ClassCastException</b>. Этот акт проверки типов во время работы называется
+<a name="Index748"></a><a name="Index749"></a><i>идентификация типов во время работы</i> <i>(run-time type identification
+</i>(RTTI)). Следующий пример демонстрирует поведение 
+RTTI:<br>
+  </p>
+</div>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c07:RTTI.java</font>
+<font color="#009900" size="+1">// Приведение к дочернему типу и </font><font color="#009900" size="+1">RTTI.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>class</font> Useful {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {}
+}
+
+<font color=#0000ff>class</font> MoreUseful <font color=#0000ff>extends</font> Useful {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> u() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> v() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> w() {}
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> RTTI {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Useful[] x = {
+      <font color=#0000ff>new</font> Useful(),
+      <font color=#0000ff>new</font> MoreUseful()
+    };
+    x[0].f();
+    x[1].g();
+    <font color=#009900>// Время компиляции: метод не найден в Useful:</font></font>
+    <font color="#009900" size="+1">//! x[1].u();</font><font size="+1">
+    ((MoreUseful)x[1]).u(); <font color=#009900>// Приведение к дочернему типу RTTI</font>
+    ((MoreUseful)x[0]).u(); <font color=#009900>// Обработка исключения</font>
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<div align="LEFT">
+  <p>Как и на диаграмме <b>MoreUseful</b>
+расширяет интерфейс <b>Useful</b>. Но поскольку он наследованный, он так же может быть приведен к базовому типу, к  <b>Useful</b>. Как Вы можете видеть это происходит в момент инициализации массива <b>x</b> в <b>main(&#160;)</b>. Поскольку оба объекта в массиве есть типы от класса <b>Useful</b>, то Вы можете послать методы <b>f(&#160;)</b> и
+<b>g(&#160;)</b> обоим, а если Вы попытаетесь  вызвать <b>u(&#160;)</b> (который существует только в <b>MoreUseful</b>), то Вы получите ошибку времени компиляции.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Если Вы хотите получить доступ к расширенному интерфейсу объекта <b>MoreUseful</b>, Вы можете попытаться привести его к дочернему типу. Если он правильного типа, то все пройдет нормально. В противном случае, Вы получите
+<a name="Index750"></a><b>ClassCastException</b>. Вам не нужно писать какой либо специальный код для этого исключения, поскольку оно сигнализирует об ошибке программиста, которая произошла где-то в программе.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>У RTTI есть больше применений, чем простое приведение. К примеру, существует возможность увидеть с каким типом Вы работаете, до того, как Вы попытаетесь привести к дочернему типу. Вся <a href="Chapter12.html">глава 12</a> посвящена изучению различных аспектов применения идентификации типов во время работы в  Java<a name="_Toc375545344"></a><a name="_Toc481064640"></a><br>
+  </p>
+</div>
+<a name="Heading250"></a>
+<h2 align="LEFT">
+Резюме</h2>
+<div align="LEFT">
+  <p>Полиморфизм означает <a name="Index751"></a>&quot;различные формы&quot;. В ООП у вас есть одно и то же лицо (общий интерфейс в базовом классе) и различные формы использующие это лицо: различные версии динамически  компонуемых методов.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>В этой главе Вы увидели, что невозможно понять, а часто и создать пример полиморфизма без использования абстракций данных и наследования. Полиморфизм это такое свойство, которое не может быть рассмотрено  в изоляции (а оператор <b>switch,</b> например можно),
+и при этом полиморфизм работает только в сочетании, как часть большой картины связей классов. Люди часто находятся в затруднении относительно других, не объектно-ориентированных свойств Java, таких как перезагрузка, которые иногда  преподносились как объектно-ориентированные. Не сглупите: если оно не с поздним связыванием, то оно и не с полиморфизмом.<br>
+  </p>
+</div>
+<div align="LEFT">
+  <p>Для использования полиморфизма и таких же объектно-риентированных технологий в вашей программе ,Вы должны расширить ваш взгляд на программирование, включая не только участников классов и сообщений, но так же общие классы и их взаимосвязи. Естественно это потребует значительных усилий, потребуется приложить много сил, но результатом будет более быстрая разработка программ, лучшая организация кода, расширяемость программ и более легкая манипуляция кодом.<a name="_Toc375545345"></a><a name="_Toc481064641"></a><br>
+  </p>
+</div>
+<a name="Heading251"></a>
+<h2 align="LEFT">
+Упражнения</h2>
+<div align="LEFT">
+  <p><font size=2>Решения к выбранным упражнениям могут быть найдены в электронном документе <i>The Thinking in Java Annotated
+Solution Guide</i>, доступном с
+<i><a href="http://www.BruceEckel.com" target="_blank">www.BruceEckel.com</a></i>.</font><br>
+  </p>
+</div>
+<ol>
+  <li>	Добавьте новый метод в базовый класс <b>Shapes.java,</b> который печатает сообщение, но не переопределяйте его в дочерних классах. Объясните, что происходит. Теперь переопределите его в одном из дочерних классов, но не в остальных, и посмотрите, что произошло. В конце переопределите его во всех классах.
+  <li>	Добавьте  новый тип <b>Shape</b> в <b>Shapes.java</b> и проверьте в <b>main(&#160;),
+</b>что полиморфизм работает для ваших новых типов, как если бы он были старых типов.
+  <li>	Измените
+<b>Music3.java</b>, так что бы <b>what(&#160;)</b> стал корневым методом объекта <b>Object
+</b>метода <b>toString(&#160;)</b>. Попробуйте напечатать объект <b>Instrument</b> используя <b>System.out.println(&#160;)</b> (без любых приведений).
+  <li>		Добавьте  новый тип <b>Instrument</b> к <b>Music3.java</b> и проверьте, что полиморфизм работает для вашего нового типа.
+  <li>	Измените
+<b>Music3.java,</b> так, что бы он случайным  образом создавал объекты <b>Instrument</b> так же, как это делает
+<b>Shapes.java</b>.
+  <li>Создайте иерархию наследования <b>Rodent</b>: <b>Mouse</b>, <b>Gerbil</b>,
+<b>Hamster</b>, и т.д. В базовом классе, создайте метод общий для всех
+<b>Rodent</b> и переопределите их в дочерних классах для осуществления различного поведения  в зависимости от типа <b>Rodent</b>. Создайте массив из
+<b>Rodent</b>, заполните его различными типами <b>Rodent</b> и вызовите ваш метод базового класса, что бы посмотреть, что случилось.
+  <li>	Измените упражнение 6, так, что бы <b>Rodent</b> стал  <b>abstract</b> классом. Сделайте методы <b>Rodent</b> абстрактными, где только возможно.
+  <li>	Создайте класс как <b>abstract</b> без включения любых <b>abstract</b> методов и проверьте, что Вы не можете создать ни одного экземпляра этого класса.
+  <li>	Добавьте класс
+<b>Pickle</b> к
+<b>Sandwich.java</b>.
+  <li>	Измените упражнение 6, так что бы оно демонстрировало порядок инициализации базовых и дочерних классов. Теперь добавьте участников  объектов в оба, в базовый и в дочерний классы и покажите порядок в каком происходит  инициализация при создании объекта.
+  <li>	Создайте трех уровневую иерархию наследования. Каждый из классов должен иметь метод
+<b>finalize(&#160;)</b> и он должен правильно вызывать версию <b>finalize(&#160;)</b> из базового класса. Покажите, что ваша иерархия работает правильно.
+  <li>Создайте базовый класс с двумя методами. В первом методе, вызовите второй метод.
+Наследуйте класс и переопределите второй метод. Создайте объект дочернего класса и приведите его к базовому типу, затем вызовите первый метод. Объясните, что произошло.
+  <li>Создайте базовый класс с методом <b>abstract</b> <b>print(&#160;)</b>, который<b> </b>переопределяется в дочернем классе. Переопределенная версия метода печатает значение переменной <b>int</b>, определенной в дочернем классе. В точке определения этой переменной, присвойте ей не нулевое значение. В конструкторе базового класса вызовите этот метод. В <b>main(&#160;)</b>, создайте объект дочернего типа и затем вызовите его <b>print(&#160;)</b>. Объясните результат.
+  <li>Следуйте примеру в  <b>Transmogrify.java</b>, создайте класс <b>Starship</b> содержащий ссылку <b>AlertStatus</b>, которая может отображать три различных состояния. Включите в класс методы изменяющие это состояние.
+  <li>	Создайте 
+<b>abstract</b> класс без методов. Наследуйте класс и добавьте метод. Создайте
+<b>static</b> метод, который получает ссылку на базовый класс, приведите ее к дочернему типу и вызовите этот метод. В <b>main(&#160;)</b>, покажите, что это работает. Теперь поместите <b>abstract</b> объявление для метода в базовый класс, это уничтожит потребность в приведении к дочернему типу.
+</ol>
+<hr>
+<div align="LEFT">
+  <p><a name="fn37" href="#fnB37">[37]</a><font size=2>
+Для программистов C++, это аналог C++ <i>pure virtual
+function</i>.</font><br>
+  </p>
+</div>
+<div align="CENTER"> <font size = "-1"> [ <a href="Chapter06.html">Предыдущая 
+  глава</a> ] [ <a href="SimpleContents.html">Короткое оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+  ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="Chapter08.html">Следующая 
+  глава</a> ]</font></div>
+
+
+</BODY>
+</HTML>

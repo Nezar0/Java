@@ -1,0 +1,2131 @@
+
+<HTML>
+<HEAD>
+<TITLE>8: Интерфейсы и внутренние классы.</TITLE>
+<meta http-equiv="author" content="KVV SoftWare">
+<meta http-equiv="description" content="Советы разработчику программ на Java">
+<meta http-equiv="keywords" content="java, ява, джава, script, скрипт, javascript, яваскрипт, programm, программа, programming, программирование, html, info, информация, information, инфо, sun, faq, чаво, frequently, часто, asked, задаваемые, questions, вопросы, odbc, jdbc, tips, советы, разработчику ">
+<meta http-equiv="distribution" content="global">
+<meta http-equiv="resource-type" content="document">
+<META HTTP-EQUIV="Content-type" CONTENT="text/html; charset=Windows-1251">
+</HEAD>
+<BODY  bgcolor="#FCFCFC">
+<p>
+<div align="center"></div>
+<h3 align="center">&copy;2000 by Bruce Eckel</h3>
+<div align="center"><font size = "-1"> [ <a href="Chapter07.html">Предыдущая глава</a> 
+  ] [ <a href="SimpleContents.html">Краткое описание</a> ] [ <a href="Contents.html">Таблица 
+  содержания</a> ] [ <a href="DocIndex.html">Список</a> ] [ <a href="Chapter09.html">Следующая 
+  глава</a> ] </font> </div>
+<p></p>
+<a name="Chapter_8"></a><a name="_Toc375545346"></a><a name="_Toc477690728"></a><a name="_Toc481064642"></a><a name="Heading252"></a>
+<h1 align="LEFT">
+Интерфейсы и внутренние классы</h1>
+<p><font size=4>Интерфейсы и внутренние классы предоставляют более изощренные 
+  пути для организации и контроля над объектами в вашей системе.</font></p>
+<p>C++, к примеру, не поддерживает данный механизм, но грамотный программист в 
+  состоянии сэмулировать его. Тот факт, что этот механизм существует в Java, говорит 
+  о том, что он настолько важен, что для него даже созданы специальные ключевые 
+  слова.</p>
+<p>В <a href="Chapter07.html">Главе 7</a>, Вы узнали о ключевом слове <b>abstract</b>, 
+  которое позволяет вам создавать один или несколько методов в классе, которые 
+  не имеют определений, Вы предоставляете только интерфейс, а его реализация будет 
+  осуществлена уже в наследниках. Ключевое слово <b>interface</b> создает полностью 
+  абстрактный класс, который не предоставляет никаких реализаций ни одного своего 
+  компонента. Вы далее узнаете, что <b>interface </b>есть нечто большее, чем просто 
+  абстрактный класс, доведенный до конца абстракции, поскольку он позволяет вам 
+  создавать вариации C++ множественного наследования, посредством создания класса, 
+  который может быть приведен к базовому типу больше раз, чем к один.</p>
+<p>Во-первых, внутренний класс выглядит, как некий механизм скрытия кода: Вы помещаете 
+  его внутри другого класса. Вы так же узнаете, что внутренний класс, не только 
+  существует сам по себе, а может соединяться с окружающими классами и такой вид 
+  кода будет написан вами более чисто и правильно. Поскольку будет представлена 
+  новая концепция кода. Но пройдет некоторое время, пока использование внутренних 
+  классов будет достаточно комфортным для вас.<a name="_Toc481064643"></a></p>
+<a name="Heading253"></a>
+<h2 align="LEFT">
+Интерфейсы</h2>
+<p>Ключевое слово <a name="Index752"></a><b>interface</b> осуществляет, на шаг 
+  дальше, концепцию, реализованную в <b>abstract</b>. Вы можете думать, что это 
+  просто чисто <b>abstract </b>класс. Он позволяет создателю заложить форму (структуру) 
+  класса: имена методов, списки аргументов, возвращаемые типы, но только не тела 
+  методов. <b>Interface</b> также может содержать поля, но все они будут, хотя 
+  и косвенно <a name="Index753"></a><b>static</b> и <a name="Index754"></a><b>final</b>. 
+  <b>Interface</b> предоставляет только форму, образ, но не предоставляет его 
+  <a name="Index755"> </a>реализацию.</p>
+<p><b>Interface</b> &quot;говорит&quot;: &quot;Все классы, реализующие этот особый 
+  интерфейс будут выглядеть одинаково&quot;. Поэтому, любой код, использующий 
+  <b>interface</b> знает, какой из методов может быть вызван для этого <b>interface</b>, 
+  впрочем, это все. Так что <b>interface</b> используется в качестве установления 
+  &quot;протокола&quot; между классами. (Некоторые ООЯ имеют даже встроенное ключевое 
+  слово <a name="Index756"></a><a name="Index757"></a><i>protocol</i>, делающее 
+  то же самое действие.)</p>
+<p>Что бы создать <b>interface</b>, используйте ключевое слово <b>interface</b> 
+  вместо ключевого слова <b>class</b>. Как и у класса, Вы можете добавить ключевое 
+  слово <a name="Index758"></a><b>public</b> до <b>interface </b>(но только если 
+  этот интерфейс определен в файле с тем же именем) или оставить его пустым, тогда 
+  он станет &quot;<a name="Index759"></a>friendly&quot; и его можно будет использовать 
+  только членам одного с ним пакета.</p>
+<p>Для создания класса согласованного с особенным <b>interface</b> (или группой 
+  <b>interface</b>-ов) используйте ключевое слово <a name="Index760"></a><b>implements</b>. 
+  Тем самым Вы объявляете &quot;<b>Interface</b> это на что похож мой класс, а 
+  теперь я скажу, как он должен работать.&quot; Все остальное, кроме этого, выглядит, 
+  как наследование. Диаграмма для примера с инструментами:</p>
+<div align="CENTER"><img src="TIJ223.gif"><br>
+</div>
+<p>Как только Вы примените <b>interface</b>, то этот класс сразу же становится 
+  обычным и в последствии он может быть расширен обычным способом.</p>
+<p>Вы можете выбрать явно объявления методов в <b>interface</b> как <b>public</b>. 
+  Но они таковыми являются, даже если Вы этого и не объявляете. Так что, когда 
+  Вы реализуете <b>interface</b>, методы из него должны быть определены как <b>public</b>. 
+  В противном случае, они будут по умолчанию friendly и Вы будете ограничены в 
+  доступе к ним во время наследования, поскольку доступ будет запрещен компилятором.</p>
+<p>Это Вы можете увидеть в измененном примере <b>Instrument</b>. Заметьте, что 
+  каждый метод в <b>interface</b> строго определен, только так компилятор и позволяет 
+  делать. В дополнение, ни один из методов в <b>Instrument</b> не определен как 
+  <b>public</b>, но они автоматически <b>public</b> по любому:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:music5:Music5.java</font>
+<font color="#009900" size="+1">// Интерфейсы.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>interface</font> Instrument {
+  <font color=#009900>// Константа времени компиляции:</font></font>
+  <font color="#0000ff" size="+1">int</font><font size="+1"> i = 5; <font color=#009900>// static &amp; final</font></font>
+  <font color="#009900" size="+1">// Не могут быть получены определения методов:</font>
+  <font color="#0000ff" size="+1">void</font><font size="+1"> play(); <font color=#009900>// автоматически public</font>
+  String what();
+  <font color=#0000ff>void</font> adjust();
+}
+
+<font color=#0000ff>class</font> Wind <font color=#0000ff>implements</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Wind.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Wind"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Percussion <font color=#0000ff>implements</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Percussion.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Percussion"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Stringed <font color=#0000ff>implements</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Stringed.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Stringed"</font><font size="+1">; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() {}
+}
+
+<font color=#0000ff>class</font> Brass <font color=#0000ff>extends</font> Wind {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Brass.play()"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> adjust() { 
+    System.out.println(<font color=#004488>"Brass.adjust()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Woodwind <font color=#0000ff>extends</font> Wind {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {
+    System.out.println(<font color=#004488>"Woodwind.play()"</font>);
+  }
+  <font color=#0000ff>public</font> String what() { <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Woodwind"</font><font size="+1">; }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Music5 {
+  <font color=#009900>// Не беспокойтесь о типе, добавленные типы</font></font>
+  <font color="#009900" size="+1">// продолжают работать правильно:</font>
+  <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Instrument i) {
+    <font color=#009900>// ...</font>
+    i.play();
+  }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> tuneAll(Instrument[] e) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; e.length; i++)
+      tune(e[i]);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Instrument[] orchestra = <font color=#0000ff>new</font> Instrument[5];
+    <font color=#0000ff>int</font> i = 0;
+    <font color=#009900>// Приведение к базовому типу во время добавления в массив:</font>
+    orchestra[i++] = <font color=#0000ff>new</font> Wind();
+    orchestra[i++] = <font color=#0000ff>new</font> Percussion();
+    orchestra[i++] = <font color=#0000ff>new</font> Stringed();
+    orchestra[i++] = <font color=#0000ff>new</font> Brass();
+    orchestra[i++] = <font color=#0000ff>new</font> Woodwind();
+    tuneAll(orchestra);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Этот кусок кода работает точно так же. Не имеет значения, если Вы приводите 
+  к базовому типу, <a name="Index761"></a> к обычному классу <b>Instrument</b>, 
+  <b>abstract</b> классу <b>Instrument</b>, или к <a name="Index762"></a><b>интерфейсу</b> 
+  <b>Instrument</b>. Поведение остается одно и то же. В частности, Вы можете видеть 
+  в методе <b>tune(&#160;)</b>, что в нем нет никаких доказательств того, что 
+  <b>Instrument</b> это обычный класс или <b>abstract</b> класс или же <b>интерфейс</b>. 
+  Это и есть цель: каждый подход (принцип) дает программисту различные варианты 
+  контроля над путем создания и использования объектов.<a name="_Toc375545336"></a><a name="_Toc481064644"></a></p>
+<a name="Heading254"></a>
+<h3 align="LEFT">
+Множественное наследование  в Java</h3>
+<p> <b>Interface</b> это не просто более чистая форма абстрактного класса. Он 
+  имее более &quot;высокое&quot; применение. Поскольку <b>interface</b> не имеет 
+  реализации всего, что есть в нтем, то нет и массива-хранилища связанного с ним, 
+  нет ничего мешающего для комбинации нескольких интерфейсов. И это ценно, поскольку 
+  иногда вам требуется нечто: &quot;<b>x</b> есть <b>a</b> <i>и</i> <b>b</b> <i>и</i> 
+  <b>c</b>.&quot; В C++, этот акт множественных интерфейсов называется <a name="Index763"></a><a name="Index764"></a><i>множественное 
+  наследование</i>, и при этом этот тип тянет за собой &quot;прилипший&quot; багаж, 
+  поскольку каждый тип имеет свою реализацию. В Java Вы можете осуществить то 
+  же самое, но только один из этих классов может иметь реализацию, так что проблемы, 
+  возникающие в C++, не возникают в Java, при комбинировании множества интерфейсов:</p>
+<div align="CENTER"><img src="TIJ224.gif"><br>
+  <p></p>
+</div>
+<p>В дочерних классах, Вы не можете насильно получить доступ к базовому классу, 
+  поскольку он так же абстрактен и монолитен - нерушим (один без абстрактных методов). 
+  Если Вы наследуете не от интерфейса,<b> </b>Вы можете наследовать только от 
+  него одного. Все остальные из элементов базового класса должны быть интерфейсами. 
+  Вы помещаете имена всех интерфейсов после ключевого слова <b>implements </b>и 
+  разделяете их при помощи запятых. Вы можете использовать столько интерфейсов, 
+  сколько хотите, каждый из них становится независимым типом, к которому Вы в 
+  последствии можете привести. Следующий пример демонстрирует комбинирование класса 
+  с несколькими интерфейсами для создания нового класса:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Adventure.java</font>
+<font color="#009900" size="+1">// Множество интерфейсов.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>interface</font> CanFight {
+  <font color=#0000ff>void</font> fight();
+}
+
+<font color=#0000ff>interface</font> CanSwim {
+  <font color=#0000ff>void</font> swim();
+}
+
+<font color=#0000ff>interface</font> CanFly {
+  <font color=#0000ff>void</font> fly();
+}
+
+<font color=#0000ff>class</font> ActionCharacter {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> fight() {}
+}
+
+<font color=#0000ff>class</font> Hero <font color=#0000ff>extends</font> ActionCharacter 
+    <font color=#0000ff>implements</font> CanFight, CanSwim, CanFly {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> swim() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> fly() {}
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Adventure {
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> t(CanFight x) { x.fight(); }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> u(CanSwim x) { x.swim(); }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> v(CanFly x) { x.fly(); }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> w(ActionCharacter x) { x.fight(); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Hero h = <font color=#0000ff>new</font> Hero();
+    t(h); <font color=#009900>// Treat - CanFight</font>
+    u(h); <font color=#009900>// Treat - CanSwim</font>
+    v(h); <font color=#009900>// Treat  - CanFly</font>
+    w(h); <font color=#009900>// Treat - ActionCharacter</font>
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>В этом примере, как Вы можете видеть, класс <b>Hero</b> комбинирует конкретный 
+  класс <b>ActionCharacter</b> с интерфейсами <b>CanFight</b>, <b>CanSwim</b> 
+  и <b>CanFly</b>. Когда Вы комбинируете именованный класс с интерфейсами, как 
+  в этом примере, этот класс должен быть указан первым, а только затем интерфейсы, 
+  в противном случае компилятор выдаст сообщение об ошибке.</p>
+<p>Заметьте, что сигнатура <b>fight(&#160;)</b> та же самая, в интерфейсе<b> CanFight</b> 
+  и в классе <b>ActionCharacter</b>, но обратите внимание, что <b>fight(&#160;)</b> 
+  не определена в <b>Hero</b>. Правилом для интерфейса является то, что Вы можете 
+  наследовать от него, но тогда Вы получите еще один интерфейс. Если же Вы хотите 
+  создать объект нового типа, то это должен быть класс со всеми определениями. 
+  Даже в силу того, что <b>Hero</b> не предоставляет определения для <b>fight(&#160;)</b>, 
+  это определение появляется вместе с <b>ActionCharacter</b>. Поскольку оно предоставляется 
+  автоматически и есть возможность создать объект от <b>Hero</b>.</p>
+<p>В классе <b>Adventure</b>, Вы можете видеть, что в нем есть несколько методов, 
+  которые воспринимают в качестве аргументов различные интерфейсы и конкретные 
+  классы. Когда объект <b>Hero</b> уже создан, то он может быть передан в качестве 
+  параметра в любой их этих методов, что в свою очередь означает, что он может 
+  быть приведен к базовому типу к любому из вышеописанных интерфейсов. Поскольку 
+  мы рассматриваем путь создания интерфейсов в Java, то на этой дороге программисту 
+  не встретится никаких особенных трудностей и не придется специально напрягаться.</p>
+<p>Запомните пожалуйста причину использования интерфейсов, кратко ее можно изложить 
+  так: возможность приведения к более, чем одному базовому типу. В дополнение 
+  вторая причина для использования интерфейсов в том же, в чем и причина использования 
+  абстрактных базовых классов: предотвращение создания объектов этого класса программистами 
+  и понимания, что это всего лишь интерфейс. Отсюда возникает вопрос: Что Вы должны 
+  использовать? <a name="Index765"></a><a name="Index766"></a><b>Interface</b> 
+  или <b>abstract</b> класс? Интерфейс дает вам преимущества абстрактного класса 
+  и преимущества интерфейса, так что если нужно создать базовый класс без любых 
+  определений методов или переменных, то Вы должны предпочесть абстрактному классу 
+  интерфейс. В действительности, если Вы знаете, что что-то собирается стать базовым 
+  классом, вашим первым решением должно быть - использовать интерфейс и если только 
+  Вы решите, что этот класс должен иметь определения методов и переменных, только 
+  тогда Вы должны изменить его на абстрактный класс или если это так необходимо 
+  на обычный класс.</p>
+<a name="Heading255"></a>
+<h4 align="LEFT"> Конфликты имен при комбинировании интерфейсов<a name="Index767"></a><a name="Index768"></a></h4>
+<p>Вы можете столкнуться с небольшой ловушкой при реализации множественных интерфейсов. 
+  В предыдущем примере оба <b>CanFight</b> и <b>ActionCharacter</b> имели идентичные 
+  методы <b>void fight(&#160;)</b>. Но это не вызвало проблемы поскольку эти методы 
+  одинаковы в обоих классах, но что было бы если бы они были бы разными? Вот пример:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:InterfaceCollision.java</font>
+
+<font color="#0000ff" size="+1">interface</font><font size="+1"> I1 { <font color=#0000ff>void</font> f(); }
+<font color=#0000ff>interface</font> I2 { <font color=#0000ff>int</font> f(<font color=#0000ff>int</font> i); }
+<font color=#0000ff>interface</font> I3 { <font color=#0000ff>int</font> f(); }
+<font color=#0000ff>class</font> C { <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> f() { <font color=#0000ff>return</font> 1; } }
+
+<font color=#0000ff>class</font> C2 <font color=#0000ff>implements</font> I1, I2 {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> f(<font color=#0000ff>int</font> i) { <font color=#0000ff>return</font> 1; } <font color=#009900>// перегружен</font>
+}
+
+<font color=#0000ff>class</font> C3 <font color=#0000ff>extends</font> C <font color=#0000ff>implements</font> I2 {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> f(<font color=#0000ff>int</font> i) { <font color=#0000ff>return</font> 1; } <font color=#009900>// перегружен</font>
+}
+
+<font color=#0000ff>class</font> C4 <font color=#0000ff>extends</font> C <font color=#0000ff>implements</font> I3 {
+  <font color=#009900>// Одинаковы, нет проблем:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">int</font><font size="+1"> f() { <font color=#0000ff>return</font> 1; } 
+}
+
+<font color=#009900>// Методы различаются только возвращаемым типом:</font></font>
+<font color="#009900" size="+1">//! class C5 extends C implements I1 {}</font>
+<font color="#009900" size="+1">//! interface I4 extends I1, I3 {} ///:~</font></pre>
+</blockquote>
+<p>Трудность здесь возникает как следствие нехорошего смешения переопределения, 
+  реализации и перегрузки, поскольку перегруженные функции могут отличаться только 
+  возвращаемым типом. Если раскомментировать последние две линии кода, то возникнет 
+  ошибка:</p>
+<blockquote>
+  <pre><font size="+1">InterfaceCollision.java:23: f() in C cannot 
+implement f() in I1; attempting to use 
+incompatible <font color=#0000ff>return</font> type
+found   : <font color=#0000ff>int</font>
+required: <font color=#0000ff>void</font>
+InterfaceCollision.java:24: interfaces I3 and I1 are incompatible; both define f
+(), but with different <font color=#0000ff>return</font> type</font></pre>
+</blockquote>
+<p>Использование одинаковых имен методов в разных интерфейсах предназначенных 
+  для комбинирования зачастую так же очень сильно понижает читабельность кода. 
+  Старайтесь избегать этого.<a name="_Toc375545337"></a><a name="_Toc481064645"></a></p>
+<a name="Heading256"></a>
+<h3 align="LEFT"> Расширение интерфейса с наследованием </h3>
+<p>Вы можете с легкостью добавлять объявления методов, в <a name="Index769"></a><a name="Index770"></a><b>интерфейсы,</b> 
+  используя наследование, а так же Вы можете комбинировать несколько интерфейсов 
+  в один новый интерфес с наследованием. В обоих случаях Вы получите новый интерфейс 
+  , как видно из примера ниже:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:HorrorShow.java</font>
+<font color="#009900" size="+1">// Расширение интерфейса с наследованием.</font>
+
+<font color="#0000ff" size="+1">interface</font><font size="+1"> Monster {
+  <font color=#0000ff>void</font> menace();
+}
+
+<font color=#0000ff>interface</font> DangerousMonster <font color=#0000ff>extends</font> Monster {
+  <font color=#0000ff>void</font> destroy();
+}
+
+<font color=#0000ff>interface</font> Lethal {
+  <font color=#0000ff>void</font> kill();
+}
+
+<font color=#0000ff>class</font> DragonZilla <font color=#0000ff>implements</font> DangerousMonster {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> menace() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> destroy() {}
+}
+
+<font color=#0000ff>interface</font> Vampire 
+    <font color=#0000ff>extends</font> DangerousMonster, Lethal {
+  <font color=#0000ff>void</font> drinkBlood();
+}
+
+<font color=#0000ff>class</font> HorrorShow {
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> u(Monster b) { b.menace(); }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> v(DangerousMonster d) {
+    d.menace();
+    d.destroy();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    DragonZilla if2 = <font color=#0000ff>new</font> DragonZilla();
+    u(if2);
+    v(if2);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p><b>DangerousMonster</b> - простое расширение до <b>Monster,</b> создающее новый 
+  интерфейс. Который, в свою очередь реализуется в <b>DragonZilla</b>.</p>
+<p>Синтаксис, использованный в <b>Vampire,</b> работает только с наследованием 
+  интерфейсов. Обычно, Вы можете использовать <a name="Index771"></a><b>extends</b> 
+  только с одиночным классом, но в силу того, что интерфейсы могут быть созданы 
+  из множества других интерфейсов, <b>extends</b> может ссылаться на множество 
+  базовых интерфейсов при создании нового интерфейса. Как Вы видите, имена интерфейсов 
+  отделены просто запятыми.<a name="_Toc481064646"></a></p>
+<a name="Heading257"></a>
+<h3 align="LEFT">
+Группировка констант</h3>
+<p>Поскольку любое поле помещенное вами в интерфейс автоматически становится <b>static</b> 
+  и <b>final</b>, то интерфейс, по сути, удобная штука для <a name="Index772"></a><a name="Index773"></a>создания 
+  групп констант, так же, как и <b>enum</b> в C или C++. К примеру:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Months.java</font>
+<font color="#009900" size="+1">// Использование интерфейса для создания групп констант.</font>
+<font color="#0000ff" size="+1">package</font><font size="+1"> c08;
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">interface</font><font size="+1"> Months {
+  <font color=#0000ff>int</font>
+    JANUARY = 1, FEBRUARY = 2, MARCH = 3, 
+    APRIL = 4, MAY = 5, JUNE = 6, JULY = 7, 
+    AUGUST = 8, SEPTEMBER = 9, OCTOBER = 10,
+    NOVEMBER = 11, DECEMBER = 12;
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Заметьте, что в стиле Java используются все буквы в верхнем регистре (с подчеркиваниями 
+  для разделения слов) для <b>static</b> <b>final</b> &quot;констант&quot;.</p>
+<p>Теперь Вы можете использовать эти константы снаружи пакета, просто импортируя 
+  <b>c08.*</b> или <b>c08.Months</b>, так же, как Вы импортируете другие пакеты 
+  и ссылаться на них примерно так <b>Months.JANUARY</b>. Естественно, то, что 
+  Вы получите это просто <b>int</b>, поскольку тут нету никакого дополнительного 
+  типа безопасности, какой имеет в C++ <b>enum</b>, но эта техника (наиболее часто 
+  используемая) может помочь в случае тяжелого программирования в вашей программе.</p>
+<p>Если же Вы хотите получить дополнительные безопасные типы, то вам необходимо 
+  создать класс на подобии этого<a name="fnB38" href="#fn38">[38]</a>:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Month2.java</font>
+<font color="#009900" size="+1">// Более здоровая система перечисления.</font>
+<font color="#0000ff" size="+1">package</font><font size="+1"> c08;
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Month2 {
+  <font color=#0000ff>private</font> String name;
+  <font color=#0000ff>private</font> Month2(String nm) { name = nm; }
+  <font color=#0000ff>public</font> String toString() { <font color=#0000ff>return</font> name; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">static</font><font size="+1"> Month2
+    JAN = <font color=#0000ff>new</font> Month2(<font color=#004488>"January"</font>), 
+    FEB = <font color=#0000ff>new</font> Month2(<font color=#004488>"February"</font>),
+    MAR = <font color=#0000ff>new</font> Month2(<font color=#004488>"March"</font>),
+    APR = <font color=#0000ff>new</font> Month2(<font color=#004488>"April"</font>),
+    MAY = <font color=#0000ff>new</font> Month2(<font color=#004488>"May"</font>),
+    JUN = <font color=#0000ff>new</font> Month2(<font color=#004488>"June"</font>),
+    JUL = <font color=#0000ff>new</font> Month2(<font color=#004488>"July"</font>),
+    AUG = <font color=#0000ff>new</font> Month2(<font color=#004488>"August"</font>),
+    SEP = <font color=#0000ff>new</font> Month2(<font color=#004488>"September"</font>),
+    OCT = <font color=#0000ff>new</font> Month2(<font color=#004488>"October"</font>),
+    NOV = <font color=#0000ff>new</font> Month2(<font color=#004488>"November"</font>),
+    DEC = <font color=#0000ff>new</font> Month2(<font color=#004488>"December"</font>);
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">static</font><font size="+1"> Month2[] month =  {
+    JAN, JAN, FEB, MAR, APR, MAY, JUN,
+    JUL, AUG, SEP, OCT, NOV, DEC
+  };
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Month2 m = Month2.JAN;
+    System.out.println(m);
+    m = Month2.month[12];
+    System.out.println(m);
+    System.out.println(m == Month2.DEC);
+    System.out.println(m.equals(Month2.DEC));
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Этот класс называется <b>Month2</b>, поскольку класс с именем <b>Month</b> 
+  уже есть в стандартной библиотеке Java. Этот класс <b>final</b> с конструктором 
+  <b>private, </b> поэтому никто не может от него наследовать или создать его 
+  представление. Представления <b>final static</b> создаются только однажды, в 
+  самом классе: <b>JAN</b>, <b>FEB</b>, <b>MAR</b> и т.д. Эти объекты так же используются 
+  в массиве <b>month</b>, что позволяет вам получать доступ к именам по их номеру. 
+  (Заметьте, что дополнительный месяц <b>JAN</b> в этом массиве осуществляет смещение 
+  на единицу, поэтому то декабрь и будет 12-м, а не 11-м.) В <b>main(&#160;)</b> 
+  Вы можете видеть <a name="Index774"></a>безопасный тип: <b>m</b> является объектом 
+  <b>Month2,</b> так что он может быть доступен только как <b>Month2</b>. Предыдущий 
+  пример <b>Months.java </b>обрабатывал только значения <b>int</b>, так что, месяц 
+  представлялся значением типа <b>int, </b>что само по себе не очень безопасно.</p>
+<p>Приведенная техника позволяет вам так же использовать <b>==</b> или <b>equals(&#160;)</b> 
+  взаимозаменяемо, как показано в конце метода <b>main(&#160;)</b>.<a name="_Toc481064647"></a></p>
+<a name="Heading258"></a>
+<h3 align="LEFT"> Инициализирование полей в интерфейсах<a name="Index775"></a><a name="Index776"></a></h3>
+<p>Поля определенные в интерфейсах автоматически становятся <b>static</b> и <b>final</b>. 
+  Они не могут быть пустыми (чистыми) final переменными, но они могут быть инициализированы 
+  не постоянными выражениями. К примеру:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:RandVals.java</font>
+<font color="#009900" size="+1">// Инициализирование полей интерфейса  </font>
+<font color="#009900" size="+1">// не постоянными инициализаторами.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">interface</font><font size="+1"> RandVals {
+  <font color=#0000ff>int</font> rint = (<font color=#0000ff>int</font>)(Math.random() * 10);
+  <font color=#0000ff>long</font> rlong = (<font color=#0000ff>long</font>)(Math.random() * 10);
+  <font color=#0000ff>float</font> rfloat = (<font color=#0000ff>float</font>)(Math.random() * 10);
+  <font color=#0000ff>double</font> rdouble = Math.random() * 10;
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Поскольку все поля <b>static</b>, то они инициализируются при первой загрузке 
+  класса, что происходит при первом доступе к любой переменной. Вот пример:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:TestRandVals.java</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> TestRandVals {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    System.out.println(RandVals.rint);
+    System.out.println(RandVals.rlong);
+    System.out.println(RandVals.rfloat);
+    System.out.println(RandVals.rdouble);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Эти поля, естественно, не являются частью интерфейса, вместо этого они размещены 
+  в <b>static</b> хранилище этого интерфейса.<a name="_Toc481064648"></a></p>
+<a name="Heading259"></a>
+<h3 align="LEFT">
+Вложенные интерфейсы</h3>
+<p><a name="fnB39" href="#fn39">[39]</a><a name="Index777"></a><a name="Index778"></a>Интерфейсы 
+  могут быть вложены внутрь классов и других интерфейсов. Такая возможность выявляет 
+  несколько очень интересных возможностей:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:NestingInterfaces.java</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> A {
+  <font color=#0000ff>interface</font> B {
+    <font color=#0000ff>void</font> f();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> BImp <font color=#0000ff>implements</font> B {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> BImp2 <font color=#0000ff>implements</font> B {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">interface</font><font size="+1"> C {
+    <font color=#0000ff>void</font> f();
+  }
+  <font color=#0000ff>class</font> CImp <font color=#0000ff>implements</font> C {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> CImp2 <font color=#0000ff>implements</font> C {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">interface</font><font size="+1"> D {
+    <font color=#0000ff>void</font> f();
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> DImp <font color=#0000ff>implements</font> D {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> DImp2 <font color=#0000ff>implements</font> D {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>public</font> D getD() { <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> DImp2(); }
+  <font color=#0000ff>private</font> D dRef;
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> receiveD(D d) { 
+    dRef = d; 
+    dRef.f();
+  }
+}
+
+<font color=#0000ff>interface</font> E {
+  <font color=#0000ff>interface</font> G {
+    <font color=#0000ff>void</font> f();
+  }
+  <font color=#009900>// избыточный "public":</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">interface</font><font size="+1"> H {
+    <font color=#0000ff>void</font> f();
+  }
+  <font color=#0000ff>void</font> g();
+  <font color=#009900>// Не может быть private внутри интерфейса:</font></font>
+  <font color="#009900" size="+1">//! private interface I {}</font><font size="+1">
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> NestingInterfaces {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> BImp <font color=#0000ff>implements</font> A.B {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>class</font> CImp <font color=#0000ff>implements</font> A.C {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#009900>// Не может быть реализован private interface без</font></font>
+  <font color="#009900" size="+1">// внутреннего определения класса:</font>
+  <font color="#009900" size="+1">//! class DImp implements A.D {</font>
+  <font color="#009900" size="+1">//!  public void f() {}</font>
+  <font color="#009900" size="+1">//! }</font>
+  <font color="#0000ff" size="+1">class</font><font size="+1"> EImp <font color=#0000ff>implements</font> E {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {}
+  }
+  <font color=#0000ff>class</font> EGImp <font color=#0000ff>implements</font> E.G {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  }
+  <font color=#0000ff>class</font> EImp2 <font color=#0000ff>implements</font> E {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {}
+    <font color=#0000ff>class</font> EG <font color=#0000ff>implements</font> E.G {
+      <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+    }
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    A a = <font color=#0000ff>new</font> A();
+    <font color=#009900>// Нет доступа A.D:</font></font>
+    <font color="#009900" size="+1">//! A.D ad = a.getD();</font>
+    <font color="#009900" size="+1">// Ничего не возвращается, кроме A.D:</font>
+    <font color="#009900" size="+1">//! A.DImp2 di2 = a.getD();</font>
+    <font color="#009900" size="+1">// Нельзя получить доступ к участнику интерфейса:</font>
+    <font color="#009900" size="+1">//! a.getD().f();</font>
+    <font color="#009900" size="+1">// Только другой A может что-то делать с getD():</font><font size="+1">
+    A a2 = <font color=#0000ff>new</font> A();
+    a2.receiveD(a.getD());
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Синтаксис внутреннего интерфейса внутри класса очевиден и похож на не внутренние 
+  интерфейсы, которые могут быть <b>public</b> или friendly. Вы так же видите, 
+  что оба внутренних интерфейса <b>public</b> и friendly могут быть реализованы 
+  как <b>public</b>, friendly и <b>private</b> внутренние классы.</p>
+<p>С этой новой особенностью <a name="Index779"></a><a name="Index780"></a>интерфейсы 
+  могут так же быть <b>private,</b> как видно из <b>A.D</b> (тот же самый синтаксис 
+  используется для внутренний интерфейсов и для внутренних классов). Что же хорошего 
+  в <b>private</b> внутреннем интерфейсе? Как Вы можете догадаться, он может быть 
+  реализован только как <b>private</b> внутренний класс, как, например в <b>DImp</b>, 
+  но в <b>A.DImp2</b> видно, что он так же может быть реализован и как <b>public</b> 
+  класс. Но все равно, <b>A.DImp2</b> может быть использован только как сам. Однако 
+  не следует пропустить упоминание о том, что реализация <b>private</b> интерфейса 
+  это всего лишь путь для принудительного определения методов в этом интерфейсе, 
+  без добавления любой информации о типе (это так и есть, без возможности любого 
+  приведения к базовому типу).</p>
+<p>Метод <b>getD(&#160;)</b> вызывает дальнейшие затруднения связанные с <b>private</b> 
+  интерфейсом: это <b>public</b> метод, который возвращает ссылку на <b>private</b> 
+  интерфейс. И что Вы будете делать с этим возвращенным значением? В <b>main(&#160;)</b>, 
+  Вы можете видеть несколько провалившихся попыток что-либо поделать с ним. Единственная 
+  вещь способная работать с ним - это может быть объект имеющий на него права, 
+  в нашем случае другой объект <b>A</b>, посредством метода <b>received(&#160;)</b>.</p>
+<p>Интерфейс <b>E</b> показывает, что интерфейсы могут быть вложены друг в друга. 
+  Но все равно, правила насчет интерфейсов следующие, все элементы интерфейса 
+  должны быть <b>public</b>, но в случае внутреннего интерфейса внутри другого 
+  интерфейса они все и так становятся <b>public</b> автоматически и не могут быть 
+  сделаны <b>private</b>.</p>
+<p><b>NestingInterfaces</b> показывает различные пути реализации внутренних интерфейсов. 
+  В частности заметьте, что когда Вы реализуете интерфейс, вам не нужно так же 
+  реализовывать внутренние интерфейсы, находящиеся в нем. Так же, <b>private</b> 
+  интерфейсы не могут быть реализованы снаружи класса, в котором они определены.</p>
+<a name="Heading260"></a>
+<h2 align="LEFT">
+Внутренние классы</h2>
+<p>В Java есть возможность поместить определение одного класса внутри определения 
+  другого класса. Такое помещение называется <i>внутренний класс</i>. В<a name="Index781"></a><a name="Index782"></a>нутренний 
+  класс позволяет вам группировать классы вместе, которые логично было бы разместить 
+  в одном месте и при этом ими легко управлять визуально. Однако важно понять, 
+  чем внутренний класс отличается от композиции.</p>
+<p>Зачастую, пока Вы узнаете о внутренних классах, Вы задаетесь вопросом о целесообразности 
+  их применения, а иногда, что их применение даже вовсе и не нужно. В конце же 
+  этой секции, после того, как будет описан весь синтаксис и семантика внутренних 
+  классов, Вы найдете несколько примеров, которые прояснят все преимущества от 
+  внутренних классов.</p>
+<p>Для создания внутреннего класса, как может быть Вы, и ожидали, нужно поместить 
+  его описание внутри класса:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel1.java</font>
+<font color="#009900" size="+1">// Создание внутреннего класса.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel1 {
+  <font color=#0000ff>class</font> Contents {
+    <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+  }
+  <font color=#0000ff>class</font> Destination {
+    <font color=#0000ff>private</font> String label;
+    Destination(String whereTo) {
+      label = whereTo;
+    }
+    String readLabel() { <font color=#0000ff>return</font> label; }
+  }
+  <font color=#009900>// Использование внутреннего класса</font></font>
+  <font color="#009900" size="+1">// похоже на использование обычного класса:</font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">void</font><font size="+1"> ship(String dest) {
+    Contents c = <font color=#0000ff>new</font> Contents();
+    Destination d = <font color=#0000ff>new</font> Destination(dest);
+    System.out.println(d.readLabel());
+  }  
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel1 p = <font color=#0000ff>new</font> Parcel1();
+    p.ship(<font color=#004488>"Tanzania"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Внутренний класс, использованный внутри <b>ship(&#160;)</b>, выглядит так же, 
+  как и любой другой класс. И только одно различие бросается в глаза, это то, 
+  что его имя расположено после <b>Parcel1</b>. Но в дальнейшем Вы увидите, что 
+  это далеко не единственное различие.</p>
+<p>Более типичный случай - внешний класс имеет метод, который возвращает ссылку 
+  на внутренний класс, например, так:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel2.java</font>
+<font color="#009900" size="+1">// Возвращение ссылки на внутренний класс.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel2 {
+  <font color=#0000ff>class</font> Contents {
+    <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+  }
+  <font color=#0000ff>class</font> Destination {
+    <font color=#0000ff>private</font> String label;
+    Destination(String whereTo) {
+      label = whereTo;
+    }
+    String readLabel() { <font color=#0000ff>return</font> label; }
+  }
+  <font color=#0000ff>public</font> Destination to(String s) {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Destination(s);
+  }
+  <font color=#0000ff>public</font> Contents cont() { 
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Contents(); 
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> ship(String dest) {
+    Contents c = cont();
+    Destination d = to(dest);
+    System.out.println(d.readLabel());
+  }  
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel2 p = <font color=#0000ff>new</font> Parcel2();
+    p.ship(<font color=#004488>"Tanzania"</font>);
+    Parcel2 q = <font color=#0000ff>new</font> Parcel2();
+    <font color=#009900>// Определение ссылки на внутренний класс:</font>
+    Parcel2.Contents c = q.cont();
+    Parcel2.Destination d = q.to(<font color=#004488>"Borneo"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Если Вы хотите создать объект внутреннего класса, где либо еще, кроме не статического 
+  метода внешнего класса, то Вы должны определить тип этого объекта, как <i>OuterClassName.InnerClassName</i>, 
+  как, например, в <b>main(&#160;)</b>.<a name="_Toc481064650"></a></p>
+<a name="Heading261"></a>
+<h3 align="LEFT"> Внутренний класс и приведение к базовому типу<a name="Index783"></a><a name="Index784"></a><a name="Index785"></a></h3>
+<p>Недавно, Вы узнали о том, что в Java есть достаточно хорошие механизмы для 
+  скрытия классов, их достаточно сделать &quot;friendly&quot; и они будут видны 
+  только для классов этого же пакета, и не нужно никаких внутренних классов<a name="Index786"></a><a name="Index787"></a><a name="Index788"></a>.</p>
+<p><a name="Index789"></a>Но все равно, внутренние классы действительно проявляются, 
+  когда Вы пытаетесь привести к базовому типу и в частности к <b>interface</b>. 
+  (Эффект возникновения ссылки на интерфейс от объекта, который реализует его 
+  же при попытке апкастинга к базовому классу.) Это происходит потому, что внутренний 
+  класс, реализованный на интерфейсе, может быть потом полностью, но невидимо 
+  и недоступно для всех приведен к базовому классу, что обычно называется скрытой 
+  реализацией. Все что Вы получите назад это просто ссылка на базовый класс или 
+  интерфейс.</p>
+<p>Сперва общие интерфейсы должны быть определены в их собственных файлах, тогда 
+  они могут быть использованы во всех примерах:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Destination.java</font>
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">interface</font><font size="+1"> Destination {
+  String readLabel();
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Contents.java</font>
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">interface</font><font size="+1"> Contents {
+  <font color=#0000ff>int</font> value();
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Теперь <b>Contents</b> и <b>Destination</b> представляют интерфейсы доступные 
+  для программиста - клиента. (Не забудьте, что <b>interface</b> автоматически 
+  делает всех членов класса <b>public</b>.)</p>
+<p>Когда Вы получите назад ссылку на базовый класс или на интерфейс, то возможно, 
+  что Вы уже не сможете когда либо найти настоящий тип этого объекта, как показано 
+  ниже:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel3.java</font>
+<font color="#009900" size="+1">// Возвращение ссылки на внутренний класс.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel3 {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> PContents <font color=#0000ff>implements</font> Contents {
+    <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> PDestination
+      <font color=#0000ff>implements</font> Destination {
+    <font color=#0000ff>private</font> String label;
+    <font color=#0000ff>private</font> PDestination(String whereTo) {
+      label = whereTo;
+    }
+    <font color=#0000ff>public</font> String readLabel() { <font color=#0000ff>return</font> label; }
+  }
+  <font color=#0000ff>public</font> Destination dest(String s) {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> PDestination(s);
+  }
+  <font color=#0000ff>public</font> Contents cont() { 
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> PContents(); 
+  }
+}
+
+<font color=#0000ff>class</font> Test {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel3 p = <font color=#0000ff>new</font> Parcel3();
+    Contents c = p.cont();
+    Destination d = p.dest(<font color=#004488>"Tanzania"</font>);
+    <font color=#009900>// Незаконно - нельзя получить доступ к  private классу:</font></font>
+    <font color="#009900" size="+1">//! Parcel3.PContents pc = p.new PContents();</font><font size="+1">
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Заметьте, поскольку <b>main(&#160;) </b>в <b>Test</b>, то когда Вы захотите 
+  запустить эту программу, Вы не выполните <b>Parcel3</b>, а вместо этого:</p>
+<blockquote>
+  <pre><font size="+1">java Test</font></pre>
+</blockquote>
+<p>В примере, <b>main(&#160;) </b>должен быть расположен в отдельном классе, для 
+  того, что бы продемонстрировать защищенность внутреннего класса <b>PContents</b>.</p>
+<p>В <b>Parcel3</b> было добавлено что-то новое: внутренний класс <b>PContents</b> 
+  - <b>private, </b>так что никто кроме <b>Parcel3</b> не может получить к нему 
+  доступ. <b>PDestination</b> является <b>protected</b>, так что никто кроме <b>Parcel3</b> 
+  и классов из пакета <b>Parcel3</b> (поскольку <b>protected</b> так же дает доступ 
+  к членам пакета, <b>protected</b> так же означает &quot;friendly&quot;), и наследников 
+  <b>Parcel3 </b>не смогут получить доступ к <b>PDestination</b>. Это означает, 
+  что клиентский программист имеет ограниченные знания об этих объектах и ограниченный 
+  доступ к ним. В действительности, Вы никогда не сможете привести к дочернему 
+  типу <b>private</b> внутренний класс (или к <b>protected</b> внутреннему классу, 
+  даже если Вы являетесь наследующим), и это происходит потому, что Вы не можете 
+  получить доступ к имени, как это можно посмотреть в классе <b> Test</b>. Поэтому 
+  <b>private</b> внутренний класс предоставляет разработчику возможность полностью 
+  исключить изменение его кода и полностью скрыть детали его реализации. В дополнение, 
+  расширение интерфейса так же не принесет пользы, поскольку клиент программист 
+  не сможет получить доступ ни к одному из методов, поскольку они не являются 
+  частью <b>public</b> <b>interface</b> класса. При этом так же имеется возможность 
+  для компилятора по созданию более эффективного кода.</p>
+<p>Нормальный (не внутренний) класс не может быть сделан <b>private</b> или <b>protected, 
+  </b>только как <b>public</b> или friendly.<a name="_Toc481064651"></a></p>
+<a name="Heading262"></a>
+<h3 align="LEFT"> Внутренние классы в методе и контексте<a name="Index790"></a><a name="Index791"></a><a name="Index792"></a><a name="Index793"></a></h3>
+<p>То, что Вы видели в предыдущем разделе - типичное использование для внутренних 
+  классов. В основном же, тот код, который Вы будете писать и читать, используя 
+  внутренние классы должен быть ясным и простым. Эти классы должны быть легки 
+  для понимания. Тем не менее, проектировка внутренних классов вами вполне доведена 
+  до конца, но существует еще и некоторое число других, более запутанных способов 
+  создания внутренних классов. Оные Вы можете использовать по собственному желанию: 
+  внутренний класс может быть создан внутри метода или даже в случайном контексте. 
+  Вот две причины побуждающие делать это:</p>
+<ol>
+  <li>	Как было показано предварительно,
+Вы реализуете интерфейс какого-то типа, так что Вы можете создать и вернуть ссылку.
+  <li>	Вы решаете какую-то проблему и хотите создать класс, который эту проблему исправляет, но Вы не хотите, что бы этот класс был доступен для кого-то еще.
+</ol>
+<p>В следующих примерах, предыдущий код будет изменен для получения следующих 
+  &quot;результатов&quot;: <a name="Index794"></a><a name="Index795"></a><a name="Index796"></a></p>
+<ol>
+  <li>	Класс определен в методе 
+  <li>	Класс определен в контексте внутри метода
+  <li>	Анонимный класс реализует интерфейс
+  <li>	Анонимный класс расширяет класс, который имеет конструктор  не по умолчанию
+  <li>	Анонимный класс, осуществляющий инициализацию полей
+  <li>	Анонимный класс, который осуществляет создание, используя инициализацию  экземпляра
+(анонимный внутренний класс не может быть с конструктором)
+</ol>
+<p>Хотя это и обычный класс с реализацией, но <b>Wrapping</b> так же используется 
+  и в качестве общего интерфейса к его производным классам:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Wrapping.java</font>
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Wrapping {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i;
+  <font color=#0000ff>public</font> Wrapping(<font color=#0000ff>int</font> x) { i = x; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вы должны знать, что у <b>Wrapping</b> есть конструктор, требующий аргумента. 
+  Это сделано для того, что бы было немножко поинтереснее.</p>
+<p>В первом примере показывается создание целого класса внутри контекста метода 
+  (вместо контекста другого класса):</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel4.java</font>
+<font color="#009900" size="+1">// Вложенность класса внутри метода.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel4 {
+  <font color=#0000ff>public</font> Destination dest(String s) {
+    <font color=#0000ff>class</font> PDestination
+        <font color=#0000ff>implements</font> Destination {
+      <font color=#0000ff>private</font> String label;
+      <font color=#0000ff>private</font> PDestination(String whereTo) {
+        label = whereTo;
+      }
+      <font color=#0000ff>public</font> String readLabel() { <font color=#0000ff>return</font> label; }
+    }
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> PDestination(s);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel4 p = <font color=#0000ff>new</font> Parcel4();
+    Destination d = p.dest(<font color=#004488>"Tanzania"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Класс <b>PDestination</b> скорее часть <b>dest(&#160;)</b> чем <b>Parcel4</b>. 
+  (Так же заметьте, что Вы можете использовать идентификатор класса <b>PDestination 
+  </b>для внутреннего класса внутри каждого класса в одной и той же поддиректории 
+  без конфликта имен.) Следовательно, <b>PDestination </b>не может быть доступен 
+  снаружи <b>dest(&#160;)</b>.<b> </b>Заметьте, что приведение к базовому типу 
+  происходит в операторе возврата, ничего не попадает наружу из <b>dest(&#160;),</b> 
+  кроме ссылки на <b>Destination</b>, т.е. на базовый класс. Естественно, факт 
+  того, что имя класса <b>PDestination</b> помещено внутри <b>dest(&#160;)</b> 
+  еще не означает, что <b>PDestination</b> не правильный объект, который возвращает 
+  <b>dest(&#160;)</b>.</p>
+<p>Следующий пример покажет вам, как Вы можете вложить <a name="Index797"></a><a name="Index798"></a><a name="Index799"></a>внутренний 
+  класс внутри любого случайного контекста:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel5.java</font>
+<font color="#009900" size="+1">// Вложенный класс внутри контекста.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel5 {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> internalTracking(<font color=#0000ff>boolean</font> b) {
+    <font color=#0000ff>if</font>(b) {
+      <font color=#0000ff>class</font> TrackingSlip {
+        <font color=#0000ff>private</font> String id;
+        TrackingSlip(String s) {
+          id = s;
+        }
+        String getSlip() { <font color=#0000ff>return</font> id; }
+      }
+      TrackingSlip ts = <font color=#0000ff>new</font> TrackingSlip(<font color=#004488>"slip"</font>);
+      String s = ts.getSlip();
+    }
+    <font color=#009900>// Нельзя его здесь использовать! Вне контекста:</font></font>
+    <font color="#009900" size="+1">//! TrackingSlip ts = new TrackingSlip("x");</font><font size="+1">
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> track() { internalTracking(<font color=#0000ff>true</font>); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel5 p = <font color=#0000ff>new</font> Parcel5();
+    p.track();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Класс <b>TrackingSlip</b> помещен внутри контекста, а так же внутри оператора 
+  <b>if</b>. Но это не означает, что этот класс условно создается, он будет скомпилирован 
+  вместе с остальным кодом. Тем не менее он не будет доступен снаружи контекста, 
+  в котором он был объявлен.<b> </b>Кроме этой особенности он выглядит точно так 
+  же, как обычный класс.<a name="_Toc481064652"></a></p>
+<a name="Heading263"></a>
+<h3 align="LEFT">
+Анонимный внутренний класс</h3>
+<p>Следующий пример несколько странен:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel6.java</font>
+<font color="#009900" size="+1">// Метод возвращающий анонимный внутренний класс.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel6 {
+  <font color=#0000ff>public</font> Contents cont() {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Contents() {
+      <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+      <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+    }; <font color=#009900>// В этом случае требуется точка с запятой</font>
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel6 p = <font color=#0000ff>new</font> Parcel6();
+    Contents c = p.cont();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Метод <b>cont(&#160;)</b> комбинирует создание возвращаемого значения с описанием 
+  класса, который и есть это возвращаемое значение! В дополнение этот класс еще 
+  и не имеет своего имени. Делая тему обсуждения немного запутанной, он выглядит 
+  как будто Вы начинаете создавать объект <b>Contents</b>:</p>
+<blockquote>
+  <pre><font color="#0000ff" size="+1">return</font> <font color="#0000ff" size="+1">new</font><font size="+1"> Contents()</font></pre>
+</blockquote>
+<p>Но затем, до того, как Вы поставите точку запятую, Вы заявляете: &quot;Но подождите, 
+  я думаю, я описался в определении класса&quot;:</p>
+<blockquote>
+  <pre><font color="#0000ff" size="+1">return</font> <font color="#0000ff" size="+1">new</font><font size="+1"> Contents() {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+};</font></pre>
+</blockquote>
+<p>А вот, что означает этот синтаксис: &quot;Создание объекта анонимного класса, 
+  который наследует от <b>Contents</b>.&quot; Ссылка, возвращаемая выражением 
+  <b>new,</b> автоматически приводится к базовому типу, к ссылке <b>Contents</b>. 
+  Синтаксис анонимного внутреннего класса - короткая запись следующего кода:</p>
+<blockquote>
+  <pre><font color="#0000ff" size="+1">class</font><font size="+1"> MyContents <font color=#0000ff>implements</font> Contents {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+}
+<font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> MyContents();</font></pre>
+</blockquote>
+<p>В анонимном внутреннем классе, <b>Contents</b> создается при помощи конструктора 
+  по умолчанию. Следующий же код показывает, как поступить, если нужно создать 
+  его с помощью конструктора с аргументами:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel7.java</font>
+<font color="#009900" size="+1">// Анонимный внутренний класс вызывающий</font>
+<font color="#009900" size="+1">// конструткор базового класса.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel7 {
+  <font color=#0000ff>public</font> Wrapping wrap(<font color=#0000ff>int</font> x) {
+    <font color=#009900>// Вызов базового конструктора:</font></font>
+    <font color="#0000ff" size="+1">return</font> <font color="#0000ff" size="+1">new</font><font size="+1"> Wrapping(x) { 
+      <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() {
+        <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">super</font><font size="+1">.value() * 47;
+      }
+    }; <font color=#009900>// Требуется точка с запятой</font>
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel7 p = <font color=#0000ff>new</font> Parcel7();
+    Wrapping w = p.wrap(10);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>То есть, Вы просто передаете соответствующий аргумент в конструктор базового 
+  класса, конкретно здесь <b>x </b>передается в <b>new Wrapping(x)</b>. Анонимный 
+  класс не может иметь конструктор, в котором Вы могли бы нормально вызвать <b>super(&#160;)</b>.</p>
+<p>В обоих предыдущих примерах, точка с запятой не означает конец тела класса 
+  (как в C++). Вместо этого, они показывают конец выражения, которое содержит 
+  анонимный класс. Таким образом, это равносильно использованию точки запятой 
+  где нибудь еще (т.е. они имеют то же значение, что и в любом другом месте).</p>
+<p>Что случиться, если вам потребуется осуществить некую часть инициализации для 
+  объекта <a name="Index800"></a><a name="Index801"></a><a name="Index802"></a>внутреннего 
+  анонимного класса? Поскольку он анонимный, то у него нет имени, которое можно 
+  передать конструктору, поэтому у него не может быть конструктора. Но все равно, 
+  Вы можете осуществить инициализацию в точке определения ваших полей:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel8.java</font>
+<font color="#009900" size="+1">// Анонимный внутренний класс осуществляющий</font>
+<font color="#009900" size="+1">// инициализацию. Краткая версия</font>
+<font color="#009900" size="+1">//  Parcel5.java.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel8 {
+  <font color=#009900>// Аргумент должен быть final для использования внутри </font></font>
+  <font color="#009900" size="+1">// анонимного внутреннего класса:</font>
+  <font color="#0000ff" size="+1">public</font><font size="+1"> Destination dest(<font color=#0000ff>final</font> String dest) {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Destination() {
+      <font color=#0000ff>private</font> String label = dest;
+      <font color=#0000ff>public</font> String readLabel() { <font color=#0000ff>return</font> label; }
+    };
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel8 p = <font color=#0000ff>new</font> Parcel8();
+    Destination d = p.dest(<font color=#004488>"Tanzania"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Если Вы определяете анонимный внутренний класс и хотите использовать в нем 
+  объект, который определен снаружи этого анонимного внутреннего класса, то тогда 
+  компилятор потребует, что бы данный объект был объявлен, как <b>final</b>. Вот 
+  поэтому-то аргумент <b>dest(&#160;) </b>- <b>final</b>.<b> </b>Если же Вы забыли, 
+  в противном случае появляется ошибка времени выполнения.</p>
+<p>Как только Вы научились получать доступ к объектам вне внутреннего класса, 
+  так сразу же возникает вопрос, а что делать, если нужно осуществить некое действие 
+  похожее на конструктор При помощи <a name="Index803"></a><a name="Index804"></a><i>инициализации 
+  экземпляра</i>, Вы можете, в действительности, создать конструткор для анонимного 
+  внутреннего класса:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel9.java</font>
+<font color="#009900" size="+1">// Использование "инициализации экземпляра" для осуществления </font>
+<font color="#009900" size="+1">// создания анонимного внутреннего класса.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel9 {
+  <font color=#0000ff>public</font> Destination 
+  dest(<font color=#0000ff>final</font> String dest, <font color=#0000ff>final</font></font> <font color="#0000ff" size="+1">float</font><font size="+1"> price) {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Destination() {
+      <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> cost;
+      <font color=#009900>// Экземплярная инициализация для каждого объекта:</font>
+      {
+        cost = Math.round(price);
+        <font color=#0000ff>if</font>(cost &gt; 100)
+          System.out.println(<font color=#004488>"Over budget!"</font>);
+      }
+      <font color=#0000ff>private</font> String label = dest;
+      <font color=#0000ff>public</font> String readLabel() { <font color=#0000ff>return</font> label; }
+    };
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel9 p = <font color=#0000ff>new</font> Parcel9();
+    Destination d = p.dest(<font color=#004488>"Tanzania"</font>, 101.395F);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Внутри инициализатора Вы можете видеть код, который не будет исполнен как часть 
+  инициализатора полей (т.е., выражение <b>if</b>). На самом же деле, инициализатор 
+  экземпляра по своей сути есть ничто иное, чем конструктор анонимного класса. 
+  Разумеется, что он несколько ограничен; Вы не можете перегрузить инциализатор 
+  экземпляра, поэтому у вас есть только один такой &quot;конструктор&quot;.<a name="_Toc481064653"></a></p>
+<a name="Heading264"></a>
+<h3 align="LEFT">
+Связь с внешним классом</h3>
+<p>Поскольку, внутренний класс предоставлялся только для целей скрытия имени и 
+  кода, что несомненно помогает, но все же не является всеобъемлющей особенностью 
+  внутренних классов. Тем не менее, имеется еще один способ использования внутренних 
+  классов. Когда Вы создаете внутренний класс, объект этого внутреннего класса 
+  имеет связь с окружающим его объектом и поэтому он имеет доступ к элементам 
+  этого объекта, без каких либо специальных предикатов. В дополнение <a name="Index805"></a><a name="Index806"></a><a name="Index807"></a>внутренние 
+  классы имеют права доступа ко всем элементам окружающего его класса<a name="fnB40" href="#fn40">[40]</a>. 
+  Нижеследующий пример как раз это и показывает:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Sequence.java</font>
+<font color="#009900" size="+1">// Поддержка последовательности объектов.</font>
+
+<font color="#0000ff" size="+1">interface</font><font size="+1"> Selector {
+  <font color=#0000ff>boolean</font> end();
+  Object current();
+  <font color=#0000ff>void</font> next();
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Sequence {
+  <font color=#0000ff>private</font> Object[] obs;
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> next = 0;
+  <font color=#0000ff>public</font> Sequence(<font color=#0000ff>int</font> size) {
+    obs = <font color=#0000ff>new</font> Object[size];
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> add(Object x) {
+    <font color=#0000ff>if</font>(next &lt; obs.length) {
+      obs[next] = x;
+      next++;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> SSelector <font color=#0000ff>implements</font> Selector {
+    <font color=#0000ff>int</font> i = 0;
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">boolean</font><font size="+1"> end() {
+      <font color=#0000ff>return</font> i == obs.length;
+    }
+    <font color=#0000ff>public</font> Object current() {
+      <font color=#0000ff>return</font> obs[i];
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> next() {
+      <font color=#0000ff>if</font>(i &lt; obs.length) i++;
+    }
+  }
+  <font color=#0000ff>public</font> Selector getSelector() {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> SSelector();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Sequence s = <font color=#0000ff>new</font> Sequence(10);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 10; i++)
+      s.add(Integer.toString(i));
+    Selector sl = s.getSelector();    
+    <font color=#0000ff>while</font>(!sl.end()) {
+      System.out.println(sl.current());
+      sl.next();
+    }
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p> <b>Sequence</b> - просто массив с фиксированным размером, с элементами типа 
+  <b>Object</b>, с классом обернутым вокруг него. Вы вызываете метод <b>add(&#160;)</b> 
+  для добавления нового <b>Object-а</b> в конец последовательности (если там еще 
+  есть место). Для выборки каждого из объекта в <b>Sequence</b>, имеется интерфейс 
+  <b>Selector</b>, который позволяет так же вам узнать, что вы в конце <b>end(&#160;)</b>, 
+  для просмотра текущего <b>current(&#160;)</b> <b>Object-а</b>, и для перехода 
+  на следующий <b>next(&#160;)</b> <b>Object</b> в последовательности <b>Sequence</b>. 
+  Поскольку <b>Selector</b> - <b>interface</b>, многие другие классы могут реализовать 
+  его по своему собственному усмотрению, а так же многие методы могут получать 
+  этот интерфейс как аргумент, в порядке создания наследуемого кода.</p>
+<p>Здесь, <b>SSelector</b> - <b>private</b> класс, который предоставляет функциональность 
+  <b>Selector</b>. В <b>main(&#160;)</b>, Вы можете видеть создание <b>Sequence</b>, 
+  следующее за добавлением объектов <b>String</b>. Затем <b>Selector</b> создается 
+  путем вызова <b>getSelector(&#160;)</b> и при его же помощи можно перемещаться 
+  по <b>Sequence</b> выбирая каждый из элементов.</p>
+<p>На первый взгляд, создание <b>SSelector</b> выглядит, как просто создание другого 
+  внутреннего класса. Но просмотрите его более внимательно. Заметьте, что каждый 
+  из методов <b>end(&#160;)</b>, <b>current(&#160;)</b> и <b>next(&#160;)</b> 
+  ссылаются на <b>obs</b>, который является ссылкой и не является частью <b>SSelector</b>, 
+  но он заменяет <b>private </b>поле в окружающем классе. Тем не менее, внутренний 
+  класс может получить доступ к методам и полям окружающего класса, как если бы 
+  они были его собственными полями.</p>
+<p>Так что внутренний класс имеет автоматически доступ к элементам окружающего 
+  его класса. А как же тогда такое происходит? <a name="Index808"></a>Внутренний 
+  класс должен хранить ссылку на объект окружающего класса, ответственный за его 
+  создание. Потом, когда Вы будете ссылаться на элемент окружающего класса, то 
+  будет использована эта скрытая ссылка, что бы выбрать этот элемент. К счастью, 
+  компилятор заботится обо всех этих деталях вместо вас, но Вы все равно должны 
+  понимать, что этот объект внутреннего класса может быть создан только в соединении 
+  с объектом окружающего класса. Создание объекта внутреннего класса требует ссылки 
+  на объект окружающего его класса и компилятор выдаст сообщение об ошибке, если 
+  он не сможет получить доступ к этой ссылке. Наиболее часто это случается без 
+  какого либо вмешательства в эту часть программистом.<a name="_Toc481064654"></a></p>
+<a name="Heading265"></a>
+<h3 align="LEFT"> static внутренние классы<a name="Index809"></a><a name="Index810"></a><a name="Index811"></a></h3>
+<p>Если вам не нужно соединение между внутренним классом и объектом внешнего класса, 
+  тогда Вы можете сделать этот внутренний класс <b>static</b>. Для того, что бы 
+  понять значение <b>static</b> примененного к внутреннему классу, Вы должны вспомнить 
+  то, что этот объект обычного внутреннего класса неявным образом ссылается на 
+  объект создавшего его окружающего класса. А если Вы объявите его как <b>static</b>, 
+  то это уже не будет правдой. <b>Static </b>внутренний класс означает:</p>
+<ol>
+  <li>	Вам не нужен объект внешнего класса для создания объекта <b>static</b> внутреннего класса.
+  <li>	Вы не можете получить доступ к внешнему объекту из <b>static</b> внутреннего класса.
+</ol>
+<p><b>Static</b> внутренние классы отличаются от не-<b>static</b> внутренних классов. 
+  Поля и методы в не-<b>static</b> внутренних классах могут быть только на внешнем 
+  уровне класса, поэтому не-<b>static</b> внутренние классы не могут иметь <b>static</b> 
+  данные, <b>static</b> поля или <b>static</b> внутренние классы. Однако <b>static</b> 
+  внутренний класс не ограничен таким ограничением:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel10.java</font>
+<font color="#009900" size="+1">// Static внутренний класс.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel10 {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">class</font><font size="+1"> PContents 
+  <font color=#0000ff>implements</font> Contents {
+    <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+  }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">class</font><font size="+1"> PDestination
+      <font color=#0000ff>implements</font> Destination {
+    <font color=#0000ff>private</font> String label;
+    <font color=#0000ff>private</font> PDestination(String whereTo) {
+      label = whereTo;
+    }
+    <font color=#0000ff>public</font> String readLabel() { <font color=#0000ff>return</font> label; }
+    <font color=#009900>// Static внутренний класс может содержать </font></font>
+    <font color="#009900" size="+1">// другие static элементы:</font>
+    <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+    <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> x = 10;
+    <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> AnotherLevel {
+      <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+      <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> x = 10;
+    }
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font><font size="+1"> Destination dest(String s) {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> PDestination(s);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font><font size="+1"> Contents cont() {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> PContents();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Contents c = cont();
+    Destination d = dest(<font color=#004488>"Tanzania"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>В <b>main(&#160;)</b>, не требуется объекта <b>Parcel10</b>; вместо этого Вы 
+  используете нормальный синтаксис для выбора <b>static</b> элемента, что бы вызвать 
+  методы, которые возвращают ссылки на <b>Contents</b> и <b>Destination</b>.</p>
+<p>Как Вы видели недавно, в обычном (не <b>static</b>) внутреннем классе, ссылка 
+  на объект внешнего класса достигается с помощью специальной ссылки <b>this</b>. 
+  <b>Static</b> внутренний класс не имеет этой специальной ссылки, что делает 
+  его аналогом <b>static</b> метода.</p>
+<p>Обычно Вы не можете поместить какой либо код внутрь <b>interface</b>, но <b>static</b> 
+  внутренний класс может быть частью <b>interface</b>. Поскольку этот класс <b>static, 
+  </b>то он не нарушит правила для интерфейсов - <b>static </b>внутренний класс, 
+  только помещается он внутри поля имени интерфейса:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:IInterface.java</font>
+<font color="#009900" size="+1">// Static внутренний класс внутри интерфейса.</font>
+
+<font color="#0000ff" size="+1">interface</font><font size="+1"> IInterface {
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Inner {
+    <font color=#0000ff>int</font> i, j, k;
+    <font color=#0000ff>public</font> Inner() {}
+    <font color=#0000ff>void</font> f() {}
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Раньше в этой книге, я предлагал помещать <b>main(&#160;) </b>в каждый класс, 
+  что бы иметь возможность его тестировать<a name="Index812"></a>. Препятствием 
+  для этого может служить, избыточный компилированный код. Если он сильно досаждает, 
+  то Вы можете использовать <b>static</b> внутренний класс для минимизации вашего 
+  тестового кода:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:TestBed.java</font>
+<font color="#009900" size="+1">// Помещаем тестовый код в  static внутренний класс.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> TestBed {
+  TestBed() {}
+  <font color=#0000ff>void</font> f() { System.out.println(<font color=#004488>"f()"</font>); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Tester {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+      TestBed t = <font color=#0000ff>new</font> TestBed();
+      t.f();
+    }
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>При этом создается класс называемый <b>TestBed$Tester</b> (для запуска программы, 
+  нужно использовать <b>java TestBed$Tester</b>). Вы можете его использовать для 
+  тестирования, но вовсе необязательно включать в поставку вашего продукта.<a name="_Toc481064655"></a></p>
+<a name="Heading266"></a>
+<h3 align="LEFT"> Ссылки на объект внешнего класса<a name="Index813"></a><a name="Index814"></a></h3>
+<p>Если вам необходимо сделать ссылку на внешний объект, вы просто указываете 
+  имя вашего внешнего объекта и после него добавляете точку и <b>this</b>. К примеру, 
+  в классе <b>Sequence.SSelector</b>, любые его методы могут производить хранимые 
+  ссылки на внешний класс <b>Sequence</b> просто указывая их как <b>Sequence.this</b>. 
+  Результирующая ссылка автоматически становится нужного типа. (Это обстоятельство 
+  известно и проверяется на стадии компилирования, поэтому на стадии выполнения 
+  не будет излишних накладных расходов.)</p>
+<p>Иногда, вам нужно сообщить другим объектам, что бы они создали объекты своих 
+  внутренних классов. Что бы это провернуть, вам нужно предоставить ссылку другим 
+  внешним классам в выражении <b>new</b>, вот как в примере:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Parcel11.java</font>
+<font color="#009900" size="+1">// Создание экземпляров внутреннего  класса.</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Parcel11 {
+  <font color=#0000ff>class</font> Contents {
+    <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 11;
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value() { <font color=#0000ff>return</font> i; }
+  }
+  <font color=#0000ff>class</font> Destination {
+    <font color=#0000ff>private</font> String label;
+    Destination(String whereTo) {
+      label = whereTo;
+    }
+    String readLabel() { <font color=#0000ff>return</font> label; }
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Parcel11 p = <font color=#0000ff>new</font> Parcel11();
+    <font color=#009900>// Должны использовать экземпляр внешнего класса</font></font>
+    <font color="#009900" size="+1">// для создания экземпляра внутреннего класса:</font><font size="+1">
+    Parcel11.Contents c = p.<font color=#0000ff>new</font> Contents();
+    Parcel11.Destination d =
+      p.<font color=#0000ff>new</font> Destination(<font color=#004488>"Tanzania"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Для создания объекта внутреннего класса напрямую, Вы уже не должны следовать 
+  тем же самым методом и сослаться прямо на внешний класс <b>Parcel11</b>, но 
+  вместо этого Вы должны использовать объект внешнего класса для создания объекта 
+  внутреннего класса:</p>
+<blockquote>
+  <pre><font size="+1">Parcel11.Contents c = p.<font color=#0000ff>new</font> Contents();</font></pre>
+</blockquote>
+<p>Поэтому нельзя создать объект внутреннего класса до того, как у вас будет создан 
+  объект внешнего класса. Эта невозможность происходит из-за того, что внутренний 
+  класс &quot;подсоединен&quot; к объекту внешнего класса в котором он был создан. 
+  Тем не менее , если Вы сделаете <b>static</b> внутренний класс, то ему уже не 
+  нужна ссылка на внешний класс.<a name="_Toc481064656"></a></p>
+<a name="Heading267"></a>
+<h3 align="LEFT">
+Доступ &quot;наружу&quot; из множественно вложенных классов</h3>
+<p><a name="fnB41" href="#fn41">[41]</a><a name="Index815"></a><a name="Index816"></a>Совершенно 
+  не играет роли, как глубоко может быть вложен внутренний класс, он может совершенно 
+  прозрачно получить доступ ко всем элементам всех классов, в которых он вложен, 
+  ниже этому пример:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:MultiNestingAccess.java</font>
+<font color="#009900" size="+1">// Вложенные классы могут получить доступ ко всем элементам</font>
+<font color="#009900" size="+1">// всех классов, в которые они вложены.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> MNA {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {}
+  <font color=#0000ff>class</font> A {
+    <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {}
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> B {
+      <font color=#0000ff>void</font> h() {
+        g();
+        f();
+      }
+    }
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> MultiNestingAccess {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    MNA mna = <font color=#0000ff>new</font> MNA();
+    MNA.A mnaa = mna.<font color=#0000ff>new</font> A();
+    MNA.A.B mnaab = mnaa.<font color=#0000ff>new</font> B();
+    mnaab.h();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вы можете видеть, что в <b>MNA.A.B</b>, методы <b>g(&#160;)</b> и <b>f(&#160;)</b> 
+  востребуются без каких либо ограничений (несмотря даже на тот факт, что они 
+  <b>private</b>). Этот пример также демонстрирует синтаксис требуемый для создания 
+  объектов многократно вложенных внутренних классов, когда Вы создаете объект 
+  в другом классе. <b>New</b> предоставляет правильную область действия, поэтому 
+  вам не нужно квалифицировать имя класса в вызове конструктора.<a name="_Toc481064657"></a></p>
+<a name="Heading268"></a>
+<h3 align="LEFT"> Наследование от внутренних классов<a name="Index817"></a><a name="Index818"></a><a name="Index819"></a></h3>
+<p>Поскольку конструктор внутреннего класса должен быть присоединен к ссылке на 
+  окружающий его класс, то наследование может выглядеть несколько запутано, если 
+  Вы захотите от него наследовать. Проблема заключается в том, что эта &quot;секретная&quot; 
+  ссылка на окружающий объект должна быть инициализирована, а в дочернем объекте 
+  нет того объекта, к которому можно было бы &quot;привязаться&quot;. Решением 
+  здесь является использование синтаксиса явной ассоциации:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:InheritInner.java</font>
+<font color="#009900" size="+1">// Наследование внутреннего класса.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> WithInner {
+  <font color=#0000ff>class</font> Inner {}
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> InheritInner 
+    <font color=#0000ff>extends</font> WithInner.Inner {
+  <font color=#009900>//! InheritInner() {} // Не компилируется</font>
+  InheritInner(WithInner wi) {
+    wi.<font color=#0000ff>super</font>();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    WithInner wi = <font color=#0000ff>new</font> WithInner();
+    InheritInner ii = <font color=#0000ff>new</font> InheritInner(wi);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вы можете видеть, что <b>InheritInner</b> расширяется только внутренним классом, 
+  но не расширяется внешним. Но когда приходит время для создания конструктора, 
+  то конструктор по умолчанию не подходит, Вы не можете передать ссылку на окружающий 
+  объект. В дополнение Вы должны использовать такой синтаксис</p>
+<blockquote>
+  <pre><font size="+1">enclosingClassReference.<font color=#0000ff>super</font>();</font></pre>
+</blockquote>
+<p><a name="Index820"></a><a name="Index821"></a><a name="Index822"></a>внутри 
+  конструктора. При этом предоставляется ссылка и программа будет компилироваться.<a name="_Toc481064658"></a></p>
+<a name="Heading269"></a>
+<h3 align="LEFT">
+Может ли быть внутренний класс перегружен?</h3>
+<p>Что произойдет, когда Вы создадите внутренний класс, а затем наследуете окружающий 
+  класс и переопределите внутренний класс? Что же это такое, что возможно переопределить 
+  внутренний класс? Да, это именно так и выглядит, но <a name="Index823"></a><a name="Index824"></a><a name="Index825"></a>переопределение 
+  внутреннего класса это то же самое, как если бы во внешнем классе был бы другой 
+  метод, который ничего бы не делал:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:BigEgg.java</font>
+<font color="#009900" size="+1">// Внутренний класс не может быть переопределен </font>
+<font color="#009900" size="+1">// как метод.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Egg {
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Yolk {
+    <font color=#0000ff>public</font> Yolk() {
+      System.out.println(<font color=#004488>"Egg.Yolk()"</font>);
+    }
+  }
+  <font color=#0000ff>private</font> Yolk y;
+  <font color=#0000ff>public</font> Egg() {
+    System.out.println(<font color=#004488>"New Egg()"</font>);
+    y = <font color=#0000ff>new</font> Yolk();
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> BigEgg <font color=#0000ff>extends</font> Egg {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Yolk {
+    <font color=#0000ff>public</font> Yolk() {
+      System.out.println(<font color=#004488>"BigEgg.Yolk()"</font>);
+    }
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    <font color=#0000ff>new</font> BigEgg();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Конструктор по умолчанию генерируется компилятором и эти вызовы конструктора 
+  базового класса тоже. Вы можете думать, что поскольку <b>BigEgg</b> уже создан, 
+  то будет использована переопределенная версия <b>Yolk</b>, но в действительности 
+  все не так. Вывод будет такой:</p>
+<blockquote>
+  <pre><font size="+1">New Egg()
+Egg.Yolk()</font></pre>
+</blockquote>
+<p>Этот пример показывает, что нет никакой дополнительной магии в наследовании 
+  от внешнего класса. Два внутренних классов полностью разделены, каждый существует 
+  в своем собственном пространстве имен. Но все равно, остается возможность<b> 
+  </b>недвусмысленно наследовать от внутреннего класса:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:BigEgg2.java</font>
+<font color="#009900" size="+1">// Правильное наследование от внутреннего класса.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Egg2 {
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Yolk {
+    <font color=#0000ff>public</font> Yolk() {
+      System.out.println(<font color=#004488>"Egg2.Yolk()"</font>);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {
+      System.out.println(<font color=#004488>"Egg2.Yolk.f()"</font>);
+    }
+  }
+  <font color=#0000ff>private</font> Yolk y = <font color=#0000ff>new</font> Yolk();
+  <font color=#0000ff>public</font> Egg2() {
+    System.out.println(<font color=#004488>"New Egg2()"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> insertYolk(Yolk yy) { y = yy; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() { y.f(); }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> BigEgg2 <font color=#0000ff>extends</font> Egg2 {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Yolk <font color=#0000ff>extends</font> Egg2.Yolk {
+    <font color=#0000ff>public</font> Yolk() {
+      System.out.println(<font color=#004488>"BigEgg2.Yolk()"</font>);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {
+      System.out.println(<font color=#004488>"BigEgg2.Yolk.f()"</font>);
+    }
+  }
+  <font color=#0000ff>public</font> BigEgg2() { insertYolk(<font color=#0000ff>new</font> Yolk()); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Egg2 e2 = <font color=#0000ff>new</font> BigEgg2();
+    e2.g();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Теперь <b>BigEgg2.Yolk</b> ясно расширяет <b>Egg2.Yolk</b> и переопределяет 
+  его методы. Метод <b>insertYolk(&#160;) </b>позволяет <b>BigEgg2 </b>привести 
+  к базовому типу один из его объектов <b>Yolk </b>к ссылке <b>y</b> в <b>Egg2</b>, 
+  так что, когда <b>g(&#160;)</b> вызывает <b>y.f(&#160;)</b>, то используется 
+  переопределенная версия <b>f(&#160;)</b>. Вывод же будет такой:</p>
+<blockquote>
+  <pre><font size="+1">Egg2.Yolk()
+New Egg2()
+Egg2.Yolk()
+BigEgg2.Yolk()
+BigEgg2.Yolk.f()</font></pre>
+</blockquote>
+<p>Второй вызов <b>Egg2.Yolk(&#160;)</b> это вызов конструктора базового класса 
+  из конструктора <b>BigEgg2.Yolk</b>. Вы так же можете видеть, что переопределенная 
+  версия <b>f(&#160;)</b> используется, когда вызывается <b>g(&#160;)</b>.<a name="_Toc481064659"></a></p>
+<a name="Heading270"></a>
+<h3 align="LEFT">
+Идентификаторы внутренних файлов</h3>
+<p>Поскольку, каждый класс создает файл <b>.class, </b>который содержит все информацию 
+  о том, как создавать объект этого типа, то Вы можете догадаться, что <a name="Index826"></a><a name="Index827"></a>внутренний 
+  класс может так же создавать файл <b>.class</b> содержащий информацию для его 
+  объекта <b>Class</b>. Имя такого класса выбирается следующим образом: имя окружающего 
+  класса, символ &quot;<b>$&quot;</b>, имя внутреннего класса. К примеру, файлы 
+  <b>.class</b> созданные <b>InheritInner.java</b>:</p>
+<blockquote>
+  <pre><font size="+1">InheritInner.<font color=#0000ff>class</font>
+WithInner$Inner.<font color=#0000ff>class</font>
+WithInner.<font color=#0000ff>class</font></font></pre>
+</blockquote>
+<p>Если же внутренний класс - анонимный, то компилятор просто начинает генерировать 
+  для него идентификаторы. Если внутренний класс вложен во внутренний класс, то 
+  тогда их имена так же разделяются символом<b> &quot;$&quot;</b> и идентификатором 
+  внешнего класса.</p>
+<p>Хотя эта схема генерирования внутренних имен проста и непосредственна, она 
+  так же устойчива к различным ситуациям<a name="fnB42" href="#fn42">[42]</a>. 
+  Поскольку такой подход к генерации, является подмножеством стандартной схемы 
+  именования в Java, то сгенерированные файлы становятся автоматически платформо-независимомы. 
+  (Заметьте, что компилятор изменяет ваши внутренние классы таким образом, что 
+  бы они работали.)<a name="_Toc481064660"></a></p>
+<a name="Heading271"></a>
+<h3 align="LEFT">
+Зачем внутренние классы?</h3>
+<p>До этого момента Вы видели множество примеров синтаксиса и семантического описания 
+  работы внутренних классов, но еще не было ответа на вопрос &quot;А зачем они 
+  собственно?&quot;. Зачем Sun пошел на такие значительные усилия, что бы добавить 
+  эту возможность языка?</p>
+<p>Обычно внутренний класс или наследует от класса или реализует интерфейс, а 
+  код в нем манипулирует объектами внешнего класса, того, в котором он создан. 
+  Так что Вы можете предположить, что внутренние классы предоставляют этакую разновидность 
+  окна во внешнем классе.</p>
+<p>Вопрос, глубоко задевающий внутренние классы: если мне нужна ссылка на интерфейс, 
+  почему я должен реализовывать его во внешнем классе? А вот и ответ: &quot;Если 
+  это все , что нужно, то как этого добиться?&quot; Так где разница, между реализацией 
+  интерфейса внутренним и внешним классами? А ответ такой - Вы не всегда можете 
+  удобно работать с интерфейсами, иногда нужно работать и с реализацией. Отсюда 
+  самая непреодолимая причина работы с классами:</p>
+<p><i>Каждый внутренний класс может быть независимо наследован от реализации. 
+  Поэтому, внутренний класс не ограничен тем, если внешний класс уже наследовал 
+  от реализации.</i></p>
+<p>Без способности внутренних классов наследовать более, чем от одного конкретного 
+  или абстрактного класса, некоторые проекты столкнулись бы с трудноразрешимыми 
+  проблемам. Так что единственное решение для внутренних классов, это проблема 
+  множественного наследования. То есть, внутренние классы эффективно позволяют 
+  вам наследовать больше чем от одного не интерфейса.</p>
+<p>Что бы увидеть это более детально, представьте себе ситуацию, где у вас было 
+  бы два интерфейса, которые должны как-то выполниться внутри класса. В силу гибкости 
+  интерфейсов у вас есть два выбора: одиночный класс или внутренний класс:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:MultiInterfaces.java</font>
+<font color="#009900" size="+1">// Два способа, как класс может </font>
+<font color="#009900" size="+1">// реализовать множественные интерфейсы.</font>
+
+<font color="#0000ff" size="+1">interface</font><font size="+1"> A {}
+<font color=#0000ff>interface</font> B {}
+
+<font color=#0000ff>class</font> X <font color=#0000ff>implements</font> A, B {}
+
+<font color=#0000ff>class</font> Y <font color=#0000ff>implements</font> A {
+  B makeB() {
+    <font color=#009900>// Анонимный внутренний класс:</font></font>
+    <font color="#0000ff" size="+1">return</font> <font color="#0000ff" size="+1">new</font><font size="+1"> B() {};
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> MultiInterfaces {
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> takesA(A a) {}
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> takesB(B b) {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    X x = <font color=#0000ff>new</font> X();
+    Y y = <font color=#0000ff>new</font> Y();
+    takesA(x);
+    takesA(y);
+    takesB(x);
+    takesB(y.makeB());
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Естественно, что при этом логика вашего кода будет различна в обоих вариантах. 
+  Однако, обычно, Вы будете представлять себе в зависимости от проблемы, какой 
+  из способов предпочесть, одиночный класс или внутренний. Но безо всякого давления, 
+  в вышеприведенном примере, непонятно, какой из путей предпочесть. Оба из них 
+  работают.</p>
+<p>Тем не менее, если у вас есть <b>abstract</b> или конкретный класс, вместо 
+  интерфейса, то Вы сразу же становитесь ограниченны в использовании только внутреннего 
+  класса, естественно, если все еще требуется реализовать их несколько в одном:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:MultiImplementation.java</font>
+<font color="#009900" size="+1">// С конкретным или абстарктным классом, внутренние </font>
+<font color="#009900" size="+1">// классы - единственный путь для достижения эффекта</font>
+<font color="#009900" size="+1">//  "множественная реализация интерфейса."</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> C {}
+<font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> D {}
+
+<font color=#0000ff>class</font> Z <font color=#0000ff>extends</font> C {
+  D makeD() { <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> D() {}; }
+} 
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> MultiImplementation {
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> takesC(C c) {}
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> takesD(D d) {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Z z = <font color=#0000ff>new</font> Z();
+    takesC(z);
+    takesD(z.makeD());
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Если вам не нужно решать проблему с &quot;множественной реализацией наследования&quot;, 
+  то вам лучше использовать какие угодно методы, кроме внутренних классов. Но 
+  с внутренними классами Вы получаете и дополнительные возможности:</p>
+<ol>
+  <li>	Внутренний класс может иметь несколько экземпляров, каждый со своими собственными данными, независимыми от объекта внешнего класса.
+  <li>	В одном внешнем классе может быть несколько внутренних классов, каждый из которых реализует тот же самый интерфейс или наследует от того же  самого класса, но по другому. Пример такого применения будет предоставлен дальше.
+  <li>	Место создания объекта внутреннего класса не связано с созданием объекта внешнего класса.
+  <li>	Не возникает потенциального конфликта в связи &quot;это-есть&quot; (is-a) с внутренним классом, поскольку они раздельные единицы.
+</ol>
+<p>Пример. Если бы <b>Sequence.java</b> не использовал бы внутренние классы, то 
+  Вы бы сказали <b>Sequence</b> это есть <b>Selector</b>, и Вы бы могли иметь 
+  только один <b>Selector</b> в <b>Sequence</b>. Так же, у вас не было бы второго 
+  метода <b>getRSelector(&#160;)</b>, который происходит от <b>Selector,</b> который 
+  собственно двигается в обратном направлении по последовательности. Гибкость 
+  такого рода доступна только с использованием внутренних классов.</p>
+<a name="Heading272"></a>
+<h4 align="LEFT"> Замыкания &amp; обратные вызовы<a name="Index828"></a><a name="Index829"></a></h4>
+<p> <i>Замыкание</i> это объект, который хранит информацию из контекста в котором 
+  он был создан. Из этого описания, Вы можете видеть, что внутренний класс замкнут 
+  на объектах, поскольку он не содержит каждый из кусочков из внешнего класса 
+  ( контекста, в котором он был создан), но он автоматически содержит ссылку на 
+  этот внешний класс, где у него есть доступ к элементам класса, даже к <b>private</b>.</p>
+<p><a name="Index830"></a><a name="Index831"></a>Наиболее неоспоримым аргументом 
+  для включения можно назвать разновидность <a name="Index832"></a>указательного 
+  механизма в Java позволяющего осуществлять <i>обратные вызовы (callbacks)</i>. 
+  С обратным вызовом, некоторые другие объекты, могут получить кусочек информации, 
+  которая позволит им в дальнейшем передать управление в исходящий объект. Это 
+  очень мощная концепция, как Вы увидите потом, в <a href="Chapter13.html">Главе 
+  13</a> и Главе 16. Если обратный вызов реализуется через использование указателя, 
+  то Вы должны очень осторожно с ним обращаться. Как Вы наверное уже могли понять, 
+  в Java имеется тенденция для более осторожного программирования, поэтому указатели 
+  не включены в этот язык.</p>
+<p>&quot;Замыкание&quot; предоставляемое внутренними классами - лучшее решение, 
+  чем указатели. Оно более гибкое и намного более безопасное. Вот пример:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:Callbacks.java</font>
+<font color="#009900" size="+1">// Использование внутренних классов для возврата</font>
+
+<font color="#0000ff" size="+1">interface</font><font size="+1"> Incrementable {
+  <font color=#0000ff>void</font> increment();
+}
+
+<font color=#009900>// Очень просто реализовать интерфейс:</font></font>
+<font color="#0000ff" size="+1">class</font><font size="+1"> Callee1 <font color=#0000ff>implements</font> Incrementable {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 0;
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> increment() { 
+    i++;
+    System.out.println(i);
+  }
+}
+
+<font color=#0000ff>class</font> MyIncrement {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> increment() {
+    System.out.println(<font color=#004488>"Other operation"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f(MyIncrement mi) {
+    mi.increment();
+  }
+}
+
+<font color=#009900>// Если ваш класс должен реализовать increment() по другому,</font></font>
+<font color="#009900" size="+1">// Вы должны использовать внутренний класс:</font>
+<font color="#0000ff" size="+1">class</font><font size="+1"> Callee2 <font color=#0000ff>extends</font> MyIncrement {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 0;
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> incr() { 
+    i++;
+    System.out.println(i);
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Closure <font color=#0000ff>implements</font> Incrementable {
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> increment() { incr(); }
+  }
+  Incrementable getCallbackReference() {
+    <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">new</font><font size="+1"> Closure();
+  }
+}
+
+<font color=#0000ff>class</font> Caller {
+  <font color=#0000ff>private</font> Incrementable callbackReference;
+  Caller(Incrementable cbh) {
+    callbackReference = cbh;
+  }
+  <font color=#0000ff>void</font> go() {
+    callbackReference.increment();
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Callbacks {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Callee1 c1 = <font color=#0000ff>new</font> Callee1();
+    Callee2 c2 = <font color=#0000ff>new</font> Callee2();
+    MyIncrement.f(c2);
+    Caller caller1 = <font color=#0000ff>new</font> Caller(c1);
+    Caller caller2 = 
+      <font color=#0000ff>new</font> Caller(c2.getCallbackReference());
+    caller1.go();
+    caller1.go();
+    caller2.go();
+    caller2.go();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Этот пример так же показывает дальнейшие различия между реализацией интерфейса 
+  во внешнем классе и того же самого во внутреннем. <b>Callee1</b> простое решение 
+  в терминах кода. <b>Callee2</b> наследует от <b>MyIncrement,</b> который уже 
+  имеет отличный метод <b>increment(&#160;), </b>который в свою очередь что то 
+  делает, при этом еу нужен интерфейс <b>Incrementable</b>. Когда <b>MyIncrement</b> 
+  наследуется в <b>Callee2</b>, <b>increment(&#160;)</b> уже не может быть переопределен 
+  для использования с <b>Incrementable</b>, поэтому принудительно использовано 
+  разделение реализаций с использованием внутреннего класса. Так же заметьте, 
+  когда Вы создаете внутренний класс вам уже не нужно добавлять или модифицировать 
+  интерфейс внешнего класса.</p>
+<p>Обратите внимание на то, что все исключая <b>getCallbackReference(&#160;)</b> 
+  в <b>Callee2</b> с модификатором <b>private</b>. Для того, что бы разрешить 
+  любые соединения с внешним миром, можно использовать интерфейс<b> Incrementable</b>. 
+  Далее Вы увидите, как интерфейсы поддерживают полное разделение интерфейса и 
+  реализации.</p>
+<p>Внутренний класс <b>Closure</b> просто реализует <b>Incrementable</b> для того, 
+  что бы безопасно перехватить возврат <b>Callee2</b>. Единственный способ получить 
+  эту ссылку это вызов <b>increment(&#160;)</b>.</p>
+<p><b>Caller</b> передает <b>Incrementable</b> ссылку в его конструктор (хотя 
+  захват обратной ссылки может происходить в любое время) и затем, немного погодя, 
+  использует эту ссылку для возврата в класс <b>Callee</b>.</p>
+<p>Значение обратного вызова очень гибкое, Вы можете на ходу решить, в какую функцию 
+  будет передано управление во время исполнения программы. Преимущества данной 
+  техники будут изложены несколько позднее в <a href="Chapter13.html">главе 13</a>, 
+  где обратные вызовы будут использоваться очень часто для реализации графического 
+  интерфейса пользователя.<a name="_Toc481064661"></a></p>
+<a name="Heading273"></a>
+<h3 align="LEFT">
+Внутренние классы и структуры управления</h3>
+<p>Более конкретный пример использования внутренних классов может быть получен 
+  в нечто называемом здесь как <a name="Index833"></a><a name="Index834"></a><a name="Index835"></a><i>структуры 
+  управления</i>. </p>
+<p> <a name="Index836"></a><i>Структура управления приложением </i> это класс 
+  или набор классов, которые спроектированы для решения частных проблем. Для того, 
+  что бы применить структуру управления приложения, Вы должны наследовать от одного 
+  или нескольких этих классов и переопределить некоторые методы. Код, который 
+  Вы напишите в переопределенных методах, подстроит решения проблем под ваши конкретные 
+  задачи. Структура управления - частный тип структур управления приложениями 
+  с доминирующей функцией ответа на события; система, которая в основном занимается 
+  обработкой событий называется <a name="Index837"></a><i>системой обработки событий</i>. 
+  Одной из наиболее важных проблем в программировании приложений можно назвать 
+  <a name="Index838"></a><a name="Index839"></a><a name="Index840"></a>графический 
+  пользовательский интерфейс (GUI), который почти полностью завязан на обработке 
+  событий. Как Вы сможете увидеть в <a href="Chapter13.html">главе 13</a>, библиотека 
+  Java Swing - структура управления, которая элегантно решает проблемы GUI и очень 
+  много использует внутренние классы.</p>
+<p>Для того, что бы увидеть, как внутренние классы позволяют с легкостью создавать 
+  и использовать структуры управления, давайте представим себе структуру управления, 
+  чьей задачей будет выполнение событий, когда они будут готовы. Хотя &quot;готовы&quot; 
+  здесь может означать что угодно, поэтому выберем вариант зависящий от времени. 
+  Теперь у нас есть структура управления без какой либо конкретной информации 
+  о том, что же ей нужно в действительности контролировать. Сперва, тут есть интерфейс, 
+  который описывает управляемые события. В этой роли выступает абстрактный класс, 
+  вместо настоящего интерфейса, поскольку у нас используется поведение на основе 
+  таймера:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:controller:Event.java</font>
+<font color="#009900" size="+1">// Общие методы для любого контроля осбытий.</font>
+<font color="#0000ff" size="+1">package</font><font size="+1"> c08.controller;
+
+<font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Event {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">long</font><font size="+1"> evtTime;
+  <font color=#0000ff>public</font> Event(<font color=#0000ff>long</font> eventTime) {
+    evtTime = eventTime;
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">boolean</font><font size="+1"> ready() {
+    <font color=#0000ff>return</font> System.currentTimeMillis() &gt;= evtTime;
+  }
+  <font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">void</font><font size="+1"> action();
+  <font color=#0000ff>abstract</font></font> <font color="#0000ff" size="+1">public</font><font size="+1"> String description();
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Конструктор просто запоминает время, когда Вы хотите запустить <b>Event</b>, 
+  затем <b>ready(&#160;)</b> сообщает, когда приходит время для запуска. Естественно 
+  <b>ready(&#160;)</b> должен быть переопределен в дочернем классе на нечто более 
+  другое, чем время.</p>
+<p><b>Action(&#160;)</b> - метод, который вызывается, когда <b>Event</b> уже (готов) 
+  <b>ready(&#160;)</b>, а <b>description(&#160;)</b> дает текстовое сопровождение 
+  об этом <b>Event</b>.</p>
+<p>Следующий файл содержит структуру управления, которая управляет и удаляет события. 
+  Первый класс - простой помощник, чья работа заключается только в содержании 
+  объектов <b>Event</b>. Вы можете заменить его любым подходящим контейнером, 
+  а в <a href="Chapter09.html">главе 9</a> Вы откроете для себя другие контейнеры, 
+  которые делают этот же трюк, но без какого либо дополнительного кода:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:controller:Controller.java</font>
+<font color="#009900" size="+1">// Вместе с  Event, изначальная</font>
+<font color="#009900" size="+1">// система управления для всех систем управления:</font>
+<font color="#0000ff" size="+1">package</font><font size="+1"> c08.controller;
+
+<font color=#009900>// Это просто способ содержаня объектов Event.</font></font>
+<font color="#0000ff" size="+1">class</font><font size="+1"> EventSet {
+  <font color=#0000ff>private</font> Event[] events = <font color=#0000ff>new</font> Event[100];
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> index = 0;
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> next = 0;
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> add(Event e) {
+    <font color=#0000ff>if</font>(index &gt;= events.length)
+      <font color=#0000ff>return</font>; <font color=#009900>// (В настоящей жизни нужно обрабатывать исключение)</font>
+    events[index++] = e;
+  }
+  <font color=#0000ff>public</font> Event getNext() {
+    <font color=#0000ff>boolean</font> looped = <font color=#0000ff>false</font>;
+    <font color=#0000ff>int</font> start = next;
+    <font color=#0000ff>do</font> {
+      next = (next + 1) % events.length;
+      <font color=#009900>// Смотрим, не зациклился ли он:</font></font>
+      <font color="#0000ff" size="+1">if</font><font size="+1">(start == next) looped = <font color=#0000ff>true</font>;
+      <font color=#009900>// Если зациклился, то обнуляем список </font></font>
+      <font color="#009900" size="+1">// </font>
+      <font color="#0000ff" size="+1">if</font><font size="+1">((next == (start + 1) % events.length)
+         &amp;&amp; looped)
+        <font color=#0000ff>return</font></font> <font color="#0000ff" size="+1">null</font><font size="+1">;
+    } <font color=#0000ff>while</font>(events[next] == <font color=#0000ff>null</font>);
+    <font color=#0000ff>return</font> events[next];
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> removeCurrent() {
+    events[next] = <font color=#0000ff>null</font>;
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Controller {
+  <font color=#0000ff>private</font> EventSet es = <font color=#0000ff>new</font> EventSet();
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> addEvent(Event c) { es.add(c); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> run() {
+    Event e;
+    <font color=#0000ff>while</font>((e = es.getNext()) != <font color=#0000ff>null</font>) {
+      <font color=#0000ff>if</font>(e.ready()) {
+        e.action();
+        System.out.println(e.description());
+        es.removeCurrent();
+      }
+    }
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p><b>EventSet</b> поддерживает <b>Event</b>-ов. (Если бы использовался настоящий 
+  контейнер из <a href="Chapter09.html">главы 9</a>, то вам не нужно было бы беспокоиться 
+  о максимальном размере, поскольку он изменяет размер самостоятельно). <b>Index</b> 
+  используется для сохранения пути на следующее свободное место, а <b>next</b> 
+  используется, когда Вы ищите следующий <b>Event</b> в списке, что бы понять, 
+  не зациклились ли Вы. Информация о зацикливании особенна важна при вызове <b>getNext(&#160;)</b>, 
+  поскольку объекты <b>Event</b> должны удаляться из списка (используется <b>removeCurrent(&#160;)</b>)<b> 
+  </b>как только они были выполнены, поэтому <b>getNext(&#160;)</b> должен найти 
+  промежутки в списке и осуществлять выборку без них.</p>
+<p>Заметьте, что <b>removeCurrent(&#160;)</b> не просто устанавливает некоторый 
+  флаг, сигнализирующий, что объект уже не используется. Вместо этого он устанавливает 
+  ссылку в <b>null</b>. Это поведение достаточно важно, поскольку <a name="Index841"></a><a name="Index842"></a>сборщик 
+  мусора не сможет очистить объект, на который все еще существует ссылка. Если 
+  Вы думаете, что ваши ссылки могут таким образом зависнуть, то тогда хорошей 
+  идеей устанавливать их в <b>null,</b> дабы дать возможность сборщику мусора 
+  удалить их.</p>
+<p><b>Controller</b> - то место, где на самом деле вся работа и происходит. Он 
+  использует <b>EventSet</b> для поддержки его объектов <b>Event</b>, а метод 
+  <b>addEvent(&#160;)</b> позволяет вам добавлять новые события в список. Но все 
+  таки главным методом является <b>run(&#160;)</b>. Этот метод циклически просматривает 
+  <b>EventSet</b>, выискивая объекты <b>Event</b> которые <b>ready(&#160;)</b> 
+  (готовы) для обработки. Для всех объектов, которые готовы, он вызывает метод 
+  <b>action(&#160;)</b>, печатает описание - <b>description(&#160;),</b> а затем 
+  удаляет событие - <b>Event</b> из списка.</p>
+<p>Заметьте, что пока Вы ничего не знаете о том, что же на самом делают эти <b>Event</b>. 
+  И вот это и есть основная проблема проектировки; как отделить те вещи, которые 
+  должны изменяться от тех вещей, которые всегда постоянны? Или, если воспользоваться 
+  моими терминами - &quot;<a name="Index843"></a><a name="Index844"></a>вектор 
+  изменения&quot;, различные поведения различных типов объектов <b>Event.</b> 
+  Здесь Вы можете выражать различные действия созданием различных подклассов <b>Event</b>.</p>
+<p>Как раз здесь в игру и вступают внутренние классы. Они предоставят в ваше распоряжение 
+  две необходимые возможности: <a name="Index845"></a><a name="Index846"></a><a name="Index847"></a></p>
+<ol>
+  <li>	Для создания полной реализации управляющей структуры приложения в едином классе, нужно инкапсулировать все уникальные части, которые реализуются. Внутренние классы используются для отображения видов <b>action(&#160;)</b>
+необходимых для решения проблемы. В дополнение, следующий пример использует
+<b>private</b> внутренний класс, так что его реализация полностью скрыта и не может быть безнаказанно  изменена.
+  <li> Внутренний класс сохраняет эту реализацию от последующий трудностей, связанных 
+    с доступом к членам класса, поскольку из него есть полный доступ ко всем элементам 
+    внешнего класса. Без этой возможности код стал бы не очень приятным, и пришлось 
+    бы искать другое решение. 
+</ol>
+<p>Рассмотрим частную реализацию структуры управления, спроектированную для управления 
+  функциями гринхауза (greenhouse functions)<a name="fnB43" href="#fn43">[43]</a>. 
+  Каждое из действий полностью уникально и отличается от других: включение света 
+  и термостатов, выключение их, звон колокольчиков и рестартинг всей системы. 
+  Но структура управления просто изолирована в этом отличном (от других) коде. 
+  Внутренний класс позволяет вам получить множественно наследуемые классы от одного 
+  и того же базового класса (т.е. несколько наследников от одного в одном), <b>Event</b>, 
+  в одном единственном классе. Для каждого типа действия Вы наследуете новый внутренний 
+  класс от <b>Event</b> и пишите код контроля внутри <b>action(&#160;)</b>.</p>
+<p>Как и для всех остальных структур управления, класс <b>GreenhouseControls</b> 
+  наследуется от <b>Controller</b>:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c08:GreenhouseControls.java</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> c08.controller.*;
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> GreenhouseControls 
+    <font color=#0000ff>extends</font> Controller {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">boolean</font><font size="+1"> light = <font color=#0000ff>false</font>;
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">boolean</font><font size="+1"> water = <font color=#0000ff>false</font>;
+  <font color=#0000ff>private</font> String thermostat = <font color=#004488>"Day"</font>;
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> LightOn <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> LightOn(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// Сюда нужно поместить код управлением светом</font></font>
+<font size="+1">      light = <font color=#0000ff>true</font>;
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Light is on"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> LightOff <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> LightOff(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// Сюда для выключения света</font></font>
+<font size="+1">      light = <font color=#0000ff>false</font>;
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Light is off"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> WaterOn <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> WaterOn(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// сюда код управления</font>
+      water = <font color=#0000ff>true</font>;
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Greenhouse water is on"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> WaterOff <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> WaterOff(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// сюда код управления</font>
+      water = <font color=#0000ff>false</font>;
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Greenhouse water is off"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> ThermostatNight <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> ThermostatNight(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// Сюда код управления</font>
+      thermostat = <font color=#004488>"Night"</font>;
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Thermostat on night setting"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> ThermostatDay <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> ThermostatDay(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// сюда код управления</font>
+      thermostat = <font color=#004488>"Day"</font>;
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Thermostat on day setting"</font><font size="+1">;
+    }
+  }
+</font>  <font color="#0000ff" size="+1">private</font> <font color="#0000ff" size="+1">int</font><font size="+1"> rings;
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Bell <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> Bell(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#009900>// Звонить каждые 2 секунды, 'rings' раз:</font>
+      System.out.println(<font color=#004488>"Bing!"</font>);
+      <font color=#0000ff>if</font>(--rings &gt; 0)
+        addEvent(<font color=#0000ff>new</font> Bell(
+          System.currentTimeMillis() + 2000));
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Ring bell"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Restart <font color=#0000ff>extends</font> Event {
+    <font color=#0000ff>public</font> Restart(<font color=#0000ff>long</font> eventTime) {
+      <font color=#0000ff>super</font>(eventTime);
+    }
+    <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> action() {
+      <font color=#0000ff>long</font> tm = System.currentTimeMillis();
+      <font color=#009900>// Конфигурация из текстового файла</font></font>
+<font size="+1">      rings = 5;
+      addEvent(<font color=#0000ff>new</font> ThermostatNight(tm));
+      addEvent(<font color=#0000ff>new</font> LightOn(tm + 1000));
+      addEvent(<font color=#0000ff>new</font> LightOff(tm + 2000));
+      addEvent(<font color=#0000ff>new</font> WaterOn(tm + 3000));
+      addEvent(<font color=#0000ff>new</font> WaterOff(tm + 8000));
+      addEvent(<font color=#0000ff>new</font> Bell(tm + 9000));
+      addEvent(<font color=#0000ff>new</font> ThermostatDay(tm + 10000));
+      <font color=#009900>// Может быть добавлен объект рестарта</font>
+      addEvent(<font color=#0000ff>new</font> Restart(tm + 20000));
+    }
+    <font color=#0000ff>public</font> String description() {
+      <font color=#0000ff>return</font></font> <font color="#004488" size="+1">"Restarting system"</font><font size="+1">;
+    }
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    GreenhouseControls gc = 
+      <font color=#0000ff>new</font> GreenhouseControls();
+    <font color=#0000ff>long</font> tm = System.currentTimeMillis();
+    gc.addEvent(gc.<font color=#0000ff>new</font> Restart(tm));
+    gc.run();
+  } 
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Заметьте, что <b>light</b>, <b>water</b>, <b>thermostat</b> и <b>rings</b> 
+  связаны с внешним классом <b>GreenhouseControls</b> и поэтому внутренние классы 
+  могут получать доступ к его полям без каких либо особенностей или специального 
+  доступа. Так же многие из методов <b>action(&#160;)</b> осуществляют некоторый 
+  вид аппаратного контроля, который лучше всего перевести не в Java код.</p>
+<p>Большинство из классов <b>Event</b> выглядят одинаково, но <b>Bell</b> и <b>Restart</b> 
+  особенны. <b>Bell</b> звонит и если он не звонит некоторое время, то добавляется 
+  новый объект <b>Bell</b> в список, так что он прозвонит позже. Заметьте, что 
+  внутренние классы почти что выглядят, как множественное наследование: <b>Bell</b> 
+  содержит все методы <b>Event</b> и он так же имеет доступ ко всем метода внешнего 
+  класса <b>GreenhouseControls</b>.</p>
+<p><b>Restart</b> ответственен за инициализацию системы, он добавляет все необходимые 
+  события. Естественно, лучше было бы отказаться от жестко зашитых событий в программе 
+  и читать их из файла. (Упражнение в <a href="Chapter11.html">главе 11</a> попросит 
+  вас сделать данное предположение.) Поскольку <b>Restart(&#160;)</b> это просто 
+  другой объект <b>Event</b>, Вы так же можете добавить объект <b>Restart</b> 
+  внутрь <b>Restart.action(&#160;)</b> так что система будет периодически рестартовать 
+  сама себя. И все, что нужно будет сделать это лишь в <b>main(&#160;)</b> создать 
+  объект <b>GreenhouseControls</b> и добавить объект <b>Restart</b> который выполнял 
+  бы эту работу.</p>
+<a name=></a><a name=></a><a name="Heading274"></a> 
+<h2 align="LEFT">
+Резюме</h2>
+<p>Интерфейсы и внутренние классы более мудреная концепция, чем те, которые Вы 
+  можете найти в других ОО языках программирования. К примеру, ничего похожего 
+  в C++ просто нет. Сообща они решают некоторые проблемы, которые в C++ решаются 
+  путем множественного наследования. Но все равно в C++ использовать множественное 
+  наследование достаточно сложно, если сравнивать с Java, где интерфейсы и вложенные 
+  классы использовать гораздо проще.</p>
+<p>Хотя при всей мощи предоставляемой этим средствами языка, Вы должны на стадии 
+  проектировки решать, что же использовать, интерфейс или внутренний класс, или 
+  оба. Хотя в этой книге, в этой главе обсуждается только синтаксис и семантика 
+  использования внутренних классов и интерфейсов, вам все-таки предстоит на собственном 
+  опыте выявить те случаи, когда разумно было бы применить именно их.<a name="_Toc481064663"></a></p>
+<a name="Heading275"></a>
+<h2 align="LEFT">
+Упражнения</h2>
+<p><font size=2>Решения для этих упражнений доступны в электронном документе <i>The 
+  Thinking in Java Annotated Solution Guide</i>, доступном за небольшую плату 
+  с <a href="http://www.bruceeckel.com" target="_blank"> <i>www.BruceEckel.com</i></a>.</font></p>
+<ol>
+  <li>Докажите, что поля в  интерфейсе   полностью <b>static</b> и
+<b>final</b>.
+  <li>	Создайте интерфейс, содержащий три метода, в его собственном пакете.
+Реализуйте этот интерфейс в другом пакете.
+  <li>	Докажите, что все методы в интерфейсе автоматически 
+<b>public</b>.
+  <li>	В
+<b>c07:Sandwich.java</b>, создайте интерфейс с именем <b>FastFood</b> (с соответствующими методами) и изменит  <b>Sandwich</b> так, что бы он также реализовывал
+<b>FastFood</b>.
+  <li>Создайте три интерфейса, каждый с двумя методами. Наследуйте новый интерфейс от этих трех, добавьте новый метод. Создайте класс реализующий этот новый интерфейс и так же наследующий  от конкретного класса. Теперь напишите четыре метода, каждый из которых получают один из четырех интерфейсов в качестве аргумента.
+В <b>main(&#160;)</b>, создайте объект вашего класса и передайте его каждому из методов.
+  <li>	Измените упражнение 5, создайте  <b>abstract</b> класс и наследуйте его в дочернем классе.
+  <li>	Измените
+<b>Music5.java</b>, добавьте в него интерфейс <b>Playable</b>. Удалите объявление
+<b>play(&#160;)</b> из <b>Instrument</b>. Добавьте <b>Playable</b> в дочерний класс, путем добавления его в список <b>implements</b>. Измените
+<b>tune(&#160;)</b> так, что бы он получал <b>Playable</b> вместо
+<b>Instrument</b>.
+  <li>Измените упражнение 6 в <a href="Chapter07.html">главе 7</a>, так что бы <b>Rodent</b> был бы интерфейсом.
+  <li>В
+<b>Adventure.java</b> добавьте интерфейс <b>CanClimb</b>, такой же, как и другие.
+  <li>Напишите программу, которая импортирует и использует
+<b>Month2.java</b>.
+  <li>	Следуя примеру в <b>Month2.java</b>, создайте список дней недели.
+  <li>	Создайте интерфейс с не менее, чем одним методом, в своем собственном пакете. Создайте класс в другом пакете. Добавьте <b>protected</b> внутренний класс, который реализует этот интерфейс. В третьем пакете, наследуйте от вашего класса и внутри метода возвратите объект <b>protected</b> внутреннего класса, приведите к базовому типу во время возврата.
+  <li>Создайте интерфейс с не менее, чем одним методом и реализуйте его определением во внутреннем классе методом, который возвращает ссылку на этот интерфейс.
+  <li>Повторите упражнение 13, но определите внутренний класс внутри  контекста метода.
+  <li>Повторите упражнение 13 используя анонимный внутренний класс.
+  <li>	Создайте 
+<b>private</b> внутренний класс, который реализует <b>public</b> интерфейс.
+Напишите метод, возвращающий ссылку на экземпляр  <b>private</b>
+внутреннего класса, приведите к базовому типу к  интерфейсу. Покажите, что внутренний класс полностью скрыт от попыток привести к дочернему классу.
+  <li>	Создайте класс с конструкторами по умолчанию и  нет. Создайте  второй класс, который возвращает ссылку на первый. Создайте объект из возврата создавая анонимный внутренний класс, наследующий от первого.
+  <li>	Создайте класс с  <b>private</b> полем и <b>private</b> методом. Создайте внутренний класс, который модифицирует поля внешнего класса и вызывает методы внешнего класса. Во втором методе внешнего класса, создайте объект внутреннего класса и вызовите его методы, потом покажите происходящий эффект на объекте внешнего класса.
+  <li>	Повторите упражнение 18 используя анонимный внутренний  класс.
+  <li>	Создайте класс, содержащий  <b>static</b> внутренний класс. В <b>main(&#160;)</b>, создайте экземпляр внутреннего класса.
+  <li>	Создайте интерфейс содержащий  <b>static</b> внутренний класс. Реализуйте этот интерфейс и создайте экземпляр внутреннего класса.
+  <li>	Создайте класс, содержащий внутренний класс, который в себе содержит внутренний класс. Повторите это используя <b>static</b> внутренний класс. Заметьте, что  <b>.class</b> файлы создаются компилятором.
+  <li>	Создайте класс с внутренним классом. В другом классе, создайте экземпляр внутреннего класса.
+  <li>	Создайте класс с внутренним  классом, который имеет конструктор не по умолчанию. Создайте второй класс с внутренним классом, который наследует от первого внутреннего класс.
+  <li>Устраните проблему в
+<b>WindError.java</b>.
+  <li>	Измените
+<b>Sequence.java</b> добавление метода <b>getRSelector(&#160;), </b>который предоставляет отличную реализацию интерфейса <b>Selector, </b>которая проходит назад через последовательность от конца к началу.
+  <li>Создайте интерфейс <b>U </b>с тремя методами. Создайте класс <b>A </b>с методом создающим ссылку на <b>U</b> используя внутренний класс. Создайте класс <b>B, </b>который содержит массив из <b>U</b>.
+<b>B</b> должен иметь один метод, который поддерживает и сохраняет ссылки на
+<b>U</b> в массив, а его второй метод должен устанавливать ссылку в массиве в <b>null</b>. И в заключении третий метод, который перемещается по массиву и вызывает методы в <b>U</b>. В <b>main(&#160;)</b>,
+создайте группу из объектов <b>A</b>  и одиночный <b>B</b>. Заполните <b>B</b> ссылками
+<b>U</b> выдаваемыми объектом <b>A</b>. Используйте <b>B</b> для обратного вызова во все объекты <b>A</b>. Удалите некоторые ссылки <b>U</b> из <b>B</b>.
+  <li>В
+<b>GreenhouseControls.java</b>, добавьте <b>Event</b> внутренний класс, который включает и выключает вентиляторы.
+  <li>	Покажите, что внутренний класс имеет доступ к <b>private</b> элементам его внешнего класса.
+Определите, когда обратное предположение истинно.
+</ol>
+<hr>
+<div align="LEFT">
+  <p><a name="fn38" href="#fnB38">[38]</a><font size=2> Этот подход был вдохновлен 
+    по имейлу Rich-м Hoffarth-м.</font></p>
+</div>
+<div align="LEFT">
+  <p><a name="fn39" href="#fnB39">[39]</a><font size=2> Спасибо, Martin-у Danner-у 
+    за задание этого вопроса во время семинара.</font></p>
+</div>
+<div align="LEFT">
+  <p><a name="fn40" href="#fnB40">[40]</a><font size=2> Это очень отличается по 
+    дизайну вложенных классов в in C++, который есть только механизм скрытия имен. 
+    Здесь нет ссылки на окружающий объект и нет предполагаемых ограничений, в 
+    C++.</font></p>
+</div>
+<div align="LEFT">
+  <p><a name="fn41" href="#fnB41">[41]</a><font size=2> Опять спасибо Martin-у 
+    Danner-у.</font></p>
+</div>
+<div align="LEFT">
+  <p><a name="fn42" href="#fnB42">[42]</a><font size=2> С другой стороны, &quot;$&quot; 
+    это мета-знак в Unix shell и у вас могут иногда встречаться проблемы связанные 
+    с просмотром листингов <b>.class</b> файлов. Это немного странно, ведь Sun 
+    производитель юниксов.</font></p>
+</div>
+<div align="LEFT">
+  <p><a name="fn43" href="#fnB43">[43]</a><font size=2> По некоторым причинам 
+    это была всегда приятная проблема для ее решения. Поэтому я опять вернулся 
+    к ней (до этого она была в более ранней книге <i>C++ Inside &amp; Out)</i>, 
+    но в Java существует более элегантное решение.</font></p>
+</div>
+<div align="CENTER"> <font size = "-1"> [ <a href="Chapter07.html">Предыдущая 
+  глава</a> ] [ <a href="SimpleContents.html">Краткое описание</a> ] [ <a href="Contents.html">Содержание</a> 
+  ] [ <a href="DocIndex.html">Список</a> ] [ <a href="Chapter09.html">Следующая 
+  глава</a> ]</font></div>
+
+
+</BODY>
+
+</HTML>

@@ -1,0 +1,1478 @@
+<HTML>
+<HEAD>
+<TITLE>Повторное использование классов.</TITLE>
+<meta http-equiv="description" content="Советы разработчику программ на Java">
+<meta http-equiv="keywords" content="java, ява, джава, script, скрипт, javascript, яваскрипт, programm, программа, programming, программирование, html, info, информация, information, инфо, sun, faq, чаво, frequently, часто, asked, задаваемые, questions, вопросы, odbc, jdbc, tips, советы, разработчику ">
+<meta http-equiv="distribution" content="global">
+<meta http-equiv="resource-type" content="document">
+<META HTTP-EQUIV="Content-type" CONTENT="text/html; charset=Windows-1251">
+</HEAD>
+<BODY  bgcolor="#FCFCFC">
+<h3 align="center"><font face="Verdana">(с) 2000 by Bruce Eckel</font></h3>
+<div align="center"><font face="Verdana" size = "-1"> [ <a href="Chapter05.html">Предыдущая 
+  глава</a> ] [ <a href="SimpleContents.html">Краткое оглавление</a> ] [ <a href="Contents.html">Оглавление</a> 
+  ] [ <a href="DocIndex.html">Список</a> ] [ <a href="Chapter07.html">Следующая 
+  глава</a> ] </font> </div>
+<p></p>
+<h1 align="LEFT"><font face="Verdana">
+6: Повторное использование классов.</font></h1>
+<div align="LEFT">
+  <p><font size=4>Одной из наиболее притягательных возможностей языка Java является 
+    возможность повторного использования кода. Но что действительно &quot;революционно&quot;, 
+    так это наличие возможности выполнять не только простое копирование и изменение 
+    этого кода.</font><br>
+  </p>
+</div>
+<p>Такой подход использован в процедурных языках программирования, наподобие C, 
+  но он работает не очень хорошо. Как и все в Java, решение с повторным использованием 
+  кода вертится вокруг классов. Вы повторно используете код, создавая новый класс, 
+  но вместо того, что бы создавать его с нуля Вы используете уже существующие 
+  классы, которые кто-то уже создал и отладил.</p>
+<p>Уловка в том, что бы использовать классы без копания в их исходном коде. В 
+  этой главе вы увидите два способа достижения этого. Первый - почти прямой: Вы 
+  просто создаете объекты ваших уже существующих классов внутри нового класса. 
+  Это называется <i>&quot;композиция&quot;</i> , потому, что новый класс создается 
+  из объектов уже существующих классов. Вы просто повторно используете функциональность 
+  кода, но не его самого.</p>
+<p>Второй подход более искусный. Суть его в том, что создается новый класс с <i>типом</i> 
+  существующего класса. Вы буквально берете оболочку (интерфейс) существующего 
+  класса и добавляете свой код к нему без модификации существующего класса. Этот 
+  магический акт называется &quot;<i>наследование</i>&quot;<i></i>, и компилятор 
+  языка при этом выполняет большую часть работы. Наследование является одним из 
+  краеугольных камней объектно-ориентированного программирования и имеет более 
+  широкий смысл, который будет раскрыт в <a href="Chapter07">главе 7</a>.</p>
+<p>Это исключительно, но синтаксис и поведение идентичны для обоих способов, для 
+  композиции и наследования (обусловлено тем, что оба пути создают новые типы 
+  из существующих типов). В этой главе Вы узнаете об обоих этих механизмах повторного 
+  использования.</p>
+<a name="Heading207"></a>
+<h2 align="LEFT"><font face="Verdana">
+Синтаксис композиции</font></h2>
+<p>До сих пор, композиция достаточно часто использовалась, Вы просто помещали 
+  ссылку на объект внутрь нового класса. Для примера, представьте себе, что Вы 
+  хотите получить объект, который хранит различные объекты типа <b>String</b>, 
+  пару примитивных типов и объект другого класса. Для не примитивных объектов 
+  Вы помещаете ссылки внутри вашего класса, но примитивные типы Вы определяете 
+  напрямую:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:SprinklerSystem.java</font>
+<font color="#009900" size="+1">// Композиция для повторного использования кода.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> WaterSource {
+  <font color=#0000ff>private</font> String s;
+  WaterSource() {
+    System.out.println(<font color=#004488>"WaterSource()"</font>);
+    s = <font color=#0000ff>new</font> String(<font color=#004488>"Constructed"</font>);
+  }
+  <font color=#0000ff>public</font> String toString() { <font color=#0000ff>return</font> s; }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> SprinklerSystem {
+  <font color=#0000ff>private</font> String valve1, valve2, valve3, valve4;
+  WaterSource source;
+  <font color=#0000ff>int</font> i;
+  <font color=#0000ff>float</font> f;
+  <font color=#0000ff>void</font> print() {
+    System.out.println(<font color=#004488>"valve1 = "</font> + valve1);
+    System.out.println(<font color=#004488>"valve2 = "</font> + valve2);
+    System.out.println(<font color=#004488>"valve3 = "</font> + valve3);
+    System.out.println(<font color=#004488>"valve4 = "</font> + valve4);
+    System.out.println(<font color=#004488>"i = "</font> + i);
+    System.out.println(<font color=#004488>"f = "</font> + f);
+    System.out.println(<font color=#004488>"source = "</font> + source);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    SprinklerSystem x = <font color=#0000ff>new</font> SprinklerSystem();
+    x.print();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Один из методов определенных в <b>WaterSource </b>особенный - <b>toString(&#160;)</b>. 
+  Вы узнаете позже, что все не примитивные объекты имеют метод <a name="Index545"></a><a name="Index546"></a><b>toString(&#160;)</b> 
+  и он вызывается в особых ситуациях, когда компилятор хочет получить <b>String</b>, 
+  но эти объекты не являются таковыми. Так в выражении:</p>
+<blockquote>
+  <pre><font size="+1">System.out.println(<font color=#004488>"source = "</font> + source);</font></pre>
+</blockquote>
+<p>компилятор видит Вашу попытку добавить объект <b>String</b> ("<b>source = </b>") 
+  к <b>WaterSource</b>. И при этом для компилятора нет никакой разницы, поскольку 
+  Вы можете только добавить строку <b>(String)</b> к другой строке <b>(String)</b>, 
+  при этом он &quot;скажет&quot;: &quot;Я преобразую <b>source</b> в <b>String</b> 
+  вызвав метод <b>toString(&#160;)</b>!&quot; После выполнения этой операции компилятор 
+  объединит эти две строки и передаст результат в виде опять же строки в <b>System.out.println(&#160;)</b>. 
+  В любое время, когда вы захотите получить доступ к такой линии поведения с классом, 
+  Вам нужно только написать в нем метод <b>toString(&#160;)</b> .</p>
+<p>На первый взгляд, вы можете позволить Java принять на себя заботу об безопасности, 
+  потому, что компилятор автоматически создаст объекты для каждой ссылки, как 
+  в предыдущем коде. Например, вызов конструктора по умолчанию для <b>WaterSource</b> 
+  при инициализации <b>source</b>. Вывод печатаемых данных на самом же деле такой:</p>
+<blockquote>
+  <pre><font size="+1">valve1 = <font color=#0000ff>null</font>
+valve2 = <font color=#0000ff>null</font>
+valve3 = <font color=#0000ff>null</font>
+valve4 = <font color=#0000ff>null</font>
+i = 0
+f = 0.0
+source = <font color=#0000ff>null</font></font></pre>
+</blockquote>
+<p>Примитивные типы-поля класса автоматически инициализируются в нулевое значение, 
+  как и было описано в <a href="Chapter02">главе 2</a>. Но ссылки на объекты инициализируются 
+  в <b>null</b> и если Вы попытаетесь вызвать любой из этих методов, то Вы получите 
+  исключение. В действительности достаточно хорошо (и удобно) то, что Вы можете 
+  распечатать их без обработки исключения.</p>
+<p>Этот пример дает понять, что компилятор только просто создает объект по умолчанию 
+  для каждой ссылки, потому, что в противном случае система может в отдельных 
+  случаях подвергнуться перегрузке. Если же Вы желаете инициализировать полностью 
+  эти ссылки, Вы можете сделать это такими способами:</p>
+<ol>
+  <li><font face="Verdana">	</font>В месте, где объект был определен. Это означает, что они будут всегда проинициализированы  до того, как будет вызван конструктор.
+  <li>	В конструкторе класса.
+  <li>	Прямо перед тем моментом, как Вам действительно понадобится использовать этот объект. Этот способ часто называют &quot;<i>ленивой инициализацией</i>&quot;.
+</ol>
+<p><font face="Georgia"></font> При этом может быть уменьшена перегрузка системы 
+  в ситуациях, когда объектам нет необходимости быть созданным все время работы 
+  программы.</p>
+<p>Все три подхода представлены ниже:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Bath.java</font>
+<font color="#009900" size="+1">// Инициализация конструктора с композицией.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Soap {
+  <font color=#0000ff>private</font> String s;
+  Soap() {
+    System.out.println(<font color=#004488>"Soap()"</font>);
+    s = <font color=#0000ff>new</font> String(<font color=#004488>"Constructed"</font>);
+  }
+  <font color=#0000ff>public</font> String toString() { <font color=#0000ff>return</font> s; }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Bath {
+  <font color=#0000ff>private</font> String 
+    <font color=#009900>// Инициализация в точке определения:</font>
+    s1 = <font color=#0000ff>new</font> String(<font color=#004488>"Happy"</font>), 
+    s2 = <font color=#004488>"Happy"</font>, 
+    s3, s4;
+  Soap castille;
+  <font color=#0000ff>int</font> i;
+  <font color=#0000ff>float</font> toy;
+  Bath() {
+    System.out.println(<font color=#004488>"Inside Bath()"</font>);
+    s3 = <font color=#0000ff>new</font> String(<font color=#004488>"Joy"</font>);
+    i = 47;
+    toy = 3.14f;
+    castille = <font color=#0000ff>new</font> Soap();
+  }
+  <font color=#0000ff>void</font> print() {
+    <font color=#009900>// Отложенная (ленивая) инициализация:</font></font>
+    <font color="#0000ff" size="+1">if</font><font size="+1">(s4 == <font color=#0000ff>null</font>)
+      s4 = <font color=#0000ff>new</font> String(<font color=#004488>"Joy"</font>);
+    System.out.println(<font color=#004488>"s1 = "</font> + s1);
+    System.out.println(<font color=#004488>"s2 = "</font> + s2);
+    System.out.println(<font color=#004488>"s3 = "</font> + s3);
+    System.out.println(<font color=#004488>"s4 = "</font> + s4);
+    System.out.println(<font color=#004488>"i = "</font> + i);
+    System.out.println(<font color=#004488>"toy = "</font> + toy);
+    System.out.println(<font color=#004488>"castille = "</font> + castille);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Bath b = <font color=#0000ff>new</font> Bath();
+    b.print();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Заметьте, что в конструкторе <b>Bath </b>оператор выполняется до того, как 
+  произойдет инициализация. Если вы не проинициализируете объект в точке определения, 
+  то нет никакой гарантии, что Вы выполните инициализацию до того, как вы пошлете 
+  сообщение объекту и неизбежно получите исключение.</p>
+<p>Ниже приведен вывод программы:</p>
+<blockquote>
+  <pre><font size="+1">Inside Bath()
+Soap()
+s1 = Happy
+s2 = Happy
+s3 = Joy
+s4 = Joy
+i = 47
+toy = 3.14
+castille = Constructed</font></pre>
+</blockquote>
+<p>Когда вызывается <b>print(&#160;)</b> он заполняется из <b>s4</b> потому, что 
+  все поля были правильно инициализированы до того времени, когда они были использованы.</p>
+<a name="Heading208"></a>
+<h2 align="LEFT"><font face="Verdana"> Синтаксис наследования</font></h2>
+<p>Наследование является неотъемлемой частью Java, впрочем, как и других ОО языков 
+  программирования. Это очевидно - Вы всегда осуществляете операцию наследования, 
+  когда создаете класс, даже если ваш класс не является наследником какого либо 
+  другого, потому, что Вы неявно наследуете стандартный корневой класс Java <b>Object</b>.</p>
+<p>Синтаксис наследования похож на композицию, но процедура выполнения заметно 
+  отличается. Когда Вы наследуете, Вы &quot;говорите&quot;: &quot;Этот класс такой 
+  же, как тот старый класс!&quot; Вы излагаете эту фразу в коде давая классу имя, 
+  как обычно, но до того, как начнете работать с телом класса, добавляете ключевое 
+  слово <b>extends</b> следующее до имени <i>базового класс</i>а. Когда вы сделаете 
+  это, вы автоматически получите все поля данных и методы базового класса. Вот 
+  пример:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Detergent.java</font>
+<font color="#009900" size="+1">// Свойства и синтаксис наследования.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Cleanser {
+  <font color=#0000ff>private</font> String s = <font color=#0000ff>new</font> String(<font color=#004488>"Cleanser"</font>);
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> append(String a) { s += a; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> dilute() { append(<font color=#004488>" dilute()"</font>); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> apply() { append(<font color=#004488>" apply()"</font>); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> scrub() { append(<font color=#004488>" scrub()"</font>); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> print() { System.out.println(s); }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Cleanser x = <font color=#0000ff>new</font> Cleanser();
+    x.dilute(); x.apply(); x.scrub();
+    x.print();
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Detergent <font color=#0000ff>extends</font> Cleanser {
+  <font color=#009900>// Изменяем метод:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">void</font><font size="+1"> scrub() {
+    append(<font color=#004488>" Detergent.scrub()"</font>);
+    <font color=#0000ff>super</font>.scrub(); <font color=#009900>// Вызываем метод базового класса</font>
+  }
+  <font color=#009900>// Все методы наследования:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">void</font><font size="+1"> foam() { append(<font color=#004488>" foam()"</font>); }
+  <font color=#009900>// Проверяем новый класс:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Detergent x = <font color=#0000ff>new</font> Detergent();
+    x.dilute();
+    x.apply();
+    x.scrub();
+    x.foam();
+    x.print();
+    System.out.println(<font color=#004488>"Testing base class:"</font>);
+    Cleanser.main(args);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Этот пример показывает несколько возможностей. Сперва в методе <b>Cleanser</b> 
+  <b>append(&#160;)</b> , <b>String</b>-и конкатенируются с <b>s</b> при помощи 
+  оператора &quot;<b>+=</b>&quot;, это один из операторов (с плюсом впереди), 
+  который перегружается Java для работы с типом <b>String</b>.</p>
+<p>Во-вторых, оба <b>Cleanser</b> и <b>Detergent</b> содержат метод <b>main(&#160;)</b>. 
+  Вы можете создать <b>main(&#160;)</b> для каждого из ваших классов и часто рекомендуется 
+  писать такой код для тестирования каждого из классов. Если же у Вас имеется 
+  множество классов в программе, то выполнится только метод<b> main(&#160;)</b> 
+  того класса, который был вызван из командной стоки. Так что в этом случае, когда 
+  вы вызовите <b>java Detergent</b>, будет вызван метод <b>Detergent.main(&#160;)</b> 
+  . Но так же вы можете вызвать <b>java Cleanser </b> для выполнения <b>Cleanser.main(&#160;)</b>, 
+  несмотря даже на то, что класс<b> Cleanser</b> не <b> public</b> . Эта техника 
+  помещения метода <b>main(&#160;)</b> в каждый класс позволяет легко проверять 
+  каждый из классов программы по отдельности. И Вам нет необходимости удалять 
+  <b>main(&#160;)</b> когда вы закончили проверки, Вы можете оставить его для 
+  будущих проверок.</p>
+<p>Здесь Вы можете видеть, что <b>Detergent.main(&#160;)</b> явно вызывает <b>Cleanser.main(&#160;)</b> 
+  , передавая ему те же самые аргументы из командной строки(тем не менее, Вы могли 
+  были передать ему любой , массив элементов типа <b>String</b>).</p>
+<p>Важно то, что все методы в <b>Cleanser </b>- <b>public</b>. Помните, если Вы 
+  оставите любой из спецификаторов доступа в состоянии по умолчанию, т.е. он будет 
+  <b>friendly</b>, то доступ к нему могут получить только члены этого же пакета. 
+  Поэтому в этом пакете все могут использовать эти методы, если у них нет спецификатора 
+  доступа. <b>Detergent</b> с эти проблем не имеет, к примеру. Но в любом случае, 
+  если класс из другого пакета попытается наследовать <b>Cleanser</b> он получит 
+  доступ только к членам со спецификатором <b>public</b>. Так что если Вы планируете 
+  использовать наследование, то в качестве главного правила делайте все поля <b>private 
+  </b>и все методы <b>public</b>.<b> </b>(<b>protected </b>так же могут получить 
+  доступ к наследуемым классам, но Вы узнаете об этом позже.) Естественно в частных 
+  случаях Вы должны делать поправки на эти самые частные случаи, но все равно 
+  это полезная линия поведения.</p>
+<p>Замете, что <b>Cleanser</b> имеет набор методов из родительского интерфейса: 
+  <b>append(&#160;)</b>, <b>dilute(&#160;)</b>, <b>apply(&#160;)</b>, <b>scrub(&#160;)</b>, 
+  и <b>print(&#160;)</b>. Из-за того, что <b>Detergent</b> произошел от<b> Ceanser</b> 
+  (при помощи ключевого слова <a name="Index564"></a><b>extends</b> ) он автоматически 
+  получил все те методы, что есть в его интерфейсе, даже не смотря на то, что 
+  вы не видите их определенных в <b>Detergent</b>. Вы можете подумать о наследовании, 
+  а уже только затем о повторном использовании интерфейса.</p>
+<p>Как видно в <b>scrub(&#160;)</b> , возможно создать метод, который определяется 
+  в базовом классе, а затем уже его модифицировать. В таком случае, Вы можете 
+  захотеть вызвать метод внутри базового класса этот новый модифицированный метод. 
+  Но внутри <b>scrub(&#160;)</b> вы не можете просто вызвать <b>scrub(&#160;)</b>, 
+  поскольку эта операция вызовет рекурсивный вызов, а это не то, что Вы хотите. 
+  Для разрешения этой проблемы в Java используется ключевое слово <a name="Index565"></a> 
+  <b>super </b>, которое ссылается на <a name="Index566"></a>superclass, который 
+  в свою очередь является классом, от которого произошел текущий класс. Поэтому 
+  выражение <b>super.scrub(&#160;)</b> вызывает метод базового класса <b>scrub(&#160;)</b>.</p>
+<p>При наследовании вы не ограничены в использовании методов базового класса. 
+  Вы можете так же добавлять новые методы в новый класс. Это сделать очень просто, 
+  нужно просто определить их. Метод<b> foam(&#160;)</b> тому демонстрация.</p>
+<p>В <b>Detergent.main(&#160;) </b>вы можете увидеть, что у объекта <b>Detergent</b> 
+  Вы можете вызвать все методы, которые доступны в <b>Cleanser</b> так же, как 
+  и в <b>Detergent </b>(в том числе и <b>foam(&#160;)</b>).</p>
+<a name="Heading209"></a>
+<h3 align="LEFT">Инициализация базового класса<br>
+  <a name="Index567"></a><a name="Index568"></a><a name="Index569"></a></h3>
+<p>До этого у нас было запутано два класса - базовый и произошедший от него <a name="Index570"></a><a name="Index571"></a>вместо 
+  просто одного, это может привести в небольшое замешательство при попытке представить 
+  результирующий объект произведенный произошедшим (дочерним) классом. С наружи 
+  он выглядит, как новый класс имеющий тот же интерфейс, что и базовый класс и 
+  может иметь те же самые методы и поля. Но наследование не просто копирует интерфейс 
+  базового класса. Когда Вы создаете объект произошедшего (дочернего) класса он 
+  содержит еще и <i>подобъект</i> базового класса. Этот <a name="Index572"></a><a name="Index573"></a>подобъект 
+  точно такой же, как если бы вы создали объект базового класса самостоятельно.</p>
+<p>Естественно, что необходимо правильно и корректно проинициализировать этот 
+  подобъект и здесь есть только один гарантированный путь: осуществить инициализацию 
+  в конструкторе, путем вызова конструктора базового класса, который имеет все 
+  необходимые сведения и привилегии для осуществления инициализации самого базового 
+  класса. Java автоматически вставляет вызов базового класса в конструктор произошедшего 
+  (наследуемого) от этого класса. Следующий пример демонстрирует эту работу с 
+  трети уровнем наследования:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Cartoon.java</font>
+<font color="#009900" size="+1">// Конструктор вызывается на стадии инициализации.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Art {
+  Art() {
+    System.out.println(<font color=#004488>"Art constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Drawing <font color=#0000ff>extends</font> Art {
+  Drawing() {
+    System.out.println(<font color=#004488>"Drawing constructor"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Cartoon <font color=#0000ff>extends</font> Drawing {
+  Cartoon() {
+    System.out.println(<font color=#004488>"Cartoon constructor"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Cartoon x = <font color=#0000ff>new</font> Cartoon();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вывод этой программы показывает автоматические вызовы:</p>
+<blockquote>
+  <pre><font size="+1">Art constructor
+Drawing constructor
+Cartoon constructor</font></pre>
+</blockquote>
+<p>Как Вы можете видеть конструктор базового класса проинициализировал его до 
+  того, как к нему смог получить доступ произошедший от него класс.</p>
+<p>Даже, если Вы не создаете конструктор для <b>Cartoon(&#160;)</b>, компилятор 
+  синтезирует <a name="Index574"></a>конструктор по умолчанию для вызова конструктора 
+  базового класса.</p>
+<a name="Heading210"></a>
+<h4 align="LEFT">Конструктор  с аргументами</h4>
+<p>Предыдущий пример имеет конструктор по умолчанию<a name="Index575"></a>; и 
+  при этом он не имеет каких либо аргументов. Для компилятора такой вызов прост, 
+  нет ненужных вопросов по поводу аргументов, которые нужно передать. Если Ваш 
+  класс не имеет аргументов по умолчанию или если Вы хотите вызвать конструктор 
+  базового класса, который имеет аргументы, Вы должны просто использовать ключевое 
+  слово <a name="Index576"></a><b>super</b> и передать ему список аргументов:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Chess.java</font>
+<font color="#009900" size="+1">// Наследование, конструкторы и аргументы.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Game {
+  Game(<font color=#0000ff>int</font> i) {
+    System.out.println(<font color=#004488>"Game constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> BoardGame <font color=#0000ff>extends</font> Game {
+  BoardGame(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(<font color=#004488>"BoardGame constructor"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Chess <font color=#0000ff>extends</font> BoardGame {
+  Chess() {
+    <font color=#0000ff>super</font>(11);
+    System.out.println(<font color=#004488>"Chess constructor"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Chess x = <font color=#0000ff>new</font> Chess();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Если же Вы не вызовите конструктор базового класса в <b>BoardGame(&#160;)</b>, 
+  тогда компилятор выдаст сообщение, что он не может найти конструктор для <b>Game(&#160;)</b>. 
+  В дополнение к вышесказанному - вызов конструктора базового класса <i>должен</i> 
+  быть осуществлен в первую очередь в конструкторе класса наследника. (Компилятор 
+  сообщит Вам об этом, если Вы сделали что-то не так.)</p>
+<a name="Heading211"></a>
+<h4 align="LEFT">Обработка исключений конструктора<br>
+  <a name="Index577"></a><a name="Index578"></a><a name="Index579"></a></h4>
+<p>Как только что было замечено, компилятор предлагает Вам поместить конструктор 
+  базового класса в конструктор класса наследника. Это означает, что ничего другого 
+  не может произойти до его вызова. Как Вы увидите в <a href="Chapter10.html">главе 
+  10</a>, при этом нужно так же позаботится об обработке исключения пришедшего 
+  из конструктора базового класса. <a name="_Toc305593254"></a><a name="_Toc305628726"></a><a name="_Toc312374019"></a><a name="_Toc375545309"></a><a name="_Toc481064607"></a></p>
+<a name="Heading212"></a>
+<h2 align="LEFT">Объединение композиции и наследования<br>
+  <a name="Index580"></a><a name="Index581"></a></h2>
+<p>Совместное использование композиции и наследования часто и широко используется 
+  при программировании. Следующий пример показывает создание более комплексного 
+  класса использующего оба метода и композицию, и наследование с необходимыми 
+  инициализациями конструкторов<a name="Index582"></a><a name="Index583"></a>:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:PlaceSetting.java</font>
+<font color="#009900" size="+1">// Объединение композиции и наследования.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Plate {
+  Plate(<font color=#0000ff>int</font> i) {
+    System.out.println(<font color=#004488>"Plate constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> DinnerPlate <font color=#0000ff>extends</font> Plate {
+  DinnerPlate(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(
+      <font color=#004488>"DinnerPlate constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Utensil {
+  Utensil(<font color=#0000ff>int</font> i) {
+    System.out.println(<font color=#004488>"Utensil constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Spoon <font color=#0000ff>extends</font> Utensil {
+  Spoon(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(<font color=#004488>"Spoon constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Fork <font color=#0000ff>extends</font> Utensil {
+  Fork(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(<font color=#004488>"Fork constructor"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Knife <font color=#0000ff>extends</font> Utensil {
+  Knife(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(<font color=#004488>"Knife constructor"</font>);
+  }
+}
+
+<font color=#009900>// Нормальный путь, сделать что-то:</font></font>
+<font color="#0000ff" size="+1">class</font><font size="+1"> Custom {
+  Custom(<font color=#0000ff>int</font> i) {
+    System.out.println(<font color=#004488>"Custom constructor"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> PlaceSetting <font color=#0000ff>extends</font> Custom {
+  Spoon sp;
+  Fork frk;
+  Knife kn;
+  DinnerPlate pl;
+  PlaceSetting(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i + 1);
+    sp = <font color=#0000ff>new</font> Spoon(i + 2);
+    frk = <font color=#0000ff>new</font> Fork(i + 3);
+    kn = <font color=#0000ff>new</font> Knife(i + 4);
+    pl = <font color=#0000ff>new</font> DinnerPlate(i + 5);
+    System.out.println(
+      <font color=#004488>"PlaceSetting constructor"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    PlaceSetting x = <font color=#0000ff>new</font> PlaceSetting(9);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>В то время, как компилятор требует от Вас инициализировать базовые классы и 
+  требует, что бы Вы делали это в начале конструктора, он не убеждается, в том, 
+  что Вы инициализировали остальные объекты, так что Вам придется быть осторожным.<a name="_Toc375545310"></a><a name="_Toc481064608"></a></p>
+<a name="Heading213"></a>
+<h3 align="LEFT"><font face="Verdana">
+Гарантия правильной очистки.</font></h3>
+<p><font face="Georgia">Java не поддерживает концепцию C++ связанную с деструктором<a name="Index584"></a>, 
+  специальным методом, который автоматически вызывается при уничтожении объекта. 
+  Причина этого в том, что в Java нужно просто забыть об объекте, позволяя тем 
+  самым освободить сборщику мусора память, если это необходимо <a name="Index585"></a><a name="Index586"></a>.</font></p>
+<p>Зачастую этот подход отлично работает, но иногда ваш класс может осуществлять 
+  некоторые действия во время его цикла жизни и требуется его очистить грамотно. 
+  Как уже упоминалось в <a href="Chapter04.html">главе 4</a>, Вы не можете знать 
+  когда будет вызван сборщик мусора, и будет ли он вообще вызван. Так что, если 
+  Вы хотите очистить нечто в вашем классе, то Вам необходимо просто написать специальный 
+  метод выполняющий эту работу, и убедиться, что другой (возможный) программист 
+  знает, что он должен взывать этот метод. Эта проблема описана в <a href="Chapter10.html">главе 
+  10</a> (&quot;<a name="Index587"></a>Обработка ошибок с помощью исключений&quot;), 
+  Вы должны обработать исключение поместив некий очищающий код в блок <a name="Index588"></a><b>finally</b>.</p>
+<p>Давайте рассмотрим пример вспомогательной компьютерной системы дизайна, которая 
+  рисует картинку на экране:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:CADSystem.java</font>
+<font color="#009900" size="+1">// Обеспечение правильной очистки.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>class</font> Shape {
+  Shape(<font color=#0000ff>int</font> i) {
+    System.out.println(<font color=#004488>"Shape constructor"</font>);
+  }
+  <font color=#0000ff>void</font> cleanup() {
+    System.out.println(<font color=#004488>"Shape cleanup"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> Circle <font color=#0000ff>extends</font> Shape {
+  Circle(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(<font color=#004488>"Drawing a Circle"</font>);
+  }
+  <font color=#0000ff>void</font> cleanup() {
+    System.out.println(<font color=#004488>"Erasing a Circle"</font>);
+    <font color=#0000ff>super</font>.cleanup();
+  }
+}
+
+<font color=#0000ff>class</font> Triangle <font color=#0000ff>extends</font> Shape {
+  Triangle(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i);
+    System.out.println(<font color=#004488>"Drawing a Triangle"</font>);
+  }
+  <font color=#0000ff>void</font> cleanup() {
+    System.out.println(<font color=#004488>"Erasing a Triangle"</font>);
+    <font color=#0000ff>super</font>.cleanup();
+  }
+}
+
+<font color=#0000ff>class</font> Line <font color=#0000ff>extends</font> Shape {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> start, end;
+  Line(<font color=#0000ff>int</font> start, <font color=#0000ff>int</font> end) {
+    <font color=#0000ff>super</font>(start);
+    <font color=#0000ff>this</font>.start = start;
+    <font color=#0000ff>this</font>.end = end;
+    System.out.println(<font color=#004488>"Drawing a Line: "</font> +
+           start + <font color=#004488>", "</font> + end);
+  }
+  <font color=#0000ff>void</font> cleanup() {
+    System.out.println(<font color=#004488>"Erasing a Line: "</font> +
+           start + <font color=#004488>", "</font> + end);
+    <font color=#0000ff>super</font>.cleanup();
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> CADSystem <font color=#0000ff>extends</font> Shape {
+  <font color=#0000ff>private</font> Circle c;
+  <font color=#0000ff>private</font> Triangle t;
+  <font color=#0000ff>private</font> Line[] lines = <font color=#0000ff>new</font> Line[10];
+  CADSystem(<font color=#0000ff>int</font> i) {
+    <font color=#0000ff>super</font>(i + 1);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> j = 0; j &lt; 10; j++)
+      lines[j] = <font color=#0000ff>new</font> Line(j, j*j);
+    c = <font color=#0000ff>new</font> Circle(1);
+    t = <font color=#0000ff>new</font> Triangle(1);
+    System.out.println(<font color=#004488>"Combined constructor"</font>);
+  }
+  <font color=#0000ff>void</font> cleanup() {
+    System.out.println(<font color=#004488>"CADSystem.cleanup()"</font>);
+    <font color=#009900>// Порядок очистки</font></font>
+    <font color="#009900" size="+1">// обратен порядку инициализации</font><font size="+1">
+    t.cleanup();
+    c.cleanup();
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = lines.length - 1; i &gt;= 0; i--)
+      lines[i].cleanup();
+    <font color=#0000ff>super</font>.cleanup();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    CADSystem x = <font color=#0000ff>new</font> CADSystem(47);
+    <font color=#0000ff>try</font> {
+      <font color=#009900>// Код и исключения обрабатываются...</font>
+    } <font color=#0000ff>finally</font> {
+      x.cleanup();
+    }
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Все в этой системе является разновидностями шейпа (<b>Shape</b>) (который в 
+  свою очередь является разновидностью объекта(<b>Object</b>) в силу того, что 
+  он косвенным образом наследует корневой класс). Каждый класс переопределяет 
+  метод шейпа <b>cleanup(&#160;)</b> в дополнении к этому еще и вызывает метод 
+  базового класса через использование <b>super</b>. Специфичные классы <b>Shape</b>, 
+  такие, как <b>Circle</b>, <b>Triangle</b> и <b>Line </b>все имеют конструкторы, 
+  которые рисуют, хотя любой метод, вызванный во время работы, должен быть доступным 
+  для чего либо нуждающегося в очистке. Каждый класс имеет свой собственный метод 
+  <b>cleanup(&#160;)</b> для восстановления не использующих память вещей существовавших 
+  до создания объекта.</p>
+<p>В методе <b>main(&#160;)</b>, Вы можете видеть два ключевых слова, которые 
+  для Вас новы, и не будут официально представлены до <a href="Chapter10.html">главы 
+  10</a>: <a name="Index589"></a><b>try</b> и <a name="Index590"></a><b>finally</b>. 
+  Ключевое слово <b>try</b> сигнализирует о начале блока (отделенного фигурными 
+  скобками), который является <i>охраняемой областью</i>, что означает, что он 
+  предоставляет специальную обработку при возникновении исключений. Одной из специальных 
+  обработок является порция кода заключенная в блок <b>finally</b> следующий за 
+  охраняемой областью и который всегда выполняется, вне зависимости от завершения 
+  блока <b>try</b> . (С обработкой исключений имеется возможность покинуть блок 
+  <b>try</b> бесчисленным количеством способов.) Здесь, <b>finally</b> означает:&quot;Всегда 
+  вызывать <b>cleanup(&#160;)</b> для <b>x</b>, без разницы, что случилось&quot;. 
+  Эти ключевые слова будут основательно разъяснены в <a href="Chapter10.html">главе 
+  10</a>.</p>
+<p>Заметьте, что в Вашем методе очистки Вы должны так же быть внимательны в вызове 
+  очередности для базового класса и для вашего класса, в зависимости от отношений 
+  с подобъектом. В основном, Вы должны следовать тем же путем, как и в C++ в деструткорах: 
+  Сначала осуществляется очистка вашего класса в обратной последовательности создания. 
+  (В основном требуется, чтобы элементы базового класса были все еще доступны.) 
+  Затем вызвать метод очистки базового класса, как показано в примере.</p>
+<p>Вообще может быть множество случаев, в которых очистка это не проблема, Вы 
+  просто позволяете сборщику мусора выполнить свою работу. Но, когда Вы должны 
+  очистку сделать самостоятельно, следует быть внимательным, усердным и осторожным.<a name="_Toc312374020"></a></p>
+<a name="Heading214"></a>
+<h4 align="LEFT">Порядок сборки мусора</h4>
+<p>Здесь не так уж и много уверенности, когда придет время сбора мусора<a name="Index591"> 
+  </a>. Сборщик мусора может быть так и ни разу не вызван. Если же он вызван, 
+  то он может освободить ресурсы от ненужных объектов, в каком ему заблагорассудится 
+  порядке. Поэтому лучше не рассчитывать полностью на сборщик мусора с полной 
+  очисткой памяти. Если вы хотите очистить для себя достаточно ресурсов - напишите 
+  свой собственной метод по очистке и не полагайтесь только на <a name="Index592"></a><b>finalize(&#160;)</b>. 
+  (Как уже упоминалось в <a href="Chapter04.html">главе 4</a>, в Java можно принудительно 
+  вызвать все завершители.)<a name="_Toc312374021"></a><a name="_Toc375545311"></a><a name="_Toc481064609"></a></p>
+<a name="Heading215"></a>
+<h3 align="LEFT"><font face="Verdana">
+Скрытие имен</font></h3>
+<p>Только программисты C++ могут быть &quot;обрадованы&quot; скрытием имен, из-за 
+  того, что они работают по другому в этом языке (Java). <a name="Index593"></a><a name="Index594"></a><a name="Index595"></a><a name="Index596"></a>Если 
+  базовый класс в Java имеет метод, который многократно перегружался, то при переопределении 
+  имени этого метода в классе потомке не будут скрыты методы в базовом классе. 
+  Поэтому перегрузка работает, не обращая,внимание на место определения метода, 
+  на этом уровне или в базовом классе:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Hide.java</font>
+<font color="#009900" size="+1">// Перегрузка имени базового класса в дочернем, не скрывает метод базового класса</font><font color="#009900" size="+1">.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Homer {
+  <font color=#0000ff>char</font> doh(<font color=#0000ff>char</font> c) {
+    System.out.println(<font color=#004488>"doh(char)"</font>);
+    <font color=#0000ff>return</font> 'd';
+  }
+  <font color=#0000ff>float</font> doh(<font color=#0000ff>float</font> f) {
+    System.out.println(<font color=#004488>"doh(float)"</font>);
+    <font color=#0000ff>return</font> 1.0f;
+  }
+}
+
+<font color=#0000ff>class</font> Milhouse {}
+
+<font color=#0000ff>class</font> Bart <font color=#0000ff>extends</font> Homer {
+  <font color=#0000ff>void</font> doh(Milhouse m) {}
+}
+
+<font color=#0000ff>class</font> Hide {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Bart b = <font color=#0000ff>new</font> Bart();
+    b.doh(1); <font color=#009900>// doh(float) использован</font>
+    b.doh('x');
+    b.doh(1.0f);
+    b.doh(<font color=#0000ff>new</font> Milhouse());
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Как Вы увидите в следующей главе, такой подход далек от наиболее частого использования 
+  при переопределении методов. Нужно использовать метод с тем же именем используя 
+  практически ту же сигнатуру и возвращая тот же тип в базовом классе. Если сделать 
+  по другому, то это уже не сработает (поэтому то C++ и запрещает такой прием, 
+  что бы ограничить программиста в создании новой возможной ошибки).<a name="_Toc305593255"></a><a name="_Toc305628727"></a><a name="_Toc312374023"></a><a name="_Toc375545312"></a><a name="_Toc481064610"></a></p>
+<a name="Heading216"></a>
+<h2 align="LEFT">Выборочная композиция против наследования<br>
+  <a name="Index597"></a><a name="Index598"></a></h2>
+<p>Оба метода, композиция и наследование, позволяют Вам поместить подобъект<a name="Index599"></a> 
+  внутрь вашего нового класса. Вы можете быть изумлены различием между ними двумя 
+  и при этом метаться при выборе одного способа перед другим.</p>
+<p>Композиция в основном используется когда Вам нужно использовать возможности 
+  существующего класса, но не использовать его интерфейс. Это значит, что Вы внедряете 
+  объект, так, что вы можете использовать его для получения доступа к функциональности 
+  внедряемного объекта в вашем новом классе, но пользователь вашего нового класса 
+  видит интерфейс вашего нового класса раньше, чем интерфейс внедряемого объекта. 
+  Что бы добиться такого эффекта, Вы должны включать <b>private</b> объекты существующих 
+  классов внутрь вашего нового класса. <a name="Index600"></a><a name="Index601"></a></p>
+<p>Иногда требуется разрешить пользователю класса получить доступ к вашему новому 
+  классу напрямую; что бы сделать это, нужно сделать объекты <b>public</b>. Эти 
+  объекты используют реализацию скрытия самих себя, так что такой подход достаточно 
+  безопасен. Если пользователь знает, что Вы собрали этот класс из различных частей, 
+  то интерфейс этого класса будет для него более легок в понимании. Объект <b>car</b> 
+  хороший пример, иллюстрирующий данную технологию:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Car.java</font>
+<font color="#009900" size="+1">// Композиция с public объектами.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Engine {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> start() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> rev() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> stop() {}
+}
+
+<font color=#0000ff>class</font> Wheel {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> inflate(<font color=#0000ff>int</font> psi) {}
+}
+
+<font color=#0000ff>class</font> Window {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> rollup() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> rolldown() {}
+}
+
+<font color=#0000ff>class</font> Door {
+  <font color=#0000ff>public</font> Window window = <font color=#0000ff>new</font> Window();
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> open() {}
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> close() {}
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Car {
+  <font color=#0000ff>public</font> Engine engine = <font color=#0000ff>new</font> Engine();
+  <font color=#0000ff>public</font> Wheel[] wheel = <font color=#0000ff>new</font> Wheel[4];
+  <font color=#0000ff>public</font> Door left = <font color=#0000ff>new</font> Door(),
+       right = <font color=#0000ff>new</font> Door(); <font color=#009900>// 2-door</font></font>
+  <font color="#0000ff" size="+1">public</font><font size="+1"> Car() {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 4; i++)
+      wheel[i] = <font color=#0000ff>new</font> Wheel();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Car car = <font color=#0000ff>new</font> Car();
+    car.left.window.rollup();
+    car.wheel[0].inflate(72);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>В силу того, что состав класса car является частью анализа проблемы (а не просто 
+  часть основного приема программирования), создание членов классов <b>public</b> 
+  поможет программисту понять, как использовать класс и требует меньше кода и 
+  меньшей запутанности для создания класса. Но все равно, помните, что этот прием 
+  только для специальных случаев, и в основном вы должны делать поля <b>private</b>.</p>
+<p><a name="Index602"></a><a name="Index603"></a>При наследовании, Вы берете существующий 
+  класс и создаете специальную его версию. В основном это означает, что Вы берете 
+  главный, целевой класс и приспосабливаете его для частных нужд. Немного поразмыслив, 
+  Вы увидите, что нет разницы при создании класса car используя объект vehicle 
+  - car не содержит vehicle, он и есть vehicle. Отсюда <a name="Index604"></a> 
+  связь <i>он и есть</i> используется в наследовании, а <a name="Index605"></a><i>содержит</i> 
+  при композиции.<a name="_Toc305593256"></a><a name="_Toc305628728"></a><a name="_Toc312374027"></a><a name="_Toc375545313"></a><a name="_Toc481064611"></a></p>
+<a name="Heading217"></a>
+<h2 align="LEFT">protected</h2>
+<p>Итак вы только что получили представление о наследовании и теперь пришло время 
+  раскрыть смысл ключевого слова <b>protected<a name="Index606"></a></b>. В идеальном 
+  мире, <b>private</b> объекты всегда являются действительно <b>private</b>, но 
+  в реальных проектах, где вы пытаетесь во многих местах скрыть от внешнего мира 
+  нечто, Вам часто нужна возможность получить к нему доступ из классов наследников. 
+  Ключевое слово <b>protected</b> поэтому не такая уж и ненужная назойливость 
+  или догма. Оно объявляет &quot;Этот объект частный (<b>private</b>), если к 
+  нему пытается подобраться пользователь, но он доступен для всех остальных находящихся 
+  в том же самом пакете(<b>package</b>)&quot;. То есть , <a name="Index607"></a><a name="Index608"></a><b>protected</b> 
+  в Java автоматически означает <b>friendly</b>.</p>
+<p>Наилучшим решением при этом оставить данным модификатор <a name="Index609"></a><b>private</b>, 
+  но с другой стороны для доступа к ним оставить <a name="Index610"></a><b>protected 
+  </b>методы:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Orc.java</font>
+<font color="#009900" size="+1">// Ключевое слово protected.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>class</font> Villain {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i;
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> read() { <font color=#0000ff>return</font> i; }
+  <font color=#0000ff>protected</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> set(<font color=#0000ff>int</font> ii) { i = ii; }
+  <font color=#0000ff>public</font> Villain(<font color=#0000ff>int</font> ii) { i = ii; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> value(<font color=#0000ff>int</font> m) { <font color=#0000ff>return</font> m*i; }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Orc <font color=#0000ff>extends</font> Villain {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> j;
+  <font color=#0000ff>public</font> Orc(<font color=#0000ff>int</font> jj) { <font color=#0000ff>super</font>(jj); j = jj; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> change(<font color=#0000ff>int</font> x) { set(x); }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вы можете видеть, что <b>change(&#160;)</b> имеет доступ к <b>set(&#160;)</b> 
+  потому, что он <b>protected</b>.<a name="_Toc305593258"></a><a name="_Toc305628730"></a><a name="_Toc312374030"></a><a name="_Toc375545314"></a><a name="_Toc481064612"></a></p>
+<a name="Heading218"></a>
+<h2 align="LEFT">Инкрементная разработка</h2>
+<p>Одним из преимуществ наследования является поддержка <i>инкрементной разработки<a name="Index611"></a><a name="Index612"></a></i>, 
+  при помощи которой Вы можете создавать новый код, без внесения возможных ошибок 
+  в уже существующий. При этом новые ошибки так же остаются внутри нового кода. 
+  Наследуя из существующего, функционального класса и добавляя методы и поля данных, 
+  а так же переопределяя существующие методы, Вы оставляете в первозданном виде 
+  уже существующий код, тем самым кто-то сможет воспользоваться им нетронутым 
+  и без новых ошибок. Если же вдруг случится ошибка, Вы будете знать, что она 
+  в вашем коде, и при этом ее найти будет проще и быстрее, чем если бы Вы модифицировали 
+  уже существующий и отлаженный код.</p>
+<p>То, как чисто разделяются классы может показаться удивительно. Вам не нужен 
+  исходный код, поскольку вы можете использовать технологию повторного использования 
+  исходного кода. Самое большое, что вам нужно сделать, это импортировать пакет. 
+  И это справедливо и для наследования и для композиции.</p>
+<p>Важно понимать, что инкрементальная разработка программы всего лишь процесс, 
+  похожий на обучение человека. Вы можете анализировать вашу будущую программу 
+  сколько угодно, но все равно останутся вопросы которые возникнут только в процессе 
+  разработки проекта. Ваш проект будет более удачлив и более гибким, если Вы будете 
+  растить его как органическую структуру, как эволюционирующее создание, по сравнению, 
+  если бы Вы начали создавать его как единообразной квадратно-стеклянный небоскреб, 
+  пытаясь учесть в нем все нюансы.</p>
+<p>Несмотря на то, что наследование для экспериментов может быть просто превосходной 
+  техникой, однако после некоторой точки стабилизации Вам необходимо окинуть взором 
+  вашу иерархию классов и привести ее в разумные размеры. Помните, что наследование 
+  определяет связь - Этот новый класс такого же типа, как и тот старый. Ваша программа 
+  не должен разбрасываться битами вокруг, а вместо этого создавать и манипулировать 
+  объектами многих типов для выражения модели в терминах проблемной области<a name="Index613"></a>.<a name="_Toc305593259"></a><a name="_Toc305628731"></a><a name="_Toc312374031"></a><a name="_Toc375545315"></a><a name="_Toc481064613"></a></p>
+<a name="Heading219"></a>
+<h2 align="LEFT">
+Приведение к базовому типу<br>
+  <a name="Index614"></a></h2>
+<p>Наиболее важный аспект наследования заключается вовсе не в снабжении нового 
+  класса новыми методами. А заключается он в отношении между новым классом и базовым 
+  классом. Данное отношение можно определить так &quot;Новый класс имеет тип существующего 
+  класса.&quot;</p>
+<p>Это описание, не просто причудливая форма раскрытия сущности наследования, 
+  такая форма поддерживается напрямую языком Java. В примере, рассматриваемый 
+  базовый класс называется <b>Instrument</b> и представляет музыкальные инструменты, 
+  а дочерний класс называется <b>Wind </b>(духовые инструменты). Поскольку наследование 
+  подразумевает, что все методы в базовом классе так же доступны и в дочернем 
+  классе, то любое сообщение, которое может быть послано базовому классу, так 
+  же доступно и в дочернем. Если класс <b>Instrument</b> имеет метод <b>play(&#160;)</b>, 
+  то и <b>Wind</b> так же может его использовать. Это означает, что мы можем точно 
+  так же сказать, что объект <b>Wind</b> так же и типа <b>Instrument</b>. Следующий 
+  пример показывает, как компилятор поддерживает это высказывание:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Wind.java</font>
+<font color="#009900" size="+1">// Наследование и приведение к базовому типу.</font>
+<font color="#0000ff" size="+1">import</font><font size="+1"> java.util.*;
+
+<font color=#0000ff>class</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> play() {}
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> tune(Instrument i) {
+    <font color=#009900>// ...</font>
+    i.play();
+  }
+}
+
+<font color=#009900>// Объект Wind так же Instrument</font></font>
+<font color="#009900" size="+1">// потому что они имеют общий интерфейс:</font>
+<font color="#0000ff" size="+1">class</font><font size="+1"> Wind <font color=#0000ff>extends</font> Instrument {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Wind flute = <font color=#0000ff>new</font> Wind();
+    Instrument.tune(flute); <font color=#009900>// Upcasting</font>
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Что действительно интересно в этом примере, так это то, что метод <b>tune(&#160;) 
+  </b>поддерживает ссылку на <b>Instrument</b>. Однако, в <b>Wind</b>.<b>main(&#160;)</b> 
+  метод <b>tune(&#160;)</b> вызывается с передачей ссылки на <b>Wind</b>. Из этого 
+  следует, что Java специфична с проверкой типов, это выглядит достаточно странно, 
+  если метод принимающий в качестве параметра один тип, вдруг спокойно принимает 
+  другой, но так пока вы не поймете, что объект <b>Wind</b> так же является и 
+  объектом типа <b>Instrument</b>, и в нем нет метода <b>tune(&#160;)</b> который 
+  можно было бы вызвать для <b>Instrument</b>. Внутри <b>tune(&#160;)</b>, код 
+  работает с типами <b>Instrument</b> и с чем угодно от него произошедшим, а факт 
+  конвертации ссылки на <b>Wind</b> в ссылку на <b>Instrument</b> называется <b>приведением 
+  к базовому типу</b> (upcasting).<a name="_Toc312374032"></a><a name="_Toc375545316"></a><a name="_Toc481064614"></a></p>
+<a name="Heading220"></a>
+<h3 align="LEFT">
+ Почему &quot;приведение к базовому типу&quot;?</h3>
+<p>Причина этого термина кроется в недрах истории, и основана она диаграмме наследования 
+  классов <a name="Index616"></a><a name="Index617"></a><a name="Index618"></a> 
+  имеющую традиционное начертание: сверху страницы корень, растущий вниз. Естественно, 
+  Вы можете нарисовать свою собственную диаграмму, каким угодно образом. Диаграмма 
+  наследования для <b>Wind.java</b>:</p>
+<div align="CENTER"><img src="TIJ214.gif"><br>
+  <p></p>
+</div>
+<p>Преобразование (casting) дочернего к базовому происходит при движении вверх 
+  (up) по диаграмме наследования, так что получается - <i>upcasting </i>(приведение 
+  к базовому типу). Приведение к базовому типу всегда безопасно, поскольку Вы 
+  переходите от более общего типа, к более конкретному. Так что дочерний класс 
+  является супермножеством базового класса. Он может содержать больше методов, 
+  чем базовый класс, но он должен содержать минимум все те методы, что есть в 
+  базовом классе. Только одна вещь может случится при приведении к базовому типу, 
+  это, что могут потеряться некоторые методы. Вот по этому то компилятор и позволяет 
+  осуществлять приведение к базовому типу без каких либо ограничений на приведение 
+  типов или специальных замечаний.</p>
+<p>Вы так же можете осуществить обратную приведению к базовому типу операцию, 
+  называемую приведение базового типа к дочернему <a name="Index619"></a>(<i>downcasting)</i>, 
+  но при этом возникает небольшая дилемма, которая разъяснена в <a href="Chapter12.html">главе 
+  12</a>.<a name="_Toc312374033"></a></p>
+<a name="Heading221"></a>
+<h4 align="LEFT">
+И снова композиция против наследования</h4>
+<p>В объектно-ориентированном программировании наиболее используемый способ заключается 
+  в создании и использовании кода с хранением и кода и данных в одном пакете-классе. 
+  Вы так же используете существующие классы для создания новых классов при помощи 
+  композиции. Менее часто используется наследование. Однако, наследование более 
+  выразительно при изучении ООП, но это вовсе не значит, что его нужно использовать, 
+  где только возможно. Тем не менее, Вы должны использовать наследование, там, 
+  где его использование полезно. <a name="Index620"></a><a name="Index621"></a>Один 
+  из понятных путей для определения, что Вы должны использовать, наследование 
+  или композицию заключается в выяснении нужно ли будет вам приводить что-то к 
+  базовому типу или нет. Если вам необходимо приведение к базовому типу, то наследование 
+  просто необходимо, но если же Вы не нуждаетесь в этом, то стоит присмотреться, 
+  а так ли уж необходимо здесь наследование. Следующая глава (полиморфизм) предоставляет 
+  одну из наиболее непреодолимых причин для приведения к базовому типу, но если 
+  Вы вспомните вопрос &quot;Нужно ли мне приведение к базовому типу?&quot;, то 
+  Вы получите хороший способ для решения при выборе между композицией или наследованием.<a name="_Toc305593260"></a><a name="_Toc305628732"></a><a name="_Toc312374036"></a><a name="_Toc375545317"></a><a name="_Toc481064615"></a></p>
+<a name="Heading222"></a>
+<h2 align="LEFT">
+Ключевое слово final</h2>
+<p>В Java ключевое слово <a name="Index622"></a><b>final</b> имеет слегка разные 
+  значения в зависимости от контекста, но в основном, оно определяется так &quot;Это 
+  не может быть изменено&quot;. Вы можете хотеть запретить изменения по двум причинам: 
+  дизайн или эффективность. Поскольку эти две причины слегка различаются, то существует 
+  возможность неправильного употребления ключевого слова <b>final</b>.</p>
+<p>В следующих секциях обсуждается применение <b>final</b> тремя способами: для 
+  данных, для методов и для классов.<a name="_Toc375545318"></a><a name="_Toc481064616"></a></p>
+<a name="Heading223"></a>
+<h3 align="LEFT">
+Данные final<br>
+  <a name="Index623"></a><a name="Index624"></a></h3>
+<p>Многие языки программирования имеют пути сообщить компилятору, что данный кусочек 
+  данных является неизменным, константой. Константа наиболее удобна для применения 
+  в следующих двух случаях: <a name="Index625"></a><a name="Index626"></a><a name="Index627"></a></p>
+<ol>
+  <li>	Она должна быть константой во время компиляции и не может быть изменена никогда.
+  <li>	Она может быть инициализирована во время инициализации и не должна быть изменена после.
+</ol>
+<p>В случае константы во время компиляции компилятор свертывает константу до значения<a name="Index629"></a> 
+  в любых вычислениях, где она используется; при этом, нагрузка при вычислениях 
+  во время работы программы может быть значительно снижена. В Java константы такого 
+  рода должны быть примитивного типа<a name="Index630"></a> и объявлены с использованием 
+  <b>final</b>. Значение должно быть определено во время определения переменной, 
+  как и любой константы.</p>
+<p>Поля имеющие модификаторы <a name="Index631"></a><a name="Index632"></a><b>static</b> 
+  и <b>final</b> вообще являются ячейкой для хранения и не могут быть изменены.</p>
+<p>При использовании <a name="Index633"></a><a name="Index634"></a><a name="Index635"></a><b>final</b> 
+  с объектами, а не с примитивными типами получается несколько не тот эффект. 
+  С примитивами, <b>final</b> создает константу значения, а с объектами - ссылку, 
+  <b>final</b> создает ссылку - константу. Как только ссылка инициализируется 
+  на какой-то объект, она уже не может быть в последствии перенаправлена на другой 
+  объект. Однако сам объект может быть модифицирован; Java не предоставляет способа 
+  создать объект - константу. (Однако, Вы можете написать свой собственный класс 
+  с эффектом константы.) Эти же ограничения накладываются и на массивы, поскольку 
+  они тоже объекты.</p>
+<p>Ниже представлен пример, демонстрирующий использование полей с модификатором 
+  <b>final</b>:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:FinalData.java</font>
+<font color="#009900" size="+1">// Эффект полей  final.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Value {
+  <font color=#0000ff>int</font> i = 1;
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> FinalData {
+  <font color=#009900>// Может быть константой во время компиляции</font></font>
+  <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1"> i1 = 9;
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1"> VAL_TWO = 99;
+  <font color=#009900>// Обычная public константы:</font></font>
+  <font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1"> VAL_THREE = 39;
+  <font color=#009900>// Не может быть константой во время компиляции:</font></font>
+  <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1"> i4 = (<font color=#0000ff>int</font>)(Math.random()*20);
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1"> i5 = (<font color=#0000ff>int</font>)(Math.random()*20);
+  
+  Value v1 = <font color=#0000ff>new</font> Value();
+  <font color=#0000ff>final</font> Value v2 = <font color=#0000ff>new</font> Value();
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">final</font><font size="+1"> Value v3 = <font color=#0000ff>new</font> Value();
+  <font color=#009900>// Массивы:</font></font>
+  <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1">[] a = { 1, 2, 3, 4, 5, 6 };
+
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> print(String id) {
+    System.out.println(
+      id + <font color=#004488>": "</font> + <font color=#004488>"i4 = "</font> + i4 + 
+      <font color=#004488>", i5 = "</font> + i5);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    FinalData fd1 = <font color=#0000ff>new</font> FinalData();
+    <font color=#009900>//! fd1.i1++; // Ошибка: значение не может быть изменено</font>
+    fd1.v2.i++; <font color=#009900>// Объект не константа!</font>
+    fd1.v1 = <font color=#0000ff>new</font> Value(); <font color=#009900>// OK -- не final</font></font>
+    <font color="#0000ff" size="+1">for</font><font size="+1">(<font color=#0000ff>int</font> i = 0; i &lt; fd1.a.length; i++)
+      fd1.a[i]++; <font color=#009900>// </font></font><font size="+1"><font color=#009900>Объект не константа!</font></font>
+    <font color="#009900" size="+1">//! fd1.v2 = new Value(); // Ошибка: Нельзя </font>
+    <font color="#009900" size="+1">//! fd1.v3 = new Value(); // изменить ссылку</font>
+    <font color="#009900" size="+1">//! fd1.a = new int[3];</font><font size="+1">
+
+    fd1.print(<font color=#004488>"fd1"</font>);
+    System.out.println(<font color=#004488>"Creating new FinalData"</font>);
+    FinalData fd2 = <font color=#0000ff>new</font> FinalData();
+    fd1.print(<font color=#004488>"fd1"</font>);
+    fd2.print(<font color=#004488>"fd2"</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Поскольку <b>i1</b> и <b>VAL_TWO</b> являются <b>final</b> примитивами со значениями 
+  во время компиляции, то они могут быть использованы в обоих случаях, как константы 
+  времени компиляции и не имеют при этом отличий. <b>VAL_THREE</b> определена 
+  более типичным путем и Вы можете видеть, как определяются константы: <b>public</b> 
+  так, что она может быть использована вне пакета, <b>static</b> т.е. может существовать 
+  только одна и <b>final</b> объявляет, что она и есть константа. Заметьте, что 
+  примитивы <a name="Index636"></a><a name="Index637"></a><a name="Index638"></a><b>final 
+  static</b> с начальными неизменяемыми значениями (константы времени компилирования) 
+  называются большими буквами и слова разделены подчеркиванием (такие наименование 
+  похожи на константы в C.) Так же заметьте, что <b>i5</b> не может быть известна 
+  во время компиляции, поэтому она названа маленькими буквами.</p>
+<p>Просто, если, что-то определено, как <b>final</b> это еще не значит, что его 
+  значение известно на стадии компиляции. Это утверждение демонстрируется инициализацией 
+  <b>i4</b> и <b>i5</b> во время выполнения с использованием случайно генерируемых 
+  чисел. Та порция примера так же показывает различие между созданием <b>final</b> 
+  с модификатором <b>static</b> и без него. Это различие заметно, только во время 
+  инициализации во время выполнения, это происходит из-за того, что значения времени 
+  компиляции обращаются в те же самые самим компилятором. (И по видимому, существенно 
+  оптимизированными.) Это различие показано в выводе программы после одного запуска:</p>
+<blockquote>
+  <pre><font size="+1">fd1: i4 = 15, i5 = 9
+Creating <font color=#0000ff>new</font> FinalData
+fd1: i4 = 15, i5 = 9
+fd2: i4 = 10, i5 = 9</font></pre>
+</blockquote>
+<p>Заметьте, что значения <b>i4</b> для <b>fd1</b> и для <b>fd2</b> уникальны, 
+  но значение для <b>i5</b> не изменилось после создания второго объекта <b>FinalData</b>. 
+  Такое произошло потому, что i5 <b>static</b> и инициализировалась только один 
+  раз при загрузке, а не каждый раз, когда создавался новый объект.</p>
+<p>Переменные <b>v1</b> и <b>v4</b> демонстрируют значение <b>final</b> ссылки. 
+  Как Вы можете видеть в методе <b>main(&#160;)</b>, только потому, что <b>v2</b> 
+  является <b>final</b> вовсе не означает, что Вы не можете изменить ее значение. 
+  Хотя, Вы не можете перенаправить <b>v2</b> на новый объект, и это потому, что 
+  она <b>final</b>. Вот такой смысл вкладывается в понятие <b>final</b> ссылок. 
+  Вы так же можете увидеть точно такое же действие на примере массивов, поскольку 
+  они являются так же разновидностью ссылок. (Я например не знаю способа, как 
+  сделать ссылки массивов самих на себя <b>final</b>.) Таким образом, создание 
+  ссылок с типом <b>final</b> менее удобна в использовании, чем создание примитивов 
+  с модификатором <b>final</b>.</p>
+<a name="Heading224"></a>
+<h4 align="LEFT">
+Пустые final</h4>
+<p>Java позволяет создавать пустые (чистые) final объекты<a name="Index639"></a><a name="Index640"></a> 
+  (<i>blank final)</i>, это такие поля данных, которые были объявлены как <b>final</b> 
+  но при этом не были инициализированы значением. Во всех случаях, пустая final 
+  переменная <i>должна</i> быть инициализирована до ее использования и компилятор 
+  обеспечивает это условие. Тем не менее, пустые final поля предоставляют большую 
+  гибкость при использовании модификатора <b>final</b>, к примеру, <b>final</b> 
+  поле внутри класса может быть разным для каждой копии объекта. Вот пример:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:BlankFinal.java</font>
+<font color="#009900" size="+1">// "Пустые" final данные.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Poppet { }
+
+<font color=#0000ff>class</font> BlankFinal {
+  <font color=#0000ff>final</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i = 0; <font color=#009900>// инициализируем final</font></font>
+  <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">int</font><font size="+1"> j; <font color=#009900>// пустой final</font></font>
+  <font color="#0000ff" size="+1">final</font><font size="+1"> Poppet p; <font color=#009900>// Ссылка на пустой final</font></font>
+  <font color="#009900" size="+1">// Пустой final ДОЛЖЕН быть инициализирован</font>
+  <font color="#009900" size="+1">// в конструкторе:</font><font size="+1">
+  BlankFinal() {
+    j = 1; <font color=#009900>// инициализируем чистую final</font>
+    p = <font color=#0000ff>new</font> Poppet();
+  }
+  BlankFinal(<font color=#0000ff>int</font> x) {
+    j = x; <font color=#009900>// Инициализируем  чистую final</font>
+    p = <font color=#0000ff>new</font> Poppet();
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    BlankFinal bf = <font color=#0000ff>new</font> BlankFinal();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вы принудительно должны осуществить соединение переменной <b>final </b>со значением 
+  при ее определении или в конструкторе. При этом гарантировано не будет доступа 
+  к переменной, до ее инициализации.</p>
+<a name="Heading225"></a>
+<h4 align="LEFT">
+Аргументы final</h4>
+<p>Java позволяет Вам так же создавать и <a name="Index641"></a><a name="Index642"></a>аргументы 
+  <b>final</b> определением их таким образом прямо в списке аргументов. Это означает, 
+  что внутри метода Вы не сможете изменить этот аргумент или его ссылку:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:FinalArguments.java</font>
+<font color="#009900" size="+1">// Использование "final" с аргументами методов.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Gizmo {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> spin() {}
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> FinalArguments {
+  <font color=#0000ff>void</font> with(<font color=#0000ff>final</font> Gizmo g) {
+    <font color=#009900>//! g = new Gizmo(); // Неверно -- g - final</font>
+  }
+  <font color=#0000ff>void</font> without(Gizmo g) {
+    g = <font color=#0000ff>new</font> Gizmo(); <font color=#009900>// OK -- g не final</font>
+    g.spin();
+  }
+  <font color=#009900>// void f(final int i) { i++; } // Не может измениться</font></font>
+  <font color="#009900" size="+1">// Вы можете только читать примитив:</font>
+  <font color="#0000ff" size="+1">int</font><font size="+1"> g(<font color=#0000ff>final</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> i) { <font color=#0000ff>return</font> i + 1; }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    FinalArguments bf = <font color=#0000ff>new</font> FinalArguments();
+    bf.without(<font color=#0000ff>null</font>);
+    bf.with(<font color=#0000ff>null</font>);
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Заметьте, что Вы все еще можете соединить <b>null</b> ссылку с final аргументом, 
+  без реакции со стороны компилера, таким же образом, как и с не <b>final</b> 
+  аргументами.</p>
+<p>Методы <b>f(&#160;)</b> и <b>g(&#160;)</b> показывают, что случается, когда 
+  примитивный аргумент <b>- final</b>: Вы можете прочитать его, но не можете изменить 
+  его.<a name="_Toc375545319"></a><a name="_Toc481064617"></a></p>
+<a name="Heading226"></a>
+<h3 align="LEFT">
+Final методы</h3>
+<p>Существует две причины для <a name="Index643"></a><a name="Index644"></a><b>final</b> 
+  методов. Первая - закрытие методов, от возможной модификации при наследовании 
+  класса. Такой подход применяется если Вы хотите быть уверенны, что этот метод 
+  не будет переопределен в дочерних классах и поведение класса не изменится.</p>
+<p>Вторая причина - <b>final</b> методы более эффективны. Если Вы делаете метод 
+  с модификатором <b>final</b>, Вы тем самым разрешаете компилятору все вызовы 
+  этого метода превратить во <a name="Index645"></a><a name="Index646"></a><i>внутренние 
+  (inline)</i> вызовы. Когда компилятор видит <b>final</b> метод он может(на свое 
+  усмотрение) пропустить нормальный метод добавления кода, т.е. обычного исполнения 
+  метода (поместить аргументы в стек, перепрыгнуть на код метода и выполнить его, 
+  перепрыгнуть обратно на стек аргументов и очистить их, разобраться с возвращаемым 
+  значением) и заменить вызов метода на копию актуального кода из тела метода. 
+  При этом снижается загрузка машины при выполнении вызова метода. Естественно, 
+  если ваш метод велик, тогда ваш код распухнет и вероятно Вы не увидите никаких 
+  преимуществ по производительности от использования прямых вызовов, поскольку 
+  все повышения производительности при вызове будут съедены временем выполнения 
+  кода внутри самого метода. Поэтому Java компилятор способен определять такие 
+  ситуации и решать, когда осуществлять компиляцию <b>final</b> метода во внутренние 
+  вызовы. Но, все таки не следует слишком уж доверять компилятору и создавать 
+  <b>final</b> методы, только, если они действительно небольшие и Вы действительно 
+  хотите запретить их изменение при наследовании.</p>
+<a name="Heading227"></a>
+<h4 align="LEFT">
+final и private<br>
+  <a name="Index647"></a><a name="Index648"></a></h4>
+<p>Любой <b>private</b> метод косвенным образом <b>final</b>. Поскольку Вы не 
+  можете получить доступ к <b>private </b>методу, Вы не можете переопределить 
+  его (даже если компилятор не выдаст сообщения об ошибке при переопределении, 
+  Вы все равно не сможете переопределить его, Вы просто создадите новый метод). 
+  Вы можете добавить спецификатор <b>final</b> к <b>private</b> методу, но это 
+  не добавит ему никаких дополнительных возможностей.</p>
+<p>Эта особенность может создать неудобство, поскольку если Вы попытаетесь перекрыть 
+  <b>private</b> метод (который косвенно и <b>final</b>)<b> </b>то оно будет работать:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:FinalOverridingIllusion.java</font>
+<font color="#009900" size="+1">// Это только выглядит так, как буд-то вы перекрыли</font>
+<font color="#009900" size="+1">//  private или private final метод.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> WithFinals {
+  <font color=#009900>// Идентично "private":</font></font>
+  <font color="#0000ff" size="+1">private</font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {
+    System.out.println(<font color=#004488>"WithFinals.f()"</font>);
+  }
+  <font color=#009900>// Так же автоматически "final":</font></font>
+  <font color="#0000ff" size="+1">private</font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {
+    System.out.println(<font color=#004488>"WithFinals.g()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> OverridingPrivate <font color=#0000ff>extends</font> WithFinals {
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {
+    System.out.println(<font color=#004488>"OverridingPrivate.f()"</font>);
+  }
+  <font color=#0000ff>private</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {
+    System.out.println(<font color=#004488>"OverridingPrivate.g()"</font>);
+  }
+}
+
+<font color=#0000ff>class</font> OverridingPrivate2 
+  <font color=#0000ff>extends</font> OverridingPrivate {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">final</font> <font color="#0000ff" size="+1">void</font><font size="+1"> f() {
+    System.out.println(<font color=#004488>"OverridingPrivate2.f()"</font>);
+  }
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">void</font><font size="+1"> g() {
+    System.out.println(<font color=#004488>"OverridingPrivate2.g()"</font>);
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> FinalOverridingIllusion {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    OverridingPrivate2 op2 = 
+      <font color=#0000ff>new</font> OverridingPrivate2();
+    op2.f();
+    op2.g();
+    <font color=#009900>// Вы можете привести к базовому типу:</font>
+    OverridingPrivate op = op2;
+    <font color=#009900>// Но Вы не можете вызвать методы:</font></font>
+    <font color="#009900" size="+1">//! op.f();</font>
+    <font color="#009900" size="+1">//! op.g();</font>
+    <font color="#009900" size="+1">// Так же здесь:</font><font size="+1">
+    WithFinals wf = op2;
+    <font color=#009900>//! wf.f();</font></font>
+    <font color="#009900" size="+1">//! wf.g();</font><font size="+1">
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>&quot;Переопределение&quot; может быть использовано только если это что-то 
+  является частью интерфейса базового класса. То есть, Вы должны быть способны 
+  привести метод к базовому типу объекта и вызвать тот же самый метод (как это 
+  делается будет объяснено в следующей главе). Если же метод <b>private</b>, то 
+  он не является частью интерфейса базового класса. Он это просто немного кода 
+  скрытого внутри класса, и просто так случилось, что он имеет то же имя, но если 
+  уж Вы создаете метод с модификатором <b>public</b>, <b>protected</b> или friendly 
+  в дочернем классе, то здесь нет связи с методом из базового класса. Поэтому 
+  <b>private </b>метод недоступный и эффективный способ скрыть какой-либо код, 
+  и при этом он не влияет на организацию кода в котором он был объявлен.<a name="_Toc375545320"></a><a name="_Toc481064618"></a></p>
+<a name="Heading228"></a>
+<h3 align="LEFT">Final классы<br>
+  <a name="Index649"></a><a name="Index650"></a></h3>
+<p>Когда Вы объявляете целый класс <b>final</b> (путем добавления в его определение 
+  ключевого слова <b>final</b>), Вы тем самым заявляете, что не хотите наследовать 
+  от этого класса или что бы кто-то другой мог наследовать от него. Другими словами, 
+  по некоторым причинам в вашем классе не должны делаться какие-либо изменения, 
+  или по причинам безопасности не могут быть созданы подклассы. В другом же случае, 
+  причиной сделать класс final может послужить эффективность выполнения кода класса, 
+  но здесь нужно быть уверенным, что все, что внутри класса уже оптимизировано 
+  как можно более максимально.</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Jurassic.java</font>
+<font color="#009900" size="+1">// Создание целого final класса.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> SmallBrain {}
+
+<font color=#0000ff>final</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Dinosaur {
+  <font color=#0000ff>int</font> i = 7;
+  <font color=#0000ff>int</font> j = 1;
+  SmallBrain x = <font color=#0000ff>new</font> SmallBrain();
+  <font color=#0000ff>void</font> f() {}
+}
+
+<font color=#009900>//! класс Further расширяет Dinosaur {}</font></font>
+<font color="#009900" size="+1">// Ошибка: Нельзя расширить класс 'Dinosaur'</font>
+
+<font color="#0000ff" size="+1">public</font> <font color="#0000ff" size="+1">class</font><font size="+1"> Jurassic {
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    Dinosaur n = <font color=#0000ff>new</font> Dinosaur();
+    n.f();
+    n.i = 40;
+    n.j++;
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Заметьте, что поля данных могут быть <b>final</b>, а могут и не быть, по вашему 
+  выбору. Те же самые правила применимы и к <b>final</b> членам класса вне зависимости 
+  определен ли сам класс, как <b>final</b>. Определение класса, как <b>final</b> 
+  просто предотвращает дальнейшее от него наследование. Несмотря на это, поскольку 
+  он предотвращает <a name="Index651"></a>наследование всех методов в классе <b>final</b>, 
+  то они безоговорочно тоже становятся <b>final</b>, поскольку нет способа для 
+  их переопределения. Так что компилятор имеет тоже полезное действие, как если 
+  бы Вы определили каждый из методов как <b>final</b>.</p>
+<p>Вы можете добавить спецификатор <b>final</b> к методу в <b>final</b> классе, 
+  но это уже ничего означать не будет.<a name="_Toc375545321"></a><a name="_Toc481064619"></a></p>
+<a name="Heading229"></a>
+<h3 align="LEFT">
+Предостережение о Final</h3>
+<p>Может показаться, что создание <b>final</b> метода во время разработки класса 
+  хорошая идея. Вы можете чувствовать, что <a name="Index652"></a><a name="Index653"></a><a name="Index654"></a>эффективность 
+  и важность его высоки и никто не должен перекрыть этот метод. Иногда это действительно 
+  так.</p>
+<p>Но будьте осторожны в своих предположениях. Обычно трудно предположить, как 
+  именно будет в дальнейшем этот класс использоваться, особенно в качестве основного-целевого 
+  класса. Если Вы определили метод как <b>final</b> Вы можете предотвратить повторное 
+  его использование через наследование в других проектах, других программистов 
+  и просто потому, что Вы не можете себе представить, каким образом они будут 
+  это делать.</p>
+<p>Хорошим примером для этого может послужить стандартная библиотека Java. В частности, 
+  Java 1.0/1.1 класс <b>Vector</b> был часто использован и мог бы быть еще больше 
+  удобным в применении, если бы в иерархии все его методы, не бы ли бы сделаны 
+  <b>final</b>. Его изменение бы легко сделать через наследование и переопределение 
+  методов, но разработчики сочли это не подходящим. И здесь зарыта ирония двух 
+  причин. Первая, <b>Stack </b>наследуется от <b>Vector</b>, отсюда <b>Stack </b><i>является</i> 
+  <b>Vector</b>, что с точки зрения логики не совсем правда. Вторая, многие из 
+  наиболее важных методов класса <b>Vector</b>, такие как <b>addElement(&#160;) 
+  </b>и <b>elementAt(&#160;)</b> являются синхронизированными (<b>synchronized</b>). 
+  Как Вы увидите в <a href="Chapter14.html">главе 14</a>, при этом система подвергается 
+  значительным перегрузкам, которые возможно могут свести на нет все возможности 
+  предоставляемые <b>final</b>. Такая неувязочка подтверждает легенду о том, что 
+  программисты плохо себе представляют, в каком именно месте должна быть произведена 
+  оптимизация. Это просто плохой и неуклюжий дизайн воплощенный в двух стандартных 
+  библиотеках, которыми мы все должны пользоваться. (Хорошо, то, что в Java 2 
+  контейнерная библиотека заменила <b>Vector</b> на <b>ArrayList</b>, который 
+  ведет себя более прилично. Плохо то, что осталось множество программного обеспечения 
+  уже написанного с использованием старой контейнерной библиотеки.)</p>
+<p>Так же следует заметить, что другая не менее интересная библиотека <b>Hashtable</b>, 
+  не имеет ни одного метода с модификатором <b>final</b>. Как уже упоминалось 
+  в этой книге - различные классы написаны различными людьми и из-за этого встречаются 
+  такие похожие и не похожие библиотеки. А вот это уже не должно волновать потребителей 
+  классов. Если такие вещи противоречивы, то это лишь добавляет работы пользователям. 
+  Еще одна победная песнь грамотному дизайну и созданию кода. (Заметьте, что в 
+  Java 2 контейнерная библиотека заменила <b>Hashtable</b> на <b>HashMap</b>.)<a name="_Toc375545322"></a><a name="_Toc481064620"></a></p>
+<a name="Heading230"></a>
+<h2 align="LEFT">
+Инициализация и загрузка классов<br>
+  <a name="Index655"></a><a name="Index656"></a><a name="Index657"></a></h2>
+<p>В большинстве традиционных языках программирования, программы загружаются как 
+  единая часть при запуске. После этого следует стадия инициализации, и после 
+  нее программа начинает работать. Процесс инициализации в этих языках должен 
+  с осторожностью контролироваться, потому, что последовательность инициализации 
+  <b>static</b> &quot;объектов&quot; может вызвать проблемы. C++, к примеру, имеет 
+  проблемы, если один из <b>static</b> &quot;объектов&quot; ожидает другой <b>static 
+  </b>&quot;объект&quot;, но до того, как второй был проинициализирован.</p>
+<p>Java же не имеет такой проблемы, поскольку в ней используется отличный подход 
+  по загрузке файлов. Поскольку в Java все является объектами, то многие виды 
+  деятельности более просты в исполнении, и загрузка входит в их число. Как Вы 
+  узнаете в следующей главе, скомпилированный код для каждого класса существует 
+  в своем собственном отдельном файле. Эти файлы не загружаются, до того момента, 
+  как понадобится код хранящийся в них. Обычно, Вы можете сказать: &quot;Код классов 
+  загружается при первой попытке их использования.&quot; Но загрузка так же осуществляется 
+  часто до того, как первый класс был загружен и проинициализирован полностью, 
+  и загрузка других классов случается, когда осуществляется доступ к <b>static 
+  </b>полям или <b>static</b> методам.</p>
+<p>Точка первого использования другого класса находится там же, где и инициализация 
+  <b>static</b> объекта. Все <b>static</b> объекты и весь <b>static</b> блок кода 
+  будет инициализирован в текстовом порядке <a name="Index658"></a> (это значит, 
+  что они будут инициализироваться в том порядке, в каком Вы их написали в определении 
+  класса) при загрузке. <b>Static </b>объекты, естественно инициализируются только 
+  один раз.<a name="_Toc375545323"></a><a name="_Toc481064621"></a></p>
+<a name="Heading231"></a>
+<h3 align="LEFT">
+Инициализация с наследованием</h3>
+<p>Полезно взглянуть на процесс инициализации <a name="Index659"></a><a name="Index660"></a>целиком, 
+  включая наследование, что бы получить полную картину того, что же происходит 
+  на самом деле. Рассмотрим следующий код:</p>
+<blockquote>
+  <pre><font color="#009900" size="+1">//: c06:Beetle.java</font>
+<font color="#009900" size="+1">// Полный процесс инициализации.</font>
+
+<font color="#0000ff" size="+1">class</font><font size="+1"> Insect {
+  <font color=#0000ff>int</font> i = 9;
+  <font color=#0000ff>int</font> j;
+  Insect() {
+    prt(<font color=#004488>"i = "</font> + i + <font color=#004488>", j = "</font> + j);
+    j = 39;
+  }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> x1 = 
+    prt(<font color=#004488>"static Insect.x1 initialized"</font>);
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> prt(String s) {
+    System.out.println(s);
+    <font color=#0000ff>return</font> 47;
+  }
+}
+
+<font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">class</font><font size="+1"> Beetle <font color=#0000ff>extends</font> Insect {
+  <font color=#0000ff>int</font> k = prt(<font color=#004488>"Beetle.k initialized"</font>);
+  Beetle() {
+    prt(<font color=#004488>"k = "</font> + k);
+    prt(<font color=#004488>"j = "</font> + j);
+  }
+  <font color=#0000ff>static</font></font> <font color="#0000ff" size="+1">int</font><font size="+1"> x2 =
+    prt(<font color=#004488>"static Beetle.x2 initialized"</font>);
+  <font color=#0000ff>public</font></font> <font color="#0000ff" size="+1">static</font> <font color="#0000ff" size="+1">void</font><font size="+1"> main(String[] args) {
+    prt(<font color=#004488>"Beetle constructor"</font>);
+    Beetle b = <font color=#0000ff>new</font> Beetle();
+  }
+} <font color=#009900>///:~</font></font></pre>
+</blockquote>
+<p>Вот вывод программы:</p>
+<blockquote>
+  <pre><font color="#0000ff" size="+1">static</font><font size="+1"> Insect.x1 initialized
+<font color=#0000ff>static</font> Beetle.x2 initialized
+Beetle constructor
+i = 9, j = 0
+Beetle.k initialized
+k = 47
+j = 39</font></pre>
+</blockquote>
+<p>Первая вещь, которая происходит, когда Вы запускаете Java и <b>Beetle</b> это 
+  то, что Вы пытаетесь получить доступ к <b>Beetle.main(&#160;) </b>(к <b>static 
+  </b>методу), так, что загрузчик пытается найти и открыть скомпилированный код 
+  к классу <b>Beetle</b> <a name="Index661"></a><a name="Index662"></a> (он нашел 
+  его в файле <b>Beetle.class</b>). В процессе его загрузки компилятор обнаруживает, 
+  что этот класс имеет базовый класс (об этом ему сообщает ключевое слово <b>extends</b>), 
+  оный он и загружает в последствии. Случилось ли это или нет, Вы собираетесь 
+  создать объект базового класса. (Попробуйте закомментировать создание объекта, 
+  для того, что бы сделать это самостоятельно.)</p>
+<p>Если базовый класс имеет так же базовый класс, то этот второй базовый класс 
+  будет загружен и так далее. Дальше, производится инициализация <a name="Index663"></a><a name="Index664"></a><b>static</b> 
+  элементов в корневом классе (в нашем случае в классе <b>Insect</b>), а только 
+  затем в дочернем и так далее. И это важно, поскольку static элементы дочернего 
+  класса могут быть зависимы от членов базового класса, которые могут не быть 
+  проинициализированы корректно к этому времени.</p>
+<p>Теперь все нужные классы уже загружены, так что наш объект может быть создан. 
+  Сперва, все примитивные элементы нашего объекта устанавливаются в их значения 
+  по умолчанию, а ссылки на объекты устанавливаются в <b>null</b>, в &quot;железе&quot; 
+  просто устанавливаются ячейки памяти в двоичный ноль.<b> </b>После этого вызывается 
+  конструктор базового класса. При этом вызов осуществляется автоматически, но 
+  Вы можете так же выбрать какой-то конкретный конструктор базового класса (первый 
+  оператор в конструкторе <b>Beetle(&#160;)</b>) используя <b>super</b>. Создание 
+  базового класса происходит по тем же правилам и в том же порядке, что и создание 
+  дочернего класса. После того, как отработает конструктор базового класса все 
+  представления переменных уже будут проинициализированы в текстовом порядке.<a name="_Toc375545324"></a><a name="_Toc481064622"></a></p>
+<a name="Heading232"></a>
+<h2 align="LEFT">
+Резюме</h2>
+<p>Оба метода, и наследование и композиция позволяют Вам создать новый тип из 
+  уже существующего. Обычно, Вы используете композицию для повторного использования 
+  существующих типов как части имплементации нового типа, а наследование когда 
+  Вам необходимо повторно использовать интерфейс. В силу того, что дочерний класс 
+  имеет интерфейс базового класса, он может быть приведен к базовому типу, что 
+  весьма важно для полиморфизма, что собственно Вы и увидите в следующей главе. 
+</p>
+<p>Относитесь с осторожностью к наследованию в объектно-ориентированном программировании, 
+  когда Вы начинаете разработку нового проекта используйте лучше композицию, а 
+  после того, как ваш код будет доведен до совершенства измените композицию на 
+  наследование если это конечно необходимо. Композиция имеет тенденцию к большей 
+  гибкости. Вы так же можете изменять поведение объектов с композицией во время 
+  исполнения.</p>
+<p>Повторное использование композиции и наследования оказывает огромную помощь 
+  для быстрой разработки проектов, Вы обычно хотите изменить <a name="Index665"></a>иерархию 
+  ваших классов, до того, как другие программисты станут работать с вашим проектом 
+  и с вашими классами. Вашим преимуществом при этом будет наследование, где каждый 
+  класс не большой по размеру (но и не слишком маленький, что бы не потерять функциональность) 
+  и выполняет узкую задачу.<a name="_Toc375545325"></a><a name="_Toc481064623"></a></p>
+<a name="Heading233"></a>
+<h2 align="LEFT">
+Упражнения</h2>
+<p><font size=2>Решения этих упражнений могут быть найдены в электронном документе 
+  <i>The Thinking in Java Annotated Solution Guide</i>, доступном с <i><a href="http://www.BruceEckel.com" target="_blank">www.BruceEckel.com</a></i>.</font></p>
+<ol>
+  <li>	Создайте два класса,
+<b>A</b> и <b>B</b>, с конструкторами по умолчанию (пустой список аргументов), которые объявляют сами себя. Наследуйте новый класс <b>C</b> от <b>A</b>, и создайте объект класса <b>B</b> внутри <b>C</b>. Не создавайте конструктор для <b>C</b>. Создайте  объект класса <b>C</b> и наблюдайте за результатами.
+  <li>Модифицируйте упражнение 1 так, что <b>A</b> и <b>B</b> получат конструкторы с аргументами взамен конструкторов  по умолчанию. Напишите конструктор для <b>C</b> и осуществите инициализацию с конструктором  <b>C</b>.
+
+  <li>	Создайте простой класс. Внутри второго класса создайте объект первого класса.
+Используйте ленивую инициализацию для создания экземпляра этого объекта.
+  <li>	Наследуйте новый класс от класса <b>Detergent</b>. Переопределите <b>scrub(&#160;)</b> и добавьте  новый метод называемый
+<b>sterilize(&#160;)</b>.
+  <li>	Возьмите файл <b>Cartoon.java</b> и закомментируйте  конструктор для класса
+<b>Cartoon</b>. Объясните, что случилось.
+  <li>	Возьмите файл <b>Chess.java</b> и закомментируйте  конструктор  для класса <b>Chess</b>. Объясните, что произошло.
+  <li>	Докажите, что конструктор по умолчанию создается компилятором.
+  <li>	Докажите, что конструктор базового класса вызывается всегда и он вызывается до вызова конструктора дочернего класса.
+  <li>	Создайте базовый класс с конструктором  не по умолчанию  и наследуйте от него класс с конструктором по умолчанию и не по умолчанию. В конструкторах дочернего класса вызовите конструктор  базового класса.
+  <li>Создайте класс  <b>Root</b>, который содержит экземпляр каждого из классов (которые Вы так же должны создать) <b>Component1</b>, <b>Component2</b>,<b> </b>и
+<b>Component3</b>. Наследуйте класс <b>Stem</b> от <b>Root</b> который будет так же содержать экземпляры каждого компонента. Каждый класс должен содержать конструктор  по умолчанию, который печатает сообщение о этом классе.  
+  <li>	Измените, упражнение  10, так, что бы каждый класс имел только конструкторы  не по умолчанию.
+  <li>	12.	Добавьте  в существующую иерархию методы <b>cleanup(&#160;) </b>во все классы в упражнении 11.
+  <li>	Создайте класс с методом, который перегружен три раза. Наследуйте новый класс, добавьте  новую перегрузку метода и посмотрите на то, что все четыре метода доступны в дочернем классе.
+  <li>	В
+<b>Car.java</b> добавьте  метод <b>service(&#160;)</b> в <b>Engine</b> и вызовите этот метод в <b>main(&#160;)</b>.
+  <li>	Создайте класс внутри пакета. Ваш класс должен иметь один метод с модификатором <b>protected</b>.
+Снаружи пакета попытайтесь вызвать метод и затем объясните результаты. После этого наследуйте новый класс и вызовите этот метод уже из него.
+  <li>	Создайте класс  <b>Amphibian</b>. От него наследуйте класс <b>Frog</b>.
+Поместите соответствующие методы в базовый класс. В <b>main(&#160;)</b>, создайте
+<b>Frog</b> и приведите его к базовому типу <b>Amphibian</b> и покажите то, что все методы работают.
+  <li>	Измените, упражнение 16 так, что  бы <b>Frog</b> переопределял определения методов из базового класса (предоставьте  новые определения, используя те же самые обозначения методов). Заметьте, что случилось в 
+<b>main(&#160;)</b>.
+  <li>	Создайте новый класс с полем <b>static final</b> и полем <b>final</b>, а затем  покажите разницу между ними.
+  <li>	Создайте класс с пустой  <b>final</b> ссылкой на объект. Осуществите ее инициализацию внутри метода (не конструктора) сразу после того, как вы его определили. Покажите то, что  <b>final</b> должна быть инициализирована  до использования и после этого ее нельзя изменить.
+  <li>	Создайте класс, содержащий <b>final</b> метод. Наследуйте от этого класса и попытайтесь переопределить этот метод.
+  <li>	Создайте класс с модификатором
+<b>final</b> и попытайтесь наследовать от него.
+  <li>Докажите, что загрузка класса имеет место быть только один раз. Докажите, что загрузка может быть вызвана созданием первого экземпляра этого класса или доступом  к <b>static</b>
+элементу.
+  <li>	В
+<b>Beetle.java</b>, наследуйте специфический тип   beetle от класса <b>Beetle</b>,
+следуйте тому же самому формату, как в существующих классах. Проследите и объясните вывод.
+</ol>
+<div align="CENTER">
+    <font size = "-1">
+     </font><font face="Verdana" size = "-1">[ <a href="Chapter05.html">Предыдущая глава</a> ] 
+    [ <a href="SimpleContents.html">Краткое оглавление</a> ] 
+    [ <a href="Contents.html">Оглавление</a> ] 
+    [ <a href="DocIndex.html">Список</a> ]
+     [ <a href="Chapter07.html">Следующая глава</a> ] 
+    </font>
+    <br>
+ Last Update:04/24/2000
+  <p></p>
+</div>
+
+
+<hr>
+</BODY>
+</HTML>

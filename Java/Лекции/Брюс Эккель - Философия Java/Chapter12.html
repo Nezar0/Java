@@ -1,0 +1,1475 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1251">
+<META NAME="Generator" CONTENT="Microsoft Word 97">
+<TITLE>12: Run-time Type Identification</TITLE>
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080" BGCOLOR="#ffffff">
+<P><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"> 
+<P ALIGN="CENTER"><font size="5">Thinking in Java, 2nd edition, Revision 11</font></P>
+  <H3 ALIGN="CENTER"><font size="5">©2000 by Bruce Eckel</font></H3>
+  <P ALIGN="CENTER"><font size="3">[ <A HREF="Chapter11.html">Предыдущая глава</A> 
+    ] [ <A HREF="SimpleContents.html">Оглавление</A> ] [ <A HREF="Contents.html">Содержание</A> 
+    ] [ <A HREF="DocIndex.html">Индекс</A> ] [ <A HREF="Chapter13.html">Следующая 
+    глава</A> ] </font></P>
+  <P>
+
+<font size="2"><A NAME="Chapter_11"></A><A NAME="Chapter_11"></A></font><A NAME="Chapter_11"><A NAME="Chapter_12"><A NAME="_Toc375545404"><A NAME="_Toc477690732"><A NAME="_Toc481064772"><A NAME="Heading401"></A></A></A></A></A></A>
+<p></P>
+<H1>12: Идентификация типа времени выполнения</H1>
+<P>
+
+  <p></P>
+  <P><font size="4">Идея механизма идентификации типа времени выполнения (RTTI 
+    - run-time type identification) кажется довольно простой вначале: он позволяет 
+    Вам определить точный тип объекта только по ссылке на базовый тип. </font></P>
+  <P>
+
+<p></P>
+<P>Однако, необходимость RTTI раскрывает огромное количество интересных (и зачастую 
+  запутанных) решений ОО дизайна, и, ставит фундаментальные вопросы - как Вам 
+  следует строить свои программы.</P>
+<P>Эта глава показывает пути, которые Java предоставляет для получения информации 
+  об объекте и классах во время выполнения. Она дает две формы: “традиционный” 
+  механизм RTTI, который предполагает, что все типы у Вас доступны во время компиляции 
+  и выполнения, а также механизм “рефлексии”, который позволяет Вам получить информацию 
+  о классе исключительно во время выполнения. Вначале будет описан “традиционный” 
+  механизм, а затем будет обсуждение рефлексии.</P>
+<P>
+
+  <p></P>
+  <P><A NAME="_Toc375545405"><A NAME="_Toc481064773"></A></A></P>
+  <P>
+
+<A NAME="Heading402"></A>
+<p></P>
+<H2>Необходимость RTTI</H2>
+<P>Рассмотрите пример иерархии классов, которые используют полиморфизм. Общий 
+  тип - это базовый класс <B>Shape<A NAME="Index1466"><A NAME="Index1467"></A></A></B>, 
+  и классы - наследники - <B>Circle</B>, <B>Square</B> и <B>Triangle</B>:</P>
+<P align="center"> <IMG SRC="TIJ227.gif" WIDTH=289 HEIGHT=147> 
+<p></P>
+
+<P>Это типичная диаграмма иерархии классов, с базовым классом на вершине и базовыми 
+  классами, растущими вниз. Стандартная задача в объектно-ориентированном программировании<A NAME="Index1468"></A><FONT FACE="Georgia"><A NAME="Index1468"><A NAME="Index1469"></A></A> 
+  это манипуляции ссылкой на базовый тип (в нашем случае <B>Shape</B>) в больших 
+  объемах кода, так, что если Вы решите расширить программу за счет добавления 
+  нового класса (например,<B> Rhomboid</B>, наследуемый от <B>Shape</B>), больших 
+  изменений в коде не потребуется. В этом примере, методом динамического связывания 
+  в интерфейсе <B>Shape</B> является <B>draw(&nbsp;)</B>, так что цель клиентского 
+  программиста - вызывать метод <B>draw(&nbsp;)</B> по ссылке на базовый класс 
+  <B>Shape</B>. Метод <B>draw(&nbsp;)</B> перекрывается во всех наследуемых классах, 
+  и т.к. это динамически связанный метод, в результате все будет работать правильно, 
+  даже несмотря на то, что метод вызывается через ссылку на базовый класс <B>Shape</B>. 
+  И это - <A NAME="Index1470"></A>полиморфизм.</font></P>
+<P>
+
+  <p></P>
+  
+<P>Итак Вы, в большинстве случаев, создаете объект (<B>Circle</B>, <B>Square</B> 
+  или <B>Triangle</B>), приводите его к базовому типу <B>Shape</B> (забывая об 
+  особенностях этого объекта), и используете эту анонимную ссылку на<B> Shape 
+  </B>в остальной части программы.</P>
+  <P>
+
+
+  <p></P>
+  
+<P>Вот краткий пример полиморфизма и <A NAME="Index1471"></A>приведения к базовому 
+  типу, показывающий то, что было описано выше:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:Shapes.java
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.util.*;
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Shape {
+  </font><font size="3" color="#0000ff">void</font><font size="3"> draw() {
+    System.out.println(</font><font size="3" color="#0000ff">this</font><font size="3"> + </font><font size="3" color="#008080">".draw()"</font><font size="3">);
+  }
+}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Circle </font><font size="3" color="#0000ff">extends</font><font size="3"> Shape {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> String toString() { </font><font size="3" color="#0000ff">return</font><font size="3"> </font><font size="3" color="#008080">"Circle"</font><font size="3">; }
+}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Square </font><font size="3" color="#0000ff">extends</font><font size="3"> Shape {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> String toString() { </font><font size="3" color="#0000ff">return</font><font size="3"> </font><font size="3" color="#008080">"Square"</font><font size="3">; }
+}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Triangle </font><font size="3" color="#0000ff">extends</font><font size="3"> Shape {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> String toString() { </font><font size="3" color="#0000ff">return</font><font size="3"> </font><font size="3" color="#008080">"Triangle"</font><font size="3">; }
+}
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> Shapes {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) {
+    ArrayList s = </font><font size="3" color="#0000ff">new</font><font size="3"> ArrayList();
+    s.add(</font><font size="3" color="#0000ff">new</font><font size="3"> Circle());
+    s.add(</font><font size="3" color="#0000ff">new</font><font size="3"> Square());
+    s.add(</font><font size="3" color="#0000ff">new</font><font size="3"> Triangle());
+    Iterator e = s.iterator();
+    </font><font size="3" color="#0000ff">while</font><font size="3">(e.hasNext())
+      ((Shape)e.next()).draw();
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>Базовый класс содержит метод <B>draw(&nbsp;)</B>, который неявно использует 
+  <B>toString(&nbsp;) </B>для печати идентификатора класса подстановкой параметра 
+  <B>this</B> в функцию <B>System.out.println(&nbsp;)</B>. Если эта функция встречает 
+  объект, она автоматически вызывает метод <B>toString(&nbsp;)</B>, чтобы создать 
+  строковое представление объекта.</P>
+<P>Каждый из наследуемых классов перекрывает метод <B>toString(&nbsp;)</B> (из 
+  объекта <B>Object</B>) так, что <B>draw(&nbsp;)</B> в любом случае печатает 
+  разные данные. В методе <B>main(&nbsp;)</B>, различные типы <B>Shape</B> создаются 
+  и добавляются в <B>ArrayList</B>. Именно в этом месте происходит приведение 
+  к базовому типу потому, что <B>ArrayList</B> хранит только объекты типа <B>Object</B>. 
+  Так как все в Java (за исключением примитивов) является типом <B>Object</B>, 
+  <B>ArrayList</B> может хранить также объекты типа <B>Shape</B>. Однако, при 
+  привведении к базовому типу <B>Object</B>,<B> </B>теряется специальная информация 
+  и то, что они имеют тип <B>Shape</B>. В <B>ArrayList</B>, они имеют тип <B>Object</B>.</P>
+<P>В том месте, где Вы достаете элемент из <B>ArrayList</B> с помощью <B>next(&nbsp;)</B>, 
+  появляется небольшое оживление. Так как <B>ArrayList</B> хранит только тип <B>Object</B>, 
+  <B>next(&nbsp;)</B> возвращает ссылку на тип <B>Object</B>. Но мы знаем, что, 
+  на самом деле, это ссылка на объект типа <B>Shape</B>, и хотим вызвать метод 
+  объекта <B>Shape</B>. Итак, нам необходимо <A NAME="Index1472"><A NAME="Index1473"></A></A>приведение 
+  к типу <B>Shape.</B> Мы делаем это, используя стандартный метод приведения к 
+  типу: “<B>(Shape)</B>”. Это - основная, базовая форма RTTI. Кроме того, в Java 
+  все приведения проверяются во время выполнения на корректность. Это в действительности 
+  и есть RTTI: идентификация типа объекта во время выполнения.</P>
+<P>В этом случае, приведение RTTI является только частичным: тип <B>Object</B> 
+  приводится к типу <B>Shape</B>, но не приводится к <B>Circle</B>, <B>Square</B> 
+  или <B>Triangle</B>. Это происходит потому, что единственная вещь, которую мы 
+  хотим знать, это то, что <B>ArrayList</B> заполнен объектами типа <B>Shape</B>. 
+  Во время компиляции это реализуется по Вашему усмотрению, во время выполнения 
+  это обеспечивает механизм приведения типа.</P>
+<P>Итак полиморфизм работает и нужный метод, вызываемый из <B>Shape</B> определяется 
+  в зависимости от того, является ли он ссылкой на <B>Circle</B>, <B>Square </B>или 
+  <B>Triangle</B>. И вообще это так и должно быть; Вы хотите, чтобы основной Ваш 
+  код знал как можно меньше об особенностях объекта, и просто общался с основными 
+  представлениями группы объектов (в нашем случае <B>Shape</B>). В результате 
+  Ваш код будет проще читаться, писаться, исправляться, а Ваши намерения и планы 
+  будут проще в реализации, понимании и изменении. Итак, полиморфизм - основная 
+  задача объектно-ориентированного программирования.</P>
+<P>Но если у Вас есть специальная задача, которая существенно упрощается, если 
+  Вы знаете точный тип базовой ссылки на объект?<A NAME="Index1474"><A NAME="Index1475"></A></A> 
+  Например, представьте, что Вы хотите дать пользователям возможность подсвечивать 
+  все формы (Shape), определенного типа перекрашивая их в пурпурный цвет. В этом 
+  случае, они смогут найти все треугольники на экране, подсвечивая их. Это выполняет 
+  RTTI: Вы можете спросить у ссылки на<B> Shape</B> точный тип объекта, на который 
+  она ссылается.<A NAME="_Toc312374135"><A NAME="_Toc375545406"><A NAME="_Toc481064774"></A></A></A></P>
+<P><A NAME="Heading403"></A></P>
+<H3>Объект Class</H3>
+<P>Чтобы понять, как RTTI работает в Java, Вы должны вначале узнать, 
+  как информация о типе представляется во время выполнения. Это реализуется с 
+  помощью специального типа объекта называемого <A NAME="Index1476"><A NAME="Index1477"><A NAME="Index1478"></A></A></A><I>Class,</I> 
+  который содержит информацию о классе. (Иногда он называется <A NAME="Index1479"><A NAME="Index1480"></A></A><I>meta-class.</I>) 
+  На самом деле, <B>Class</B> используется для создания всех “регулярных” объектов 
+  Вашего класса.</P>
+<P>Объект <B>Class</B> существует для каждого класса, который является частью 
+  Вашей программы. Т.е., каждый раз, когда Вы пишите и компилируете новый класс, 
+  также создается единичный объект <B>Class</B> (и записывается в файл, имеющий 
+  идентичное имя и расширение <B>.class</B>). Во время выполнения, когда Вы хотите 
+  создать объект какого-то класса, <A NAME="Index1481"><A NAME="Index1482"></A></A>виртуальная 
+  машина Java (Java Virtual Machine - JVM), которая выполняет Вашу программу сначала 
+  проверяет загружен ли объект <B>Class</B> этого класса. Если нет, JVM загружает 
+  его, находя файл <B>.class </B>с именем этого класса. Таким образом, программа 
+  на Java не загружается полностью перед запуском, и это отличает Java от других 
+  языков.</P>
+<P>
+
+  <p></P>
+  <P>Как только объект <B>Class</B> для этого типа объекта находится в памяти, 
+    он используется для создания всех объектов этого типа.</P>
+  <P>
+
+
+  <p></P>
+  <P>Если Вам это кажется неясным или Вы в это не верите - вот демонстрационная 
+    программа, подтверждающая это:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:SweetShop.java
+// Исследование механизма загрузки класса.
+</font><font size="3">
+</font><font size="3" color="#0000ff">class</font><font size="3"> Candy {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> {
+    System.out.println(</font><font size="3" color="#008080">"Loading Candy"</font><font size="3">);
+  }
+}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Gum {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> {
+    System.out.println(</font><font size="3" color="#008080">"Loading Gum"</font><font size="3">);
+  }
+}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Cookie {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> {
+    System.out.println(</font><font size="3" color="#008080">"Loading Cookie"</font><font size="3">);
+  }
+}
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> SweetShop {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) {
+    System.out.println(</font><font size="3" color="#008080">"inside main"</font><font size="3">);
+    </font><font size="3" color="#0000ff">new</font><font size="3"> Candy();
+    System.out.println(</font><font size="3" color="#008080">"After creating Candy"</font><font size="3">);
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      Class.forName(</font><font size="3" color="#008080">"Gum"</font><font size="3">);
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(ClassNotFoundException e) {
+      e.printStackTrace(System.err);
+    }
+    System.out.println(
+      </font><font size="3" color="#008080">"After Class.forName(\"</font><font size="3">Gum\</font><font size="3" color="#008080">")"</font><font size="3">);
+    </font><font size="3" color="#0000ff">new</font><font size="3"> Cookie();
+    System.out.println(</font><font size="3" color="#008080">"After creating Cookie"</font><font size="3">);
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Каждый из классов <B>Candy</B>, <B>Gum</B> и <B>Cookie</B> содержит предложение 
+    <A NAME="Index1483"></A><B>static</B>, которое выполняется, когда класс загружается 
+    впервый раз. Информация распечатается, когда произойдет загрузка класса. В 
+    методе <B>main(&nbsp;)</B>, создание объектов разделяется функциями печати, 
+    чтобы помочь определить момент их загрузки.</P>
+  <P>
+
+
+  <p></P>
+  <P>Особенно интересна строка:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3">Class.forName(<FONT COLOR="#008080">"Gum"</FONT>);</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Этот метод является статическим членом объекта <B>Class</B> (которому принадлежат 
+    все объекты <B>Class</B>). Объект <B>Class</B> является таким же объектом, 
+    как и все остальные, так что Вы можете манипулировать ссылкой на него. (Это 
+    именно то, что делает загрузчик.) Один из спопобов получить ссылку на объект 
+    <B>Class</B> это метод <A NAME="Index1484"><A NAME="Index1485"></A></A><B>forName(&nbsp;)</B>, 
+    которое берет строку <B>String</B>, содержащую текстовое имя (следите за правильным 
+    написанием имени класса и не забывайте, что регистр имеет значение!) класса, 
+    на который Вам нужна ссылка.. Этот медтод возвращает ссылку на объект <B>Class</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Результаты работы этой программы на консоли JVM:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3">inside main
+Loading Candy
+After creating Candy
+Loading Gum
+After Class.forName(<FONT COLOR="#008080">"Gum"</FONT>)
+Loading Cookie
+After creating Cookie</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Вы видите, что каждый объект <B>Class</B> загружается только, когда он нужен, 
+    и статические and the <B>static</B> инициализации выполняются сразу после 
+    загрузки класса.</P>
+  <P>
+
+<A NAME="Heading404"></A>
+<p></P>
+<H4>Литералы объектов Class </H4>
+<P>
+
+  <p></P>
+  <P>Java предоставляет еще один путь для получения ссылки на объект <B>Class</B>, 
+    с помощью <A NAME="Index1486"><A NAME="Index1487"></A></A><I>литералов объекта 
+    class</I>. В приведенной выше программе это могло бы выглядеть так:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3">Gum.<FONT COLOR="#0000ff">class</FONT>;</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>это не только проще, но еще и безопасней т.к. это выражение проверяется во 
+    время компиляции. Этот способ не использует вызова метода, а также, является 
+    более действенным.</P>
+  <P>
+
+
+  <p></P>
+  <P>Литералы объектов Class работают с регулярными классами, а также с интерфейсами, 
+    массивами и примитивными типами. В дополнение, существует стандартное поле 
+    называемое <A NAME="Index1488"></A><B>TYPE,</B> которое существует для каждого 
+    примитивного класса-оболочки. Поле <B>TYPE</B> создает ссылку на объект <B>Class</B> 
+    для соответствующего примитивного класса, следующим образом:</P>
+  <P>
+
+
+  <p></P>
+  
+<TABLE BORDER CELLSPACING=1 WIDTH=345 align="center">
+  <TR>
+      <TD VALIGN="TOP" COLSPAN=2> 
+        <P ALIGN="CENTER">
+        <b>... эквивалентно ...</b>
+          <p></P>
+          <P>
+        
+      </TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>boolean.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Boolean.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>char.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Character.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>byte.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Byte.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>short.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Short.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>int.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Integer.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>long.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Long.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>float.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Float.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>double.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Double.TYPE</b></TD>
+    </TR>
+    <TR>
+      
+    <TD VALIGN="MIDDLE"> <b>void.class</b></TD>
+      
+    <TD VALIGN="MIDDLE"> <b>Void.TYPE</b><B><A NAME="_Toc375545408"></A></B></TD>
+    </TR>
+  </TABLE>
+
+ 
+  <P>Я предпочитаю использовать “<B>.class</B>” версию, т.к. она лучше согласуется 
+    с регулярными классами.<A NAME="_Toc481064775"></A></P>
+  <P>
+
+<A NAME="Heading405"></A>
+<p></P>
+<H3>Проверка перед приведением типа</H3>
+<P>
+
+  <p></P>
+  <P>Пока Вы видели две формы RTTI включающие:</P>
+  <P>
+
+<p></P>
+<OL>
+  <LI>Стандартное приведение; в виде “<B>(Shape),</B>” которое использует RTTI, 
+    чтобы убедиться, что приведение произошло корректно, и выбрасывает исключение 
+    <B>ClassCastException,</B> если вы попытались произвести неправильное приведение.</LI>
+  <LI>Объект <B>Class</B> представляет тип Вашего объекта. Объект <B>Class</B> 
+    может быть опрошен для получения полезной информации.</LI>
+</OL>
+<P>
+
+  <p></P>
+  
+<P>В C++, классическое приведение “<B>(Shape)</B>” не использует RTTI. В этом 
+  случае компилятору сообщается, что объект просто имеет новый тип. В языке Java, 
+  который выполняет проверку типа, это приведение часто называется “безопасное 
+  нисходящее приведение типа<A NAME="Index1489"><A NAME="Index1490"><A NAME="Index1491"></A></A></A>.” 
+  Причина использования термина “нисходящее приведение” является историческим 
+  соглашением диаграммы иерархии классов. Если приведение типа <B>Circle</B> к 
+  типу <B>Shape</B> является восходящим, то приведение типа <B>Shape</B> к типу 
+  <B>Circle</B> является нисходящим. Однако Вы знаете, что класс<B> Circle</B> 
+  является еще и классом <B>Shape</B>, и компилятор свободно позволяет присвоение 
+  с восходящим приведением типа, но Вы <I>не знаете</I>, что класс <B>Shape</B> 
+  обязательно является классом <B>Circle</B>, так что компилятор не позволит выполнить 
+  <A NAME="Index1492"><A NAME="Index1493"></A></A>присвоение с нисходящим приведением 
+  без использования явного приведения. </P>
+  <P>
+
+
+  <p></P>
+  <P>В Java существует третья форма RTTI. Это ключевое слово <A NAME="Index1494"><A NAME="Index1495"></A></A><B>instanceof</B> 
+    которое говорит Вам, что объект является экземпляром конкретного типа. Оно 
+    возвращает значение <B>boolean</B>, так, что Вы используете его в форме вопроса 
+    следующим образом:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#0000ff">if</font><font size="3">(x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Dog)
+  ((Dog)x).bark();</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  
+<P>Приведенное выше выражение <B>if</B> проверяет, является ли объект <B>x</B> 
+  экземпляром класса <B>Dog</B> <I>перед </I>приведением объекта <B>x</B> к типу 
+  <B>Dog</B>. Это важно - использовать <B>instanceof</B> перед нисходящим приведением, 
+  когда у Вас нет ничего, что могло бы дать информацию о типе объекта; в противном 
+  случае приведение может завершится выбросом исключения <A NAME="Index1496"><A NAME="Index1497"></A></A><B>ClassCastException</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Обычно, Вы можете искать один типом (например, треугольниками, чтобы окрасить 
+    их в пурпурный), но Вы можете просто повесить ярлычки на все объекты используя 
+    <B>instanceof</B>. Представьте, что у Вас есть группа классов <B>Pet</B>:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:Pets.java
+</font><font size="3" color="#0000ff">class</font><font size="3"> Pet {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Dog </font><font size="3" color="#0000ff">extends</font><font size="3"> Pet {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Pug </font><font size="3" color="#0000ff">extends</font><font size="3"> Dog {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Cat </font><font size="3" color="#0000ff">extends</font><font size="3"> Pet {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Rodent </font><font size="3" color="#0000ff">extends</font><font size="3"> Pet {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Gerbil </font><font size="3" color="#0000ff">extends</font><font size="3"> Rodent {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Hamster </font><font size="3" color="#0000ff">extends</font><font size="3"> Rodent {}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> Counter { </font><font size="3" color="#0000ff">int</font><font size="3"> i; } </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Класс <B>Counter</B> используется для хранения количества любых классов типа 
+    <B>Pet</B>. Вы можете считать, что это переменная <B>Integer</B> которая может 
+    быть изменена.</P>
+  <P>
+
+
+  <p></P>
+  <P>Используя <B>instanceof</B>, все классы <B>Pet</B> могут быть подсчитаны:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:PetCount.java
+// Использование instanceof.
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.util.*;
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> PetCount {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> String[] typenames = {
+    </font><font size="3" color="#008080">"Pet"</font><font size="3">, </font><font size="3" color="#008080">"Dog"</font><font size="3">, </font><font size="3" color="#008080">"Pug"</font><font size="3">, </font><font size="3" color="#008080">"Cat"</font><font size="3">,
+    </font><font size="3" color="#008080">"Rodent"</font><font size="3">, </font><font size="3" color="#008080">"Gerbil"</font><font size="3">, </font><font size="3" color="#008080">"Hamster"</font><font size="3">,
+  };
+  </font><font size="3" color="#008000">// Исключение выбрасывается на консоль:
+</font><font size="3">  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) 
+  </font><font size="3" color="#0000ff">throws</font><font size="3"> Exception {
+    ArrayList pets = </font><font size="3" color="#0000ff">new</font><font size="3"> ArrayList();
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      Class[] petTypes = {
+        Class.forName(</font><font size="3" color="#008080">"Dog"</font><font size="3">),
+        Class.forName(</font><font size="3" color="#008080">"Pug"</font><font size="3">),
+        Class.forName(</font><font size="3" color="#008080">"Cat"</font><font size="3">),
+        Class.forName(</font><font size="3" color="#008080">"Rodent"</font><font size="3">),
+        Class.forName(</font><font size="3" color="#008080">"Gerbil"</font><font size="3">),
+        Class.forName(</font><font size="3" color="#008080">"Hamster"</font><font size="3">),
+      };
+      </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; 15; i++)
+        pets.add(
+          petTypes[
+            (</font><font size="3" color="#0000ff">int</font><font size="3">)(Math.random()*petTypes.length)]
+            .newInstance());
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(InstantiationException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot instantiate"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(IllegalAccessException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot access"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(ClassNotFoundException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot find class"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    }
+    HashMap h = </font><font size="3" color="#0000ff">new</font><font size="3"> HashMap();
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; typenames.length; i++)
+      h.put(typenames[i], </font><font size="3" color="#0000ff">new</font><font size="3"> Counter());
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; pets.size(); i++) {
+      Object o = pets.get(i);
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Pet)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Pet"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Dog)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Dog"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Pug)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Pug"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Cat)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Cat"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Rodent)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Rodent"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Gerbil)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Gerbil"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Hamster)
+        ((Counter)h.get(</font><font size="3" color="#008080">"Hamster"</font><font size="3">)).i++;
+    }
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; pets.size(); i++)
+      System.out.println(pets.get(i).getClass());
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; typenames.length; i++)
+      System.out.println(
+        typenames[i] + </font><font size="3" color="#008080">" quantity: "</font><font size="3"> +
+        ((Counter)h.get(typenames[i])).i);
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P><A NAME="_Toc305593310"><A NAME="_Toc305628782"></A></A></P>
+  <P>
+
+
+  <p></P>
+  <P>Существуют некоторые ограничения на использование <B>instanceof</B>: Вы можете 
+    сравнивать только именованные типы, но не объекты <B>Class</B>. В примере, 
+    приведенном выше, Вам может показаться, что это довольно скучно набирать все 
+    выражения <B>instanceof</B>, и Вы будете правы. Но не существует способа для 
+    правильной автоматизации <B>instanceof </B>созданием массива <B>ArrayList</B> 
+    объектов <B>Class</B> и сравнения их. Это не такое сильное ограничение, как 
+    Вы можете представить, т.к. Вы, в конечном счете, поймете, что Ваш замысел 
+    не будет осуществлен, если Вы прекратите писать множество этих выражений <B>instanceof</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Конечно, этот пример был придуман, Вы, возможно, будете размещать статический 
+    член данных в каждом типе и увеличивать его в конструкторе, чтобы сохранить 
+    их количество. Вы вполне можете сделать что-то в этом духе, если у Вас есть 
+    исходные тексты класса и Вы можете менять их.. Но т.к. это бывает не всегда, 
+    Вы можете просто использовать RTTI.</P>
+  <P>
+
+<A NAME="Heading406"></A>
+<p></P>
+<H4>Использование литералов класса</H4>
+<P>
+
+  <p></P>
+  <P>Интересно посмотреть, как будет выглядеть пример <B>PetCount.java</B>, переписанный 
+    с использованием литералов класса<A NAME="Index1498"><A NAME="Index1499"></A></A>. 
+    В результате код получается гораздо лучше:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:PetCount2.java
+// Использование литералов класса.
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.util.*;
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> PetCount2 {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) 
+  </font><font size="3" color="#0000ff">throws</font><font size="3"> Exception {
+    ArrayList pets = </font><font size="3" color="#0000ff">new</font><font size="3"> ArrayList();
+    Class[] petTypes = {
+      </font><font size="3" color="#008000">// Литералы класса:
+</font><font size="3">      Pet.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Dog.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Pug.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Cat.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Rodent.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Gerbil.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Hamster.</font><font size="3" color="#0000ff">class</font><font size="3">,
+    };
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; 15; i++) {
+        </font><font size="3" color="#008000">// Смещение на 1, чтобы исключить класс Pet.class:
+</font><font size="3">        </font><font size="3" color="#0000ff">int</font><font size="3"> rnd = 1 + (</font><font size="3" color="#0000ff">int</font><font size="3">)(
+          Math.random() * (petTypes.length - 1));
+        pets.add(
+          petTypes[rnd].newInstance());
+      }
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(InstantiationException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot instantiate"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(IllegalAccessException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot access"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    }
+    HashMap h = </font><font size="3" color="#0000ff">new</font><font size="3"> HashMap();
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; petTypes.length; i++)
+      h.put(petTypes[i].toString(),
+        </font><font size="3" color="#0000ff">new</font><font size="3"> Counter());
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; pets.size(); i++) {
+      Object o = pets.get(i);
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Pet)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Pet"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Dog)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Dog"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Pug)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Pug"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Cat)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Cat"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Rodent)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Rodent"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Gerbil)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Gerbil"</font><font size="3">)).i++;
+      </font><font size="3" color="#0000ff">if</font><font size="3">(o </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Hamster)
+        ((Counter)h.get(</font><font size="3" color="#008080">"class Hamster"</font><font size="3">)).i++;
+    }
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; pets.size(); i++)
+      System.out.println(pets.get(i).getClass());
+    Iterator keys = h.keySet().iterator();
+    </font><font size="3" color="#0000ff">while</font><font size="3">(keys.hasNext()) {
+      String nm = (String)keys.next();
+      Counter cnt = (Counter)h.get(nm);
+      System.out.println(
+        nm.substring(nm.lastIndexOf('.') + 1) + 
+        </font><font size="3" color="#008080">" quantity: "</font><font size="3"> + cnt.i);
+    }
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Здесь, массив <B>typenames</B> был удален за счет того, что строка имени 
+    типа достается из объекта <B>Class</B>. Заметьте, что система может различать 
+    классы и интерфейсы.</P>
+  <P>
+
+
+  <p></P>
+  <P>Вы также видите, что создание <B>petTypes</B> не нужно окружать блоком <B>try,</B> 
+    т.к. оно вычисляется во время компиляции, и, потому, не может выбросить никаких 
+    исключений, в отличие от метода <B>Class.forName(&nbsp;)</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Когда объекты <B>Pet</B> динамически созданы, Вы видите, что случайное число 
+    ограничено 1 и <B>petTypes.length</B> и не включает 0. Это потому, что 0 ссылается 
+    на <B>Pet.class</B>, и, наверное, базовый класс <B>Pet</B> нам не интересен. 
+    Однако, т.к. <B>Pet.class</B> является частью <B>petTypes</B>, в результате, 
+    все классы <B>Pet</B> посчитаны.</P>
+  <P>
+
+<A NAME="Heading407"></A>
+<p></P>
+<H4>Динамическое выражение instanceof<A NAME="Index1500"></A></H4>
+<P>
+
+  <p></P>
+  <P>Метод объекта <B>Class</B> <A NAME="Index1501"><A NAME="Index1502"><A NAME="Index1503"></A></A></A><B>isInstance</B> 
+    предоставляет способ динамического вызова оператора <B>instanceof</B>. Таким 
+    образом, все эти скучные выражения <B>instanceof</B> могут быть удалены, что 
+    и показано в примере <B>PetCount</B>:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:PetCount3.java
+// Использование isInstance().
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.util.*;
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> PetCount3 {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) 
+  </font><font size="3" color="#0000ff">throws</font><font size="3"> Exception {
+    ArrayList pets = </font><font size="3" color="#0000ff">new</font><font size="3"> ArrayList();
+    Class[] petTypes = {
+      Pet.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Dog.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Pug.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Cat.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Rodent.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Gerbil.</font><font size="3" color="#0000ff">class</font><font size="3">,
+      Hamster.</font><font size="3" color="#0000ff">class</font><font size="3">,
+    };
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; 15; i++) {
+        </font><font size="3" color="#008000">// Смещение на 1, чтобы исключить класс Pet.class:
+</font><font size="3">        </font><font size="3" color="#0000ff">int</font><font size="3"> rnd = 1 + (</font><font size="3" color="#0000ff">int</font><font size="3">)(
+          Math.random() * (petTypes.length - 1));
+        pets.add(
+          petTypes[rnd].newInstance());
+      }
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(InstantiationException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot instantiate"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(IllegalAccessException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot access"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    }
+    HashMap h = </font><font size="3" color="#0000ff">new</font><font size="3"> HashMap();
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; petTypes.length; i++)
+      h.put(petTypes[i].toString(),
+        </font><font size="3" color="#0000ff">new</font><font size="3"> Counter());
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; pets.size(); i++) {
+      Object o = pets.get(i);
+      </font><font size="3" color="#008000">// Использование isInstance для исключения индивидуальных
+</font><font size="3">      </font><font size="3" color="#008000">// выражений instanceof:
+</font><font size="3">      </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> j = 0; j &lt; petTypes.length; ++j)
+        </font><font size="3" color="#0000ff">if</font><font size="3"> (petTypes[j].isInstance(o)) {
+          String key = petTypes[j].toString();
+          ((Counter)h.get(key)).i++;
+        }
+    }
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; pets.size(); i++)
+      System.out.println(pets.get(i).getClass());
+    Iterator keys = h.keySet().iterator();
+    </font><font size="3" color="#0000ff">while</font><font size="3">(keys.hasNext()) {
+      String nm = (String)keys.next();
+      Counter cnt = (Counter)h.get(nm);
+      System.out.println(
+        nm.substring(nm.lastIndexOf('.') + 1) + 
+        </font><font size="3" color="#008080">" quantity: "</font><font size="3"> + cnt.i);
+    }
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Вы видите, что метод <B>isInstance(&nbsp;)</B> исключает использование выражения 
+    <B>instanceof</B>. В дополнение, это означает также, что Вы можете добавить 
+    новые типы класса <B>Pet</B> просто изменив массив <B>petTypes</B>; остальная 
+    часть программы не требует никаких изменений (в отличие от использования выражения 
+    <B>instanceof</B>).</P>
+  
+<P> <A NAME="Heading408"></A>
+<p></P>
+<H4>instanceof против эквивалентности объектов Class<A NAME="Index1504"></A></H4>
+<P>
+
+  <p></P>
+  <P>При получении информации о типе существует важное различие между любой формой 
+    <B>instanceof</B> (это <B>instanceof</B> либо <B>isInstance(&nbsp;)</B>, которые 
+    приводят к одинаковым результатам) и прямым сравнением объектов <B>Class</B>. 
+    Вот пример, демонстрирующий эту разницу:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:FamilyVsExactType.java
+// Разница между instanceof и class
+</font><font size="3">
+</font><font size="3" color="#0000ff">class</font><font size="3"> Base {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Derived </font><font size="3" color="#0000ff">extends</font><font size="3"> Base {}
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> FamilyVsExactType {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> test(Object x) {
+    System.out.println(</font><font size="3" color="#008080">"Testing x of type "</font><font size="3"> +
+      x.getClass());
+    System.out.println(</font><font size="3" color="#008080">"x instanceof Base "</font><font size="3"> +
+      (x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Base));
+    System.out.println(</font><font size="3" color="#008080">"x instanceof Derived "</font><font size="3"> +
+      (x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Derived));
+    System.out.println(</font><font size="3" color="#008080">"Base.isInstance(x) "</font><font size="3"> +
+      Base.</font><font size="3" color="#0000ff">class</font><font size="3">.isInstance(x));
+    System.out.println(</font><font size="3" color="#008080">"Derived.isInstance(x) "</font><font size="3"> +
+      Derived.</font><font size="3" color="#0000ff">class</font><font size="3">.isInstance(x));
+    System.out.println(
+      </font><font size="3" color="#008080">"x.getClass() == Base.class "</font><font size="3"> +
+      (x.getClass() == Base.</font><font size="3" color="#0000ff">class</font><font size="3">));
+    System.out.println(
+      </font><font size="3" color="#008080">"x.getClass() == Derived.class "</font><font size="3"> +
+      (x.getClass() == Derived.</font><font size="3" color="#0000ff">class</font><font size="3">));
+    System.out.println(
+      </font><font size="3" color="#008080">"x.getClass().equals(Base.class)) "</font><font size="3"> +
+      (x.getClass().equals(Base.</font><font size="3" color="#0000ff">class</font><font size="3">)));
+    System.out.println(
+      </font><font size="3" color="#008080">"x.getClass().equals(Derived.class)) "</font><font size="3"> +
+      (x.getClass().equals(Derived.</font><font size="3" color="#0000ff">class</font><font size="3">)));
+  }
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) {
+    test(</font><font size="3" color="#0000ff">new</font><font size="3"> Base());
+    test(</font><font size="3" color="#0000ff">new</font><font size="3"> Derived());
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Метод <B>test(&nbsp;)</B> выполняет проверку типа, используя обе формы <B>instanceof</B>. 
+    Затем получает ссылку на объект <B>Class</B> и использует выражение "==" и 
+    <B>equals(&nbsp;) </B>для проверки эквивалентности объектов <B>Class</B>. 
+    Вот результаты:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3">Testing x of type <FONT COLOR="#0000ff">class</FONT> Base
+x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Base </font><font size="3" color="#0000ff">true
+</font><font size="3">x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Derived </font><font size="3" color="#0000ff">false
+</font><font size="3">Base.isInstance(x) </font><font size="3" color="#0000ff">true
+</font><font size="3">Derived.isInstance(x) </font><font size="3" color="#0000ff">false
+</font><font size="3">x.getClass() == Base.</font><font size="3" color="#0000ff">class</font><font size="3"> </font><font size="3" color="#0000ff">true
+</font><font size="3">x.getClass() == Derived.</font><font size="3" color="#0000ff">class</font><font size="3"> </font><font size="3" color="#0000ff">false
+</font><font size="3">x.getClass().equals(Base.</font><font size="3" color="#0000ff">class</font><font size="3">)) </font><font size="3" color="#0000ff">true
+</font><font size="3">x.getClass().equals(Derived.</font><font size="3" color="#0000ff">class</font><font size="3">)) </font><font size="3" color="#0000ff">false
+</font><font size="3">Testing x of type </font><font size="3" color="#0000ff">class</font><font size="3"> Derived
+x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Base </font><font size="3" color="#0000ff">true
+</font><font size="3">x </font><font size="3" color="#0000ff">instanceof</font><font size="3"> Derived </font><font size="3" color="#0000ff">true
+</font><font size="3">Base.isInstance(x) </font><font size="3" color="#0000ff">true
+</font><font size="3">Derived.isInstance(x) </font><font size="3" color="#0000ff">true
+</font><font size="3">x.getClass() == Base.</font><font size="3" color="#0000ff">class</font><font size="3"> </font><font size="3" color="#0000ff">false
+</font><font size="3">x.getClass() == Derived.</font><font size="3" color="#0000ff">class</font><font size="3"> </font><font size="3" color="#0000ff">true
+</font><font size="3">x.getClass().equals(Base.</font><font size="3" color="#0000ff">class</font><font size="3">)) </font><font size="3" color="#0000ff">false
+</font><font size="3">x.getClass().equals(Derived.</font><font size="3" color="#0000ff">class</font><font size="3">)) </font><font size="3" color="#0000ff">true</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Конечно, <B>instanceof </B>и<B> isInstance(&nbsp;)</B> выдают абсолютно идентичные 
+    результаты, также как и <B>equals(&nbsp;)</B> и <B>"=="</B>. Однако, исход 
+    работы разный. В общем представлении типа, <B>instanceof</B> говорит, “является 
+    ли объект этим классом, либо наследником этого класса?” С другой стороны, 
+    если Вы сравниваете объекты <B>Class</B>, используя "==", наследование не 
+    имеет значения, это либо точно такой же тип, либо нет.<A NAME="_Toc305593313"><A NAME="_Toc305628785"><A NAME="_Toc312374146"><A NAME="_Toc375545409"><A NAME="_Toc375545407"><A NAME="_Toc481064776"></A></A></A></A></A></A></P>
+  <P>
+
+<A NAME="Heading409"></A>
+<p></P>
+<H2>Синтаксис RTTI</H2>
+<P>
+
+  <p></P>
+  
+<P>Java выполняет <A NAME="Index1505"><A NAME="Index1506"></A></A>RTTI, используя 
+  объект <B>Class</B>, даже если Вы делаете что-то похожее на приведение. Класс 
+  <B>Class</B> также предоставляет Вам несколько путей использования RTTI.</P>
+  <P>
+
+
+  <p></P>
+  <P>Вначале, Вы должны получить ссылку на соответствующий объект <B>Class</B>. 
+    Один способ сделать это, как показано в предыдущем примере, использовать строку 
+    и метод <B>Class.forName(&nbsp;)</B>. Это удобно потому, что Вам не нужен 
+    объект того типа для получения ссылки на <B>Class</B>. Однако, если у Вас 
+    уже есть объект того типа, который Вам нужен, то Вы можете получить ссылку 
+    на <B>Class</B> вызовом метода, который является частью базового класса <B>Object</B>:<B> 
+    <A NAME="Index1507"><A NAME="Index1508"></A></A>getClass(&nbsp;)</B>. Он возвращает 
+    ссылку на <B>Class</B> представляя действительный тип объекта. Объект <B>Class</B> 
+    содержит много интересных методов, показанных в следующем примере:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:ToyTest.java
+// Тестирование класса Class.
+</font><font size="3">
+</font><font size="3" color="#0000ff">interface</font><font size="3"> HasBatteries {}
+</font><font size="3" color="#0000ff">interface</font><font size="3"> Waterproof {}
+</font><font size="3" color="#0000ff">interface</font><font size="3"> ShootsThings {}
+</font><font size="3" color="#0000ff">class</font><font size="3"> Toy {
+  </font><font size="3" color="#008000">// Закоментируйте следующий конструктор
+</font><font size="3">  </font><font size="3" color="#008000">// по умолчанию и увидите
+</font><font size="3">  </font><font size="3" color="#008000">// NoSuchMethodError на(*1*)
+</font><font size="3">  Toy() {} 
+  Toy(</font><font size="3" color="#0000ff">int</font><font size="3"> i) {} 
+}
+
+</font><font size="3" color="#0000ff">class</font><font size="3"> FancyToy </font><font size="3" color="#0000ff">extends</font><font size="3"> Toy 
+    </font><font size="3" color="#0000ff">implements</font><font size="3"> HasBatteries, 
+      Waterproof, ShootsThings {
+  FancyToy() { </font><font size="3" color="#0000ff">super</font><font size="3">(1); }
+}
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> ToyTest {
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) 
+  </font><font size="3" color="#0000ff">throws</font><font size="3"> Exception {
+    Class c = </font><font size="3" color="#0000ff">null</font><font size="3">;
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      c = Class.forName(</font><font size="3" color="#008080">"FancyToy"</font><font size="3">);
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(ClassNotFoundException e) {
+      System.err.println(</font><font size="3" color="#008080">"Can't find FancyToy"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    }
+    printInfo(c);
+    Class[] faces = c.getInterfaces();
+    </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; faces.length; i++)
+      printInfo(faces[i]);
+    Class cy = c.getSuperclass();
+    Object o = </font><font size="3" color="#0000ff">null</font><font size="3">;
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      </font><font size="3" color="#008000">// Требуется конструктор по умолчанию:
+</font><font size="3">      o = cy.newInstance(); </font><font size="3" color="#008000">// (*1*)
+</font><font size="3">    } </font><font size="3" color="#0000ff">catch</font><font size="3">(InstantiationException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot instantiate"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(IllegalAccessException e) {
+      System.err.println(</font><font size="3" color="#008080">"Cannot access"</font><font size="3">);
+      </font><font size="3" color="#0000ff">throw</font><font size="3"> e;
+    }
+    printInfo(o.getClass());
+  }
+  </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> printInfo(Class cc) {
+    System.out.println(
+      </font><font size="3" color="#008080">"Class name: "</font><font size="3"> + cc.getName() +
+      </font><font size="3" color="#008080">" is interface? ["</font><font size="3"> +
+      cc.isInterface() + </font><font size="3" color="#008080">"]"</font><font size="3">);
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Вы видите, что класс<B>FancyToy</B> является очень запутанным, т.к. он наследуется 
+    от <B>Toy</B> и реализует интерфейсы <B>HasBatteries</B>, <B>Waterproof</B> 
+    и <B>ShootsThings</B>. В методе <B>main(&nbsp;)</B>, создается ссылка на <B>Class</B> 
+    и инициализируется классом <B>FancyToy</B> <B>Class</B> с помощью <B>forName(&nbsp;)</B> 
+    внутри соответствующего блока <B>try</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Метод объекта <B>Class.getInterfaces(&nbsp;)</B> <A NAME="Index1509"><A NAME="Index1510"></A></A>возвращает 
+    массив объектов<B> Class</B> представляющих интерфейсы, содержащиеся в интересующем 
+    нас объекте <B>Class</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Если у Вас есть объект <B>Class</B>, Вы можете узнать у него о непосредственном 
+    базовом классе, используя метод <A NAME="Index1511"><A NAME="Index1512"></A></A><B>getSuperclass(&nbsp;)</B>. 
+    Он, конечно, возвращает ссылку на <B>Class,</B> которую в дальнейшем Вы можете 
+    использовать для получения информации. Это значит, что во время выполнения, 
+    Вы можете определить всю иерархию классов.</P>
+  <P>
+
+
+  <p></P>
+  <P>Метод <A NAME="Index1513"><A NAME="Index1514"></A></A><B>newInstance(&nbsp;)</B> 
+    объекта <B>Class</B> может, вначале, показаться еще одним способом дублирования 
+    объекта, как это делает метод <B>clone(&nbsp;)</B>. Однако, с помощью <B>newInstance(&nbsp;)</B>, 
+    Вы можете создавать объекты<I> </I>без существующего объекта, как показано 
+    здесь, объект <B>Toy</B> не существует—только указатель <B>cy</B>, который 
+    является ссылкой на объект <B>Class</B>. Это - способ реализовать “виртуальный 
+    конструктор”, который позволяет Вам сказать “Я не знаю точно какого типа объект, 
+    но я корректно его создаю”. В примере, приведенном выше, <B>cy</B> - просто 
+    ссылка на <B>Class</B>, без всякой дополнительной информации во время компиляции. 
+    И когда Вы создаете новый экземпляр, Вам возвращается ссылка на <B>Object</B>. 
+    Но эта ссылка указывает на объект <B>Toy</B>. Конечно, перед тем как Вы сможете 
+    получить п доступ к элементам класса, отличным от реализованных в классе <B>Object</B>, 
+    Вам нужно его немного исследовать, и сделать пребразование типа. В дополнение 
+    ко всему, класс, созданный с помощью <B>newInstance(&nbsp;)</B> должен иметь 
+    конструктор по умолчанию. В следующем разделе, Вы увидите, как динамически 
+    создавать объекты классов, используя API рефлексии в Java.</P>
+  <P>
+
+
+  <p></P>
+  <P>Последний метод в тексте программы это <A NAME="Index1515"><A NAME="Index1516"></A></A><B>printInfo(&nbsp;),</B> 
+    который берет ссылку класса <B>Class</B> получает его имя с помощью <A NAME="Index1517"><A NAME="Index1518"></A></A><B>getName(&nbsp;),</B> 
+    а затем определяет, является ли он интерфейсом с помощью функции <A NAME="Index1519"><A NAME="Index1520"></A></A><B>isInterface(&nbsp;)</B>.</P>
+  <P>
+
+
+  <p></P>
+  <P>Результаты работы программы:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3">Class name: FancyToy is <FONT COLOR="#0000ff">interface</FONT>? [</font><font size="3" color="#0000ff">false</font><font size="3">]
+Class name: HasBatteries is </font><font size="3" color="#0000ff">interface</font><font size="3">? [</font><font size="3" color="#0000ff">true</font><font size="3">]
+Class name: Waterproof is </font><font size="3" color="#0000ff">interface</font><font size="3">? [</font><font size="3" color="#0000ff">true</font><font size="3">]
+Class name: ShootsThings is </font><font size="3" color="#0000ff">interface</font><font size="3">? [</font><font size="3" color="#0000ff">true</font><font size="3">]
+Class name: Toy is </font><font size="3" color="#0000ff">interface</font><font size="3">? [</font><font size="3" color="#0000ff">false</font><font size="3">]</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Итак, с помощью объекта <B>Class</B> Вы можете узнать все что угодно об объекте.<A NAME="_Toc312374147"><A NAME="_Toc375545410"><A NAME="_Toc481064777"></A></A></A></P>
+  <P>
+
+<A NAME="Heading410"></A>
+<p></P>
+<H2>Рефлексия: информация о классе во время выполнения<A NAME="Index1522"></A></H2>
+<P>
+
+  <p></P>
+  <P>Если Вы не знаете точного типа объекта, RTTI Вам его сообщит. Однако есть 
+    ограничения: тип должен быть известен во время компиляции, чтобы Вы могли 
+    определить его, используя RTTI, а также сделать что-нибудь полезное с этой 
+    информацией. </P>
+  <P>
+
+
+  <p></P>
+  <P>Вначале это не кажется ограничением, но предположим, что Вы получили ссылку 
+    на объект, который не находится в поле Вашей программы. На самом деле, класс 
+    объекта даже недоступен Вам во время компиляции. Например, предположим, что 
+    Вы получили группу байтов из файла, либо сетевого соединения и Вам сказали, 
+    что эти байты представляют класс. Так как компилятор не может знать о классе 
+    во время компиляции, как Вы можете использовать этот класс?</P>
+  <P>
+
+<p></P>
+<P>В традиционных средах программирования это представляется не реальной задачей. 
+  Но если мы переместимся в мир серьезного программирования, появляются обстоятельства, 
+  при которых это становится необходимым. Первое - программирование основанное 
+  на компонентах, в котором Вы создаете проекты, используя <A NAME="Index1523"></A>средства 
+  быстрой разработки программ (<I>Rapid Application Development</I> - RAD) . Это 
+  визуальный способ создания программы (которую Вы видите на экране в виде “формы”) 
+  посредством перемещения иконок, представляющих собой компоненты на форму. Эти 
+  компоненты затем конфигурируются установкой свойств во время работы программы. 
+  Конфигурирование во время разработки требует, чтобы компонент был устанавливаемым, 
+  что раскрывает информацию о нем, чтобы можно было устанавливать и читать свойства 
+  компонента. К тому же, компоненты, которые обрабатывают события GUI, должны 
+  предоставлять информацию о соответствующих методах, так чтобы среда RAD помогала 
+  программисту перекрывать методы обработки событий. Рефлексия предоставляет механизм, 
+  определяющий доступные методы и их имена. <A NAME="Index1524"></A>Java предоставляет 
+  структуру для программирования основанного на компонентах с помощью JavaBeans 
+  (описанный в Главе 13).</P>
+<P>Еще одна важная мотивация для раскрытия информации о классе во время выполнения 
+  это предоставление возможности создавать и запускать объекты на удаленных платформах 
+  в сети. Это называется - вызов удаленных методов (<I>Remote Method Invocation</I> 
+  - RMI) и это позволяет программе Java иметь объекты, распределенные на многих 
+  машинах. Это распределение может потребоваться по многим причинам: например, 
+  возможно Вы выполняете задачу с интенсивными вычислениями и вы хотите разбить 
+  ее и распределить между машинами, которые простаивают, чтобы ускорить процесс. 
+  В некоторых случаях, Вы можете захотеть расположить код выполняющий конкретный 
+  тип задачи (как, например, “Бизнес правила” в клиент/серверной архитектуре) 
+  на конкретной машине, так чтобы эта машина стала общим хранилищем описывающим 
+  эти действия, что легко позволит делать изменения, которые отразятся на всех 
+  клиентах системы. (Это является интересной разработкой, т.к. машины существуют 
+  исключительно для упрощения изменения программ!). Распределенное программирование 
+  поддерживает специализированное аппаратное обеспечение, которое может быть хорошим 
+  для решения конкретных задач —перестановки матриц, например—, но неподходящим, 
+  либо слишком дорогим для основных целей программирования.</P>
+<P>
+
+  <p></P>
+  <P>Класс <B>Class</B> (описанный выше в этой главе) поддерживает концепцию <I>рефлексии</I>, 
+    и даже существует дополнительная библиотека, <B>java.lang.reflect, </B>с классами 
+    <A NAME="Index1525"><A NAME="Index1526"></A></A><B>Field</B>, <A NAME="Index1527"><A NAME="Index1528"></A></A><B>Method</B> 
+    и <A NAME="Index1529"><A NAME="Index1530"></A></A><B>Constructor </B>(каждый 
+    и которых реализует интерфейс <B>Member interface</B>). Объекты этих типов 
+    создаются с помощью JVM во время выполнения для представления соответствующих 
+    членов неизвестного класса. Затем Вы можете использовать объект <B>Constructor 
+    </B>для создания нового объекта, методы <B>get(&nbsp;)</B> и <B>set(&nbsp;)</B> 
+    для чтения и модификации полей, ассоциированных с объектами <B>Field</B>, 
+    и метод <B>invoke(&nbsp;)</B> для вызова методов, привязанных к объекту <B>Method</B>. 
+    К тому же, Вы можете вызывать удобные методы <B>getFields(&nbsp;)</B>, <B>getMethods(&nbsp;)</B>, 
+    <B>getConstructors(&nbsp;)</B>, и т.д., для получения массивов объектов представляющих 
+    поля, методы и конструкторы. (Вы можете узнать больше, прочитав онлайн-документацию 
+    по классу <B>Class</B>)<B>. </B>Таким образом, информация о классе для анонимного 
+    объекта может быть полностью определена во время выполнения, и во время компиляции 
+    может быть ничего не известно.</P>
+  <P>
+
+
+  <p></P>
+  <P>Очень важно представлять, что в рефлексии нет никакой магии. Когда Вы используете 
+    рефлексию для общения с объектами неизвестного типа, JVM просто смотрит на 
+    объект и определяет что принадлежит конкретному классу (просто как обыкновенный 
+    механизм RTTI), но перед тем как сделать это, объект <B>Class</B> должен быть 
+    загружен. Итак, файл <B>.class</B> для этого конкретного типа должен быть 
+    доступен для JVM, на локальной машине, либо по сети. Так что разница между 
+    <A NAME="Index1531"><A NAME="Index1532"></A></A>RTTI и рефлексией в том, что 
+    с помощью RTTI, компилятор открывает и исследует файл <B>.class</B> файл во 
+    время компиляции. В этом случае Вы можете вызывать методы объекта “стандарным” 
+    способом. С помощью рефлексии, файл <B>.class</B> недоступен во время компиляции; 
+    он открывается и исследуется во время выполнения.<A NAME="_Toc481064778"></A></P>
+  <P>
+
+<A NAME="Heading411"></A>
+<p></P>
+<H3>Распаковщик методов класса</H3>
+<P>
+
+  <p></P>
+  <P>Вам редко будет нужно использовать инструменты рефлексии напрямую; они находятся 
+    в языке, для поддержки других расширений Java, таких как сериализация объектов 
+    (Глава 11), JavaBeans (Глава 13) и RMI (Глава 15). Однако, существуют случаи, 
+    когда абсолютно необходима возможность динамической распаковки информации 
+    о классе. Очень полезный инструмент для этого - распаковщик методов класса. 
+    Как было упомянуто выше, просмотр исходных кодов описания класса или онлайн 
+    - документация показывает только те методы, которые определены либо перекрыты 
+    <I>внутри этого класса</I>. Но Вам может быть доступно гораздо больше информации 
+    из базовых классов. Определение их является занятием скучным и расточительным 
+    по времени<A NAME="fnB60"><A HREF="#fn60">[60]</A></A>. К счастью, рефлексия 
+    предоставляет способ написать простой инструмент, который автоматически покажет 
+    Вам весь интерфейс. Вот как он работает:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:ShowMethods.java
+// Использование рефлексии для отображения все методов 
+// класса, включая определенные  
+// базовом классе.
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.lang.reflect.*;
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> ShowMethods {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">final</font><font size="3"> String usage =
+    </font><font size="3" color="#008080">"usage: \n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"ShowMethods qualified.class.name\n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"To show all methods in class or: \n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"ShowMethods qualified.class.name word\n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"To search for methods involving 'word'"</font><font size="3">;
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) {
+    </font><font size="3" color="#0000ff">if</font><font size="3">(args.length &lt; 1) {
+      System.out.println(usage);
+      System.exit(0);
+    }
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      Class c = Class.forName(args[0]);
+      Method[] m = c.getMethods();
+      Constructor[] ctor = c.getConstructors();
+      </font><font size="3" color="#0000ff">if</font><font size="3">(args.length == 1) {
+        </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; m.length; i++)
+          System.out.println(m[i]);
+        </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; ctor.length; i++)
+          System.out.println(ctor[i]);
+      } </font><font size="3" color="#0000ff">else</font><font size="3"> {
+        </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; m.length; i++)
+          </font><font size="3" color="#0000ff">if</font><font size="3">(m[i].toString()
+             .indexOf(args[1])!= -1)
+            System.out.println(m[i]);
+        </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; ctor.length; i++)
+          </font><font size="3" color="#0000ff">if</font><font size="3">(ctor[i].toString()
+             .indexOf(args[1])!= -1)
+          System.out.println(ctor[i]);
+      }
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(ClassNotFoundException e) {
+      System.err.println(</font><font size="3" color="#008080">"No such class: "</font><font size="3"> + e);
+    }
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Методы объекта<B> Class</B> <A NAME="Index1533"><A NAME="Index1534"></A></A><B>getMethods(&nbsp;)</B> 
+    и <A NAME="Index1535"><A NAME="Index1536"></A></A><B>getConstructors(&nbsp;)</B> 
+    возвращают массивы методов <B>- Method</B> и конструкторов - <B>Constructor</B>, 
+    соответственно. Каждый из этих классов имеет методы для разделения имен, аргументов 
+    и возвращаемых значений методов, которые они представляют. Но Вы можете также 
+    использовать метод <B>toString(&nbsp;)</B>, как это сделано в примере, для 
+    получения строки <B>String</B> с полной сигнатурой метода. Остаток кода - 
+    просто раскрытие информации из командной строки, определяющая совпадает ли 
+    соответствующая сигнатура с результирующей строкой (используя <A NAME="Index1537"><A NAME="Index1538"></A></A><B>indexOf(&nbsp;)</B>), 
+    и печатает результаты.</P>
+  <P>Это показывает рефлексию в действии, т.к. результаты работы <B>Class.forName(&nbsp;)</B> 
+    не могут быть известны во время компиляции, и, поэтому все сигнатуры методов 
+    расшифровываются во время выполнения. Если Вы просмотрите Вашу онлайн-документацию 
+    по рефлексии, Вы увидите, что существует достаточная поддержка для установки 
+    и вызова метода объекта, который совершенно неизвестен во время компиляции 
+    (такие примеры в этой книге будут позже). Итак, это - то, что Вам может никогда 
+    не потребоваться - она необходима для RMI и для поддержки средой программирования 
+    JavaBeans - однако это интересно.</P>
+  <P>Чтобы проверить, как это работает, запустите: </P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3">java ShowMethods ShowMethods</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>В результате создается список, который содержит публичный конструктор по 
+    умолчанию, хотя Вы видите из кода, что там конструктор не определен. Тот конструктор, 
+    который Вы видите, является элементом, который автоматически генерируется 
+    компилятором. Если Вы сделаете <B>ShowMethods</B> не-<B>public</B> классом, 
+    то генерируемый по умолчанию конструктор больше не будет отображаться в списке 
+    результатов. Этому конструктору <A NAME="Index1539"><A NAME="Index1540"></A></A>автоматически 
+    устанавливается такой же доступ, какой определен для класса.</P>
+  <P>Результаты работы <B>ShowMethods</B> немного скучные. Например, вот - часть 
+    результатов полученных с вызова <B>java ShowMethods java.lang.String</B>:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">boolean</font><font size="3"> 
+  java.lang.String.startsWith(java.lang.String,</font><font size="3" color="#0000ff">int</font><font size="3">)
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">boolean</font><font size="3"> 
+  java.lang.String.startsWith(java.lang.String)
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">boolean
+</font><font size="3">  java.lang.String.endsWith(java.lang.String)</font></PRE>
+  <BLOCKQUOTE>Будет гораздо лучше, если префиксы типа <B>java.lang</B> будут отброшены. 
+    Класс <A NAME="Index1541"></A><FONT FACE="Georgia"><A NAME="Index1541"><A NAME="Index1542"></A></A><B>StreamTokenizer</B> 
+    описанный в предыдущей главе поможет создать инструмент для решения этой проблемы:</font><BR>
+  </BLOCKQUOTE>
+  <PRE><font size="3" color="#008000">//: com:bruceeckel:util:StripQualifiers.java
+</font><font size="3" color="#0000ff">package</font><font size="3"> com.bruceeckel.util;
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.io.*;
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> StripQualifiers {
+  </font><font size="3" color="#0000ff">private</font><font size="3"> StreamTokenizer st;
+  </font><font size="3" color="#0000ff">public</font><font size="3"> StripQualifiers(String qualified) {
+    st = </font><font size="3" color="#0000ff">new</font><font size="3"> StreamTokenizer(
+      </font><font size="3" color="#0000ff">new</font><font size="3"> StringReader(qualified));
+    st.ordinaryChar(' '); </font><font size="3" color="#008000">// Хранит пробелы
+</font><font size="3">  }
+  </font><font size="3" color="#0000ff">public</font><font size="3"> String getNext() {
+    String s = </font><font size="3" color="#0000ff">null</font><font size="3">;
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      </font><font size="3" color="#0000ff">int</font><font size="3"> token = st.nextToken();
+      </font><font size="3" color="#0000ff">if</font><font size="3">(token != StreamTokenizer.TT_EOF) {
+        </font><font size="3" color="#0000ff">switch</font><font size="3">(st.ttype) {
+          </font><font size="3" color="#0000ff">case</font><font size="3"> StreamTokenizer.TT_EOL:
+            s = </font><font size="3" color="#0000ff">null</font><font size="3">;
+            </font><font size="3" color="#0000ff">break</font><font size="3">;
+          </font><font size="3" color="#0000ff">case</font><font size="3"> StreamTokenizer.TT_NUMBER:
+            s = Double.toString(st.nval);
+            </font><font size="3" color="#0000ff">break</font><font size="3">;
+          </font><font size="3" color="#0000ff">case</font><font size="3"> StreamTokenizer.TT_WORD:
+            s = </font><font size="3" color="#0000ff">new</font><font size="3"> String(st.sval);
+            </font><font size="3" color="#0000ff">break</font><font size="3">;
+          </font><font size="3" color="#0000ff">default</font><font size="3">: </font><font size="3" color="#008000">// единичный символ в ttype
+</font><font size="3">            s = String.valueOf((</font><font size="3" color="#0000ff">char</font><font size="3">)st.ttype);
+        }
+      }
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(IOException e) {
+      System.err.println(</font><font size="3" color="#008080">"Error fetching token"</font><font size="3">);
+    }
+    </font><font size="3" color="#0000ff">return</font><font size="3"> s;
+  }
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> String strip(String qualified) {
+    StripQualifiers sq = 
+      </font><font size="3" color="#0000ff">new</font><font size="3"> StripQualifiers(qualified);
+    String s = </font><font size="3" color="#008080">""</font><font size="3">, si;
+    </font><font size="3" color="#0000ff">while</font><font size="3">((si = sq.getNext()) != </font><font size="3" color="#0000ff">null</font><font size="3">) {
+      </font><font size="3" color="#0000ff">int</font><font size="3"> lastDot = si.lastIndexOf('.');
+      </font><font size="3" color="#0000ff">if</font><font size="3">(lastDot != -1)
+        si = si.substring(lastDot + 1);
+      s += si;
+    }
+    </font><font size="3" color="#0000ff">return</font><font size="3"> s;
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Для облегчения повторного использования, этот класс расположен в <B>com.bruceeckel.util</B>. 
+    Как Вы видите, он использует манипуляции с <B>StreamTokenizer</B> и <B>String</B> 
+    для решения проблемы.</P>
+  <P>Новая версия этой программы использует приведенные выше классы и дает чистые 
+    результаты:</P>
+  <P>
+
+<p></P>
+<DIR> 
+  <PRE><font size="3" color="#008000">//: c12:ShowMethodsClean.java
+// ShowMethods с отброшенными префиксами
+</font><font size="3" color="#0000ff">import</font><font size="3"> java.lang.reflect.*;
+</font><font size="3" color="#0000ff">import</font><font size="3"> com.bruceeckel.util.*;
+
+</font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">class</font><font size="3"> ShowMethodsClean {
+  </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">final</font><font size="3"> String usage =
+    </font><font size="3" color="#008080">"usage: \n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"ShowMethodsClean qualified.class.name\n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"To show all methods in class or: \n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"ShowMethodsClean qualif.class.name word\n"</font><font size="3"> +
+    </font><font size="3" color="#008080">"To search for methods involving 'word'"</font><font size="3">;
+  </font><font size="3" color="#0000ff">public</font><font size="3"> </font><font size="3" color="#0000ff">static</font><font size="3"> </font><font size="3" color="#0000ff">void</font><font size="3"> main(String[] args) {
+    </font><font size="3" color="#0000ff">if</font><font size="3">(args.length &lt; 1) {
+      System.out.println(usage);
+      System.exit(0);
+    }
+    </font><font size="3" color="#0000ff">try</font><font size="3"> {
+      Class c = Class.forName(args[0]);
+      Method[] m = c.getMethods();
+      Constructor[] ctor = c.getConstructors();
+      </font><font size="3" color="#008000">// Конвертирует в массив "очищенных" строк:
+</font><font size="3">      String[] n = 
+        </font><font size="3" color="#0000ff">new</font><font size="3"> String[m.length + ctor.length];
+      </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; m.length; i++) {
+        String s = m[i].toString();
+        n[i] = StripQualifiers.strip(s);
+      }
+      </font><font size="3" color="#0000ff">for</font><font size="3">(</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; ctor.length; i++) {
+        String s = ctor[i].toString();
+        n[i + m.length] = 
+          StripQualifiers.strip(s);
+      }
+      </font><font size="3" color="#0000ff">if</font><font size="3">(args.length == 1)
+        </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; n.length; i++)
+          System.out.println(n[i]);
+      </font><font size="3" color="#0000ff">else
+</font><font size="3">        </font><font size="3" color="#0000ff">for</font><font size="3"> (</font><font size="3" color="#0000ff">int</font><font size="3"> i = 0; i &lt; n.length; i++)
+          </font><font size="3" color="#0000ff">if</font><font size="3">(n[i].indexOf(args[1])!= -1)
+            System.out.println(n[i]);
+    } </font><font size="3" color="#0000ff">catch</font><font size="3">(ClassNotFoundException e) {
+      System.err.println(</font><font size="3" color="#008080">"No such class: "</font><font size="3"> + e);
+    }
+  }
+} </font><font size="3" color="#008000">///:~</font></PRE>
+</DIR>
+<P>
+
+  <p></P>
+  <P>Класс <B>ShowMethodsClean</B> очень похож на предыдущий <B>ShowMethods</B>, 
+    за исключением того, что он берет массивы <B>Method</B> и <B>Constructor</B> 
+    и конвертирует их в единичный массив строк <B>String</B>. Каждый из этих объектов 
+    <B>String</B> пропускается через<B> StripQualifiers.Strip(&nbsp;)</B> для 
+    удаления всех префиксов метода.</P>
+  <P>Этот инструмент может реально сберечь Ваше время, во время программирования, 
+    когда Вы не помните, имеет ли класс соответствующий метод и не хотите просматривать 
+    всю иерархию классов в Вашей онлайн-документации, либо Вы не знаете, может 
+    ли класс сделать что-нибудь, например, с объектами <B>Color</B>.</P>
+  <P>Глава 13 содержит GUI версию этой программы (настроенной для распаковки информации 
+    из компонентов библиотеки Swing) так, что Вы можете оставить ее запущенной, 
+    пока пишете код, чтобы иметь возможность быстрого поиска.<A NAME="_Toc375545411"><A NAME="_Toc481064779"></A></A></P>
+  
+<A NAME="Heading412"></A>
+<p></P>
+<H2>Резюме<BR>
+  <A NAME="Index1543"></A></H2>
+<P>
+
+  <p></P>
+  <P>RTTI позволяет Вам раскрыть информацию о типе только по ссылке на базовый 
+    класс. Новички <A NAME="Index1544"></A>могут не использовать это, т.к. это 
+    может иметь смыл перед вызовом полиморфных методов. Для людей, пришедших из 
+    процедурного программирования, тяжело организовывать свои программы без множества 
+    выражений <B>switch</B>. Они могут достичь этого с помощью RTTI и не понять 
+    значения полиморфизма <A NAME="Index1545"></A>в разработке и поддержке кода. 
+    Цель Java в том, чтобы Вы использовали вызовы полиморфных методов в Вашем 
+    коде, и Вы используете RTTI только когда это необходимо.</P>
+  <P>
+
+
+  <p></P>
+  <P>Однако, использование вызовов полиморфных методов как они понимаются, требует 
+    чтобы у Вас было определение базового класса, т.к. по некоторым причинам при 
+    расширении Вашей программы Вы можете выяснить, что базовый класс не включает 
+    в себя метода, который Вам нужен. Если базовый класс приходит из библиотеки, 
+    либо просто разрабатывается кем-то другим, решением проблемы является RTTI: 
+    Вы можете наследовать новый тип и добавить дополнительный метод. В другом 
+    месте кода Вы сможете определить этот тип и вызвать соответствующий метод. 
+    Это не уничтожает полиморфизм или возможность расширения Вашей программы, 
+    т.к. добавление нового типа не требует от Вас охотиться за выражениями switch 
+    в Вашей программе. Однако, когда Вы добавляете новый код в основное тело, 
+    для расширения возможностей, Вам нужно использовать RTTI для определения соответствующего 
+    типа.</P>
+  <P>
+
+
+  <p></P>
+  <P>Расширение возможностей базового класса означает, что для пользы одного конкретного 
+    класса все остальные классы, наследуемые от этого базового класса должны реализовывать 
+    бесполезную заглушку метода. Это делает интерфейс менее ясным и досаждает 
+    тем, кто должен перекрывать абстрактные методы, когда они наследуются от базового 
+    класса. Например, есть иерархия классов представляющих музыкальные инструменты. 
+    Предположим, что Вы хотите очистить клапаны соответствующих музыкальных инструментов 
+    в Вашем оркестре. Один из вариантов - реализовать метод <B>clearSpitValve(&nbsp;) 
+    </B>в базовом классе <B>Instrument</B>, но это не верно, т.к. это предполагает 
+    что классы инструментов <B>Percussion</B> (ударные) и <B>Electronic</B> (электронные) 
+    также имеют клапаны. RTTI предоставляет более подходящее решение в этом случае 
+    т.к. Вы можете расположить этот метод в специальном классе (<B>Wind </B>в 
+    нашем случае). Однако, более подходящее решение - это создание метода <B>prepareInstrument(&nbsp;)</B> 
+    в базовом классе, но Вы можете не понять этого, когда в первый раз решаете 
+    эту проблему, и ошибочно предположить, что Вам необходимо использовать RTTI.</P>
+  <P>
+
+<p></P>
+<P>Наконец, RTTI иногда решает проблемы эффективности. Если Ваш код красиво использует 
+  полиморфизм, но оказывается, что один из Ваших объектов выполняет основные цели 
+  совершенно неэффективно, Вы можете определять этот тип используя RTTI и написать 
+  основанный на вариантах код для увеличения производительности. Будьте, однако, 
+  осторожны, и не гонитеть сразу за эффективностью. Это соблазнительная ловушка. 
+  Лучше всего - <I>сначала</I> заставить программу работать, затем определить 
+  достаточно ли быстро она работает, и только затем пытаться определить неэффективные 
+  блоки программы с помощью профилера.<A NAME="_Toc481064780"></A></P>
+<P><A NAME="Heading413"></A></P>
+<H2>Упражнения</H2>
+<P>
+
+  <p></P>
+  <P><font size="2">Решения к выбранным упражнениям могут быть найдены в электронном 
+    документе <I>The Thinking in Java Annotated Solution Guide</I>, доступном 
+    за небольшую плату на <I>www.BruceEckel.com</I>.</font></P>
+  <P>
+
+<p></P>
+<OL>
+  <LI>Добавьте <B>Rhomboid </B>в <B>Shapes.java</B>. Создайте <B>Rhomboid</B>, 
+    сделайте восходящее приведение к <B>Shape</B>, затем нисходящее к <B>Rhomboid</B>. 
+    Попробуйте нисходящее приведение к <B>Circle</B> и посмотрите, что случится.</LI>
+  <LI>Измените <I>Упражнение 1</I> так, чтобы оно использовало <B>instanceof</B> 
+    для проверки типа перед выполнением нисходящего приведения.</LI>
+  <LI>Измените <B>Shapes.java</B> так, чтобы можно было подсвечивать (устанавливать 
+    флаг) во всех формах <B>Shape</B> конкретного типа. Метод <B>toString(&nbsp;)</B> 
+    для каждого объекта унаследованного из <B>Shape</B> должен показывать подсвечен 
+    ли <B>Shape</B>.”</LI>
+  <LI>Измените <B>SweetShop.java</B> так, чтобы каждый тип создания объекта контролировался 
+    аргументом из командной строки. Т.е, если в командной строке набрать“<B>java 
+    SweetShop Candy</B>,” то создаются только объекты <B>Candy</B>. Обратите внимание, 
+    что Вы можете контролировать какие объекты <B>Class</B> загружаются через 
+    аргументы командной строки.</LI>
+  <LI>Добавьте новый тип класса <B>Pet</B> в <B>PetCount3.java</B>. Проверьте, 
+    что он создается и корректно считается в методе <B>main(&nbsp;)</B>.</LI>
+  <LI>Напишите метод, который берет объект и рекурсивно печатает все классы в 
+    иерархии объектов.</LI>
+  <LI>Измените <I>Упражнение 6</I> так, чтобы оно использовало метод <B>Class.</B><A HREF="file:///C:#getDeclaredFields()">getDeclaredFields</A><B>(&nbsp;)</B> 
+    для отображения информации о полях класса. </LI>
+  <LI>В <B>ToyTest.java</B>, закоментируйте конструктор по умолчанию для <B>Toy</B> 
+    и объясните, что случится.</LI>
+  <LI>Включите новый тип интерфейса <B>interface</B> в <B>ToyTest.java</B> и проверьте, 
+    что это определяется и отображается корректно. </LI>
+  <LI>Создайте новый тип контейнера, который использует приватный <B>private</B> 
+    <B>ArrayList</B> для хранения объектов.<B> </B>Сохраните тип первого объекта, 
+    который Вы туда положите, затем дайте возможность пользователю вставлять объекты 
+    только этого типа.</LI>
+  <LI>Напишите программу, проверяющую, является ли масисив <B>char</B> примитивным 
+    типом, либо настоящим объектом.</LI>
+  <LI>Реализуйте <B>clearSpitValve(&nbsp;)</B> как описано в резюме.</LI>
+  <LI>Реализуйте метод <B>rotate(Shape)</B> описанный в этой главе, как тот, который 
+    проверяет, поворачивается ли <B>Circle</B>.</LI>
+  <LI>Измените <I>Упражнение 6</I> для использования рефлексии вместо RTTI.</LI>
+  <LI>Измените <I>Упражнение 7</I> для использования рефлексии вместо RTTI.</LI>
+  <LI>В <B>ToyTest.java</B>, используйте рефлексию для создания объекта <B>Toy</B> 
+    с помощью конструктора не по умолчанию.</LI>
+  <LI>Поищите интерфейс для <B>java.lang.Class</B> в HTML Java документации на 
+    <I>java.sun.com</I>. Напишите программу, которая берет имя класса из аргумента 
+    командной строки, затем использует методы объекта <B>Class</B> для выдачи 
+    всей информации, доступной для этого класса. Проверьте Вашу программу на стандартной 
+    библиотеке классов и на классах, которые создаете Вы сами.</LI>
+</OL>
+<P>
+<HR>
+<p></P>
+<P><A NAME="fn60"><A HREF="#fnB60">[60]</A></A><FONT SIZE=2> Особенно раньше. 
+  Однако, Sun сильно улучшила HTML Java документацию так что она сейчас намного 
+  проще для поиска методов базового класса.</font></P>
+<P align="center"> <font size="3">[ <A HREF="Chapter11.html">Предыдущая глава</A> 
+  ] [ <A HREF="SimpleContents.html">Оглавление</A> ] [ <A HREF="Contents.html">Содержание</A> 
+  ] [ <A HREF="DocIndex.html">Индекс</A> ] [ <A HREF="Chapter13.html">Следующая 
+  глава</A> ] </font> 
+<p></P>
+
+</BODY>
+</HTML>

@@ -1,0 +1,2358 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TIJ2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:04/24/2000
+Translation Time:06:35:46
+Translation Platform:Win32
+Number of Output files:23
+This File:Chapter03.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<TITLE>3: Управление течением программы</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF">
+<a href="http://www.MindView.net"> </a> 
+<CENTER>
+  <FONT FACE="Verdana" size = "-1"> </FONT> 
+  <H2><FONT FACE="Verdana"> Thinking in Java, 2nd edition, Revision 11</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  <p><FONT FACE="Verdana" size = "-1"> [ <a href="Chapter02.html">Предыдущая глава 
+    </a> ] [ <a href="SimpleContents.html">Оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+    ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="Chapter04.html">Следующая 
+    глава </a> ]</FONT> </p>
+</CENTER>
+  <A NAME="Heading125"></A><FONT FACE = "Verdana">
+<H1 ALIGN="LEFT"> 3: Управление течением программы</H1>
+</FONT>
+<P><FONT FACE="Georgia" SIZE=4>Подобно мыслящему существу, программа должна управлять 
+  собственным миром и делать выбор при выполнении.</FONT></P>
+<P><FONT FACE="Georgia">В Java вы манипулируете объектами и данными, используя 
+  операторы, и вы делаете выбор с помощью выражений, контролирующих выполнение. 
+  Java был наследован из C++, так что большинство этих выражений будут знакомы 
+  программистам, работающим на C и C++. Java также имеет несколько дополнительных 
+  усовершенствований и упрощений.</FONT></P>
+<P><FONT FACE="Georgia">Если вы почувствуете, что вам немного трудно двигаться 
+  вперед в этой главе, просмотрите мультимедиа CD ROM прилагающийся к этой книге: 
+  <I>Thinking in C: Foundations for Java and C++</I>. Он содержит аудио лекции, 
+  слайды, упражнения и решения, специально подобранные так, чтобы быстро ввести 
+  вас в синтаксис C, необходимый для изучения Java.</FONT></P>
+<A NAME="Heading126"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Использование операторов Java</H2>
+</FONT>
+<P><FONT FACE="Georgia">Оператор принимает один или больше аргументов и производит 
+  новое значение. Аргументы располагаются по-другому, в отличие от обычного вызова 
+  метода, но эффект тот же самый. Вы будете чувствовать себя остаточно комфортно 
+  с общей концепцией операторов, основываясь на ваш предыдущий опыт программирования. 
+  Сложение (<B>+</B>), вычитание и унарный минус (<B>-</B>), умножение (<B>*</B>), 
+  деление (<B>/</B>) и присвоение (<B>=</B>) всегда работают так же, как и в других 
+  языках программирования.</FONT></P>
+<P><FONT FACE="Georgia">Все операции производят значения из своих операндов. В 
+  дополнение, оператор может сменить значение операнда. Это называется <i>побочным 
+  действием<A NAME="Index200"></A></i>. Самое общее в использовании операторов, 
+  которые модифицируют свои операнды, то, что они генерируют побочное действие, 
+  но вы должны держать в уме, что производимое значение доступно для вашего использования 
+  только в операторах без побочных действий.</FONT></P>
+<P><FONT FACE="Georgia">Почти все операторы работают только с примитивными типами. 
+  Исключение составляют <B>&#8216;=</B>&#8217;, &#8216;<B>==</B>&#8217; и &#8216;<B>!=</B>&#8217;, 
+  которые работают со всеми объектами (и являются смущающим местом для объектов). 
+  Вдобавок, класс <B>String </B>поддерживает &#8216;<B>+</B>&#8217; и &#8216;<B>+=</B>&#8217;.</FONT><A NAME="_Toc375545248"></A><A NAME="_Toc481064542"></A></P>
+<A NAME="Heading127"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Предшествование<BR>
+  <A NAME="Index201"></A></H3>
+</FONT> 
+<P><FONT FACE="Georgia">Предшествующий оператор определяет, как вычисляется выражение, 
+  когда имеются несколько операторов. Java имеет специальные правила, которые 
+  определяют порядок вычислений. Легче всего запомнить, что умножение и деление 
+  вычисляются перед сложением и вычитанием. Программисты часто забывают другие 
+  правила предшествования, так что вы должны использовать круглые скобки для явного 
+  упорядочивания порядка вычислений. Например:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>A = X + Y - 2/2 + Z;</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">имеет весьма разную трактовку для того же выражения с 
+  круглыми скобками:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>A = X + (Y - 2)/(2 + Z);</PRE></FONT></BLOCKQUOTE>
+<A NAME="_Toc375545249"></A><A NAME="_Toc481064543"></A><BR>
+<A NAME="Heading128"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> Присваение<A NAME="Index202"></A></H3>
+</FONT> 
+<p><FONT FACE="Georgia">Присваение выполняется с помощью оператора =. Это означает 
+  &#8220;взять значение правой части (часто называемое <I>rvalue<A NAME="Index203"></A></I>) 
+  и скопируй его в левую сторону (часто называемую <I>lvalue<A NAME="Index204"></A></I>). 
+  rvalue - это любая константа, переменная или выражение, которое может произвести 
+  значение, но lvalue должно быть определенной, поименованной переменной. (То 
+  есть, здесь должно быть физическое пространство для хранения значения.) Например, 
+  вы можете присвоить постоянное значение переменной (<B>A = 4;</B>), но вы не 
+  сможете присвоить ничего постоянному значению &#8212; оно не может быть lvalue. 
+  (Вы не можете сказать <B>4 = A;</B>.)</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+<P><FONT FACE="Georgia">Присвоение примитивов достаточно прямое и понятное. Так 
+  как примитивы хранят реальное значение, а не ссылку на объект, то когда вы присваиваете 
+  примитивы, вы копируете содержимое с одного места в другое. Например, если вы 
+  говорите <B>A = B</B> для примитивов, то содержимое <B>B</B> копируется в <B>A</B>. 
+  Если вы потом измените <B>A</B>, <B>B</B> не подвергнется изменениям. Как программист, 
+  это то, что вы хотите ожидать в большинству случаев.</FONT></P>
+<P><FONT FACE="Georgia">Однако когда вы <A NAME="Index205"></A><A NAME="Index206"></A><A NAME="Index207"></A><A NAME="Index208"></A>присваиваете 
+  объекты, все меняется. Когда бы вы ни манипулировали объектом, то, чем вы манипулируете 
+  - ссылка, так что когда вы присваиваете &#8220;один объект другому&#8221;, на 
+  самом деле вы копируете ссылку из одного места в другое. Это означает, если 
+  вы скажете <B>C = D</B> для объектов, в конце вы получаете, что <B>C</B> и <B>D</B> 
+  указывают на объект, на который первоначально указывает только <B>D</B>. Приведенный 
+  ниже пример будет демонстрировать это.</FONT><A NAME="Running_programs"></A></P>
+<P><FONT FACE="Georgia">Вот этот пример:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:Assignment.java</font>
+<font color=#009900>// Присвоение объектов немного хитрая вешь.</font>
+
+<font color=#0000ff>class</font> Number {
+  <font color=#0000ff>int</font> i;
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Assignment {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Number n1 = <font color=#0000ff>new</font> Number();
+    Number n2 = <font color=#0000ff>new</font> Number();
+    n1.i = 9;
+    n2.i = 47;
+    System.out.println(<font color=#004488>"1: n1.i: "</font> + n1.i +
+      <font color=#004488>", n2.i: "</font> + n2.i);
+    n1 = n2;
+    System.out.println(<font color=#004488>"2: n1.i: "</font> + n1.i +
+      <font color=#004488>", n2.i: "</font> + n2.i);
+    n1.i = 27;
+    System.out.println(<font color=#004488>"3: n1.i: "</font> + n1.i +
+      <font color=#004488>", n2.i: "</font> + n2.i);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"> 
+  <P><FONT FACE="Georgia">Класс <B>Number</B> - прост и внутри функции <b>main(&#160;)</b> 
+    создаются два его экземпляра .(<B>n1</B> и <B>n2</B>). Переменная Значения 
+    <B>i</B> в каждом из <B>Number</B> имеют разные значения, а затем <B>n2</B> 
+    присваивается <B>n1</B>, а <B>n1 </B>изменяется. Во многих языках программирования 
+    вы можете ожидать, что <B>n1</B> и <B>n2</B> независимы все время, но потому 
+    что вы присвоили ссылку, здесь приводится вывод, который вы увидите:</FONT></P>
+</DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>1: n1.i: 9, n2.i: 47
+2: n1.i: 47, n2.i: 47
+3: n1.i: 27, n2.i: 27</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Изменение объекта <B>n1</B> проявляется в изменении объекта 
+  <B>n2</B>! Это потому, что и <B>n1</B> и <B>n2</B> содержат одну и ту же ссылку, 
+  которые указывают на один и тот же объект. (Начальная ссылка, которая была в 
+  <B>n1</B> и указывала на объект, содержащий значение 9 была переписана во время 
+  присвоения и на самом деле потерялась; ее объект будет очищен сборщиком мусора.)</FONT></P>
+<DIV ALIGN="LEFT"> 
+  <P><FONT FACE="Georgia">Этот феномен часто называется <A NAME="Index209"></A><A NAME="Index210"></A><i>эффектом 
+    наложения</i> (<i>aliasing</i>) и это фундаментальный путь, которым работают 
+    в Java с объектами. Но что, если вы не хотите, чтобы в этом случае возник 
+    эффект наложения? Вы можете воздержаться от присвоения и сказать:</FONT><BR>
+  </P>
+</DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>n1.i = n2.i;</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">При этом сохраняются два различных объекта вместо отбрасывания 
+  одного и прикрепления <B>n1 </B>и <B>n2</B> к одному и тому же объекту, но вы 
+  скоро поймете, что манипулирование полями внутри объекта - грязный метод и идет 
+  в разрез с принципами хорошего объектно-ориентированного дизайна. Это не тривиальная 
+  тема, так что оставим ее для приложения A, которое посвящено эффекту наложения. 
+  Тем временем, вы должны отложить в мозгу, что присвоение для объектов может 
+  стать источником сюрпризов.</FONT></P>
+<A NAME="Heading129"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Эффект наложения при вызове методов<BR>
+  <A NAME="Index211"></A></H4>
+</FONT><FONT FACE="Georgia">Эффект наложения также случается при передаче объектов 
+в метод:</FONT>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:PassObject.java</font>
+<font color=#009900>// Передача объектов в метод может быть не тем,</font>
+<font color=#009900>// что вы использовали.</font>
+
+<font color=#0000ff>class</font> Letter {
+  <font color=#0000ff>char</font> c;
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> PassObject {
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> f(Letter y) {
+    y.c = 'z';
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Letter x = <font color=#0000ff>new</font> Letter();
+    x.c = 'a';
+    System.out.println(<font color=#004488>"1: x.c: "</font> + x.c);
+    f(x);
+    System.out.println(<font color=#004488>"2: x.c: "</font> + x.c);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Во многих языках программирования для метод <B>f(&#160;)</B> 
+  ожидается создание копии его аргумента <B>Letter y</B> внутри границ этого метода. 
+  Но так как передается ссылка, то строка</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>y.c = 'z';</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">на самом деле меняет объект внутри <B>f(&#160;)</B>. Вывод 
+  покажет следующее:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>1: x.c: a
+2: x.c: z</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Эффект наложение и его решение - это сложная проблема, 
+  хотя вы должны ждать до Приложения А ответов на все вопросы, вы должны знать 
+  об этом свойстве, чтобы могли найти все ловушки.</FONT><A NAME="_Toc375545250"></A><A NAME="_Toc481064544"></A></P>
+<A NAME="Heading130"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Математические операторы<A NAME="Index212"></A></H3>
+</FONT>
+<P><FONT FACE="Georgia">Основные математические операторы те же, что и допустимые 
+  в большинстве языков программирования: сложение <A NAME="Index213"></A>(<B>+</B>), 
+  вычитание<A NAME="Index214"></A> (<B>-</B>), деление<A NAME="Index215"></A> 
+  (<B>/</B>), умножение<A NAME="Index216"></A> (<B>*</B>) и остаток от деления<A NAME="Index217"></A> 
+  (<B>%</B>, которое производит остаток от целочисленнгого деления). Целочисленное 
+  деление в результате выполняет отсечение, а не округление.</FONT></P>
+<P><FONT FACE="Georgia">Java также использует стенографическую запись для одновременного 
+  выполнения операции и присвоения. Это обозначается оператором, следующим за 
+  знаком равенства и совместимо со всеми операциями языка (когда это имеет смысл). 
+  Например, для добавления 4 к переменной <B>x и </B>присвоения результата <B>x</B>, 
+  используйте: <B>x += 4</B>. </FONT> </P>
+<P><FONT FACE="Georgia">Этот пример показывает использование математических операторов:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"> 
+  <PRE><font color=#009900>//: c03:MathOps.java</font>
+<font color=#009900>// Демонстрация математических операторов.</font>
+<font color=#0000ff>import</font> java.util.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> MathOps {
+  <font color=#009900>// Создает стенографию, чтобы меньше печатать:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> prt(String s) {
+    System.out.println(s);
+  }
+  <font color=#009900>// стенография для печати строки и int:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> pInt(String s, <font color=#0000ff>int</font> i) {
+    prt(s + <font color=#004488>" = "</font> + i);
+  }
+  <font color=#009900>// </font><font size = "+1"><font color=#009900>стенография для печати строки и </font></font><font color=#009900>float:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> pFlt(String s, <font color=#0000ff>float</font> f) {
+    prt(s + <font color=#004488>" = "</font> + f);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#009900>// Создает генератор случайных чисел,</font>
+    <font color=#009900>// принимающий текущее время по умолчанию:</font>
+    Random rand = <font color=#0000ff>new</font> Random();
+    <font color=#0000ff>int</font> i, j, k;
+    <font color=#009900>// '%' ограничивает максимальное значение величиной 99:</font>
+    j = rand.nextInt() % 100;
+    k = rand.nextInt() % 100;
+    pInt(<font color=#004488>"j"</font>,j);  pInt(<font color=#004488>"k"</font>,k);
+    i = j + k; pInt(<font color=#004488>"j + k"</font>, i);
+    i = j - k; pInt(<font color=#004488>"j - k"</font>, i);
+    i = k / j; pInt(<font color=#004488>"k </font><font color=#004488>/ j"</font>, i);
+    i = k * j; pInt(<font color=#004488>"k * j"</font>, i);
+    i = k % j; pInt(<font color=#004488>"k % j"</font>, i);
+    j %= k; pInt(<font color=#004488>"j %= k"</font>, j);
+    <font color=#009900>// Проверка чисел с плавающей точкой:</font>
+    <font color=#0000ff>float</font> u,v,w;  <font color=#009900>// Также применима к числам двойной точности</font>
+    v = rand.nextFloat();
+    w = rand.nextFloat();
+    pFlt(<font color=#004488>"v"</font>, v); pFlt(<font color=#004488>"w"</font>, w);
+    u = v + w; pFlt(<font color=#004488>"v + w"</font>, u);
+    u = v - w; pFlt(<font color=#004488>"v - w"</font>, u);
+    u = v * w; pFlt(<font color=#004488>"v * w"</font>, u);
+    u = v / w; pFlt(<font color=#004488>"v </font><font color=#004488>/ w"</font>, u);
+    <font color=#009900>// следующее также работает для</font>
+    <font color=#009900>// char, byte, short, int, long,</font>
+    <font color=#009900>// и double:</font>
+    u += v; pFlt(<font color=#004488>"u += v"</font>, u);
+    u -= v; pFlt(<font color=#004488>"u -= v"</font>, u);
+    u *= v; pFlt(<font color=#004488>"u *= v"</font>, u);
+    u /= v; pFlt(<font color=#004488>"u </font><font color=#004488>/= v"</font>, u);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Первое, что вы увидите - это несколько стенаграфических 
+  методов для мечати: метод <B>prt(&#160;)</B> печатает <B>String</B>, метод <B>pInt(&#160;)</B> 
+  печатает <B>String</B>, а следом за ней <B>int</B>, a <B>pFlt(&#160;)</B> печатает 
+  <B>String</B>, а следом <B>float</B>. Конечно они в конце концов используют 
+  <B>System.out.println(&#160;)</B>.</FONT></P>
+<P><FONT FACE="Georgia">Для генерации чисел программа сначала создает объект <B>Random</B>. 
+  Поскольку во время создания не передаются аргументы, Java использует текущее 
+  время как источник для генератора случайных чисел. Программа генерирует несколько 
+  случайных чисел разных типов с помощью объекта <B>Random</B>, просто вызывая 
+  разные методы: <B>nextInt(&#160;)</B>, <B>nextLong(&#160;)</B>,<B> nextFloat(&#160;)</B> 
+  или<B> nextDouble(&#160;)</B>.</FONT> </P>
+<P><FONT FACE="Georgia">Оператор остатка от деления, когда он используется с результатом 
+  работы генератора случайных чисел, ограничивает результат значением верхней 
+  границы операнда минус единица (в этом случае 99).</FONT></P>
+<A NAME="Heading131"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Операторы унарного минуса и плюса<BR>
+  <A NAME="Index218"></A><A NAME="Index219"></A></H4>
+</FONT><FONT FACE="Georgia">Унарный минус (-)<A NAME="Index220"></A><A NAME="Index221"></A> 
+и унарный плюс (+)<A NAME="Index222"></A><A NAME="Index223"></A> это такие же 
+операции, как и бинарный минус и плюс. компилятор вычисляет какое использование 
+имеется в виду по спообу записи выражения. Например, выражение</FONT><BR>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>x = -a;</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT">
+  <P><FONT FACE="Georgia">имеет очевидный смысл. Компилятор способен вычислить:</FONT></P>
+</DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>x = a * -b;</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">но читатель может быть сконфужен, так что лучше сказать:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>x = a * (-b);</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Унарный минус производит отрицательное значение. Унарный 
+  плюс производится симметрично унарному минусу, хотя не производит никакого эффекта.</FONT><A NAME="_Toc375545251"></A><A NAME="_Toc481064545"></A></P>
+<A NAME="Heading132"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Автоинкремент и автодекремент</H3>
+</FONT><DIV ALIGN="LEFT">
+  <P><FONT FACE="Georgia">Java, как и C, полон сокращений. Сокращения могут сделать 
+    код более простым в наборе и либо легким, либо трудным для чтения.</FONT></P>
+</DIV>
+<P><FONT FACE="Georgia">Два из лучших сокращений - это операторы инкремента<A NAME="Index224"></A> 
+  и декремента<A NAME="Index225"></A> (часто называемые операторами автоинкремента 
+  <A NAME="Index226"></A> и автодекремента<A NAME="Index227"></A>). Оператор декремента 
+  является <B>--</B> и обозначает &#8220;уменьшение на одну единицу измерения&#8221;. 
+  Оператор инкремента - <B>++</B> и означает &#8220;увеличить на одну единицу 
+  измерения&#8221;. Если, например, <B>a</B> - <B>int</B>, выражение <B>++a</B> 
+  еквивалентно (<B>a = a + 1</B>). Операторы инкремента и декремента в результате 
+  производят такое же значение, что и переменная.</FONT></P>
+<P><FONT FACE="Georgia">Есть две версии каждого типа оператора, часто называемые 
+  префиксной и постфиксной версией. Преинкремент означает, что оператор <B>++ 
+  </B>стоит перед переменной или выражением, а постинкремент означает, что оператор 
+  <B>++</B> стоит после переменной или выражения. Аналогично, предекремент означает, 
+  что оператор -- стоит перед переменной или выражением, а постдекремент означает, 
+  что оператор -- стоит после переменной или выражения. Для преинкремента и предекремента 
+  (т.е. <B>++a</B> или <B>--a</B>), выполняется операция и производится значение. 
+  Для постинкремента и постдекремента (т.е. <B>a++ </B>или <B>a--</B>) сначала 
+  производится значение, а затем выполняется операция. Как пример:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:AutoInc.java</font>
+<font color=#009900>// Демонстрирует операторы ++ и --.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> AutoInc {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>int</font> i = 1;
+    prt(<font color=#004488>"i : "</font> + i);
+    prt(<font color=#004488>"++i : "</font> + ++i); <font color=#009900>// Преинкремент</font>
+    prt(<font color=#004488>"i++ : "</font> + i++); <font color=#009900>// Постинкремент</font>
+    prt(<font color=#004488>"i : "</font> + i);
+    prt(<font color=#004488>"--i : "</font> + --i); <font color=#009900>// Предекремент</font>
+    prt(<font color=#004488>"i-- : "</font> + i--); <font color=#009900>// Постдекремент</font>
+    prt(<font color=#004488>"i : "</font> + i);
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> prt(String s) {
+    System.out.println(s);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вывод этой программы:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>i : 1
+++i : 2
+i++ : 2
+i : 3
+--i : 2
+i-- : 2
+i : 1</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вы можете увидеть, что для префиксной формы вы получаете 
+  значение после выполнения операции, а при постфиксной форме вы получаете значение 
+  до выполнения операции. Это операторы (отличные от использующих присвоение), 
+  которые имеют побочные эффекты. (То есть, они меняют операнд раньше, чем используют 
+  его значение.)<A NAME="Index228"></A></FONT></P>
+<P><FONT FACE="Georgia">Оператор инкремента - это одно из объяснений для имени 
+  C++, подразумевающее &#8220;один шаг в сторону от C&#8221;. В ранней речи о 
+  Java <A NAME="Index229"></A>Bill Joy (один из создателей) сказал, что &#8220;Java=C++--&#8221; 
+  (C плюс плюс минус минус), намекая, что Java - это C++ с удаленной ненужной 
+  сложной частью и поэтому более простой язык. Когда вы будете продвигаться п 
+  окниге, вы увидите, что многие части проще, и теперь Java <i>не так</i> прост, 
+  как <A NAME="Index230"></A>C++. </FONT><A NAME="_Toc375545252"></A><A NAME="_Toc481064546"></A></P>
+<A NAME="Heading133"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> Операторы сравнения<BR>
+  <A NAME="Index231"></A><A NAME="Index232"></A></H3>
+</FONT>
+<p><FONT FACE="Georgia">Операторы сравнения генерируют <b>булевый</b> результат. 
+  Они вычисляют отношения между значениями и операндами. Выражение отношения производит 
+  <B>true</B>, если выражение истинное, а <B>false</B>, если выражение ложное. 
+  Выраж</FONT><FONT FACE="Georgia">ения отношения, это: меньше чем (&lt;)<A NAME="Index233"></A>, 
+  больше чем (&gt;)<A NAME="Index234"></A>, меньше либо равно, чем (&lt;=)<A NAME="Index235"></A>, 
+  больше либо равно, чем (&gt;=)<A NAME="Index236"></A>, равно (==)<A NAME="Index237"></A> 
+  и не равно (!=)<A NAME="Index238"></A>. <A NAME="Index239"></A><A NAME="Index240"></A><A NAME="Index241"></A><A NAME="Index242"></A><A NAME="Index243"></A><A NAME="Index244"></A>Равно 
+  и неравно работает со всеми встроенными типами данных, но другие сравнения работают 
+  только с типом <B>boolean<A NAME="Index245"></A></B>.</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+<A NAME="Heading134"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Проверка равенства объектов<BR>
+  <A NAME="Index246"></A><A NAME="Index247"></A></H4></FONT>
+<P><FONT FACE="Georgia">Операторы сравнения <B>==</B> и <B>!=</B> также работают 
+  со всеми объектами, но их значение часто смущает новичков в программировании 
+  на Java. Вот пример:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c03:Equivalence.java</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Equivalence {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Integer n1 = <font color=#0000ff>new</font> Integer(47);
+    Integer n2 = <font color=#0000ff>new</font> Integer(47);
+    System.out.println(n1 == n2);
+    System.out.println(n1 != n2);
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Выражение <B>System.out.println(n1 == n2)</B> напечатает 
+  результат <b>булевского</b> сравнение, заключенного в нем. Конечно, на выходе 
+  должно быть <B>true</B>, а затем <B>false</B>,<B> </B> так как оба объекта <B>Integer</B> 
+  обинаковы. Но пока <i>содержимое</i> объектов одинаковое, ссылки не одинаковы, 
+  и операторы <B>==</B> и <B>!= </B>сравнивают ссылки объектов. Так что на самом 
+  деле на выходе вы получите <B>false</B>, а затем <B>true</B>. Естественное, 
+  сначало это удивляет людей.</FONT></P>
+<P><FONT FACE="Georgia">Что, если вы хотите сравнить реальное содержимое объектов 
+  на равентсво? Вы должны использовать специальный метод <A NAME="Index250"></A><A NAME="Index251"></A><B>equals(&#160;)</B>, 
+  который существует для всех объектов (не для <a name="Index252"> п</a>римитивов, 
+  которые отлично работают с <B>==</B> и <B>!=</B>). Здесь показано как это использовать:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c03:EqualsMethod.java</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> EqualsMethod {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Integer n1 = <font color=#0000ff>new</font> Integer(47);
+    Integer n2 = <font color=#0000ff>new</font> Integer(47);
+    System.out.println(n1.equals(n2));
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Результатом будет <B>true</B>, как вы можете ожидать. 
+  Да, но это не так проссто. Если вы создаете свой собственный класс, как здесь:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c03:EqualsMethod2.java</font>
+
+<font color=#0000ff>class</font> Value {
+  <font color=#0000ff>int</font> i;
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> EqualsMethod2 {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Value v1 = <font color=#0000ff>new</font> Value();
+    Value v2 = <font color=#0000ff>new</font> Value();
+    v1.i = v2.i = 100;
+    System.out.println(v1.equals(v2));
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">вы снова вернетесь к предыдущему? результат - <B>false</B>. 
+  Это происходит потому, что поведение по умолчанию <B>equals(&#160;)</B> - это 
+  сравнение ссылок. Так что, если вы не <i>перегрузите</i> <B>equals(&#160;)</B> 
+  в вашем новом классе, вы не получите описанное поведение. К сожалению, вы не 
+  будете учить о перегрузке до Главы 7, но начальные знания о способах поведения 
+  <B>equals(&#160;)</B> может спасти вас от печали.</FONT></P>
+<P><FONT FACE="Georgia">Большинство библиотек классов Java реализуют <B>equals(&#160;)</B>, 
+  так что он сравнивает содержимое объектов вместо их ссылок.</FONT><A NAME="_Toc375545253"></A><A NAME="_Toc481064547"></A></P>
+<A NAME="Heading135"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Логические операторы<A NAME="Index253"></A><A NAME="Index254"></A></H3>
+</FONT> <FONT FACE="Georgia">Логические операторы И (&amp;&amp;)<A NAME="Index255"></A><A NAME="Index256"></A>, 
+ИЛИ (||)<A NAME="Index257"></A><A NAME="Index258"></A> и <A NAME="Index259"></A><A NAME="Index260"></A>НЕ 
+(!) производят <b>булевое</b> значение <B>true</B> или <B>false</B>, <A NAME="Index261"></A><A NAME="Index262"></A>в 
+зависимости от отношений оргументов. Этот пример использует отношения и логические 
+операторы:</FONT><BR>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:Bool.java</font>
+<font color=#009900>// Отношения и логические операторы.</font>
+<font color=#0000ff>import</font> java.util.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Bool {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Random rand = <font color=#0000ff>new</font> Random();
+    <font color=#0000ff>int</font> i = rand.nextInt() % 100;
+    <font color=#0000ff>int</font> j = rand.nextInt() % 100;
+    prt(<font color=#004488>"i = "</font> + i);
+    prt(<font color=#004488>"j = "</font> + j);
+    prt(<font color=#004488>"i &gt; j is "</font> + (i &gt; j));
+    prt(<font color=#004488>"i &lt; j is "</font> + (i &lt; j));
+    prt(<font color=#004488>"i &gt;= j is "</font> + (i &gt;= j));
+    prt(<font color=#004488>"i &lt;= j is "</font> + (i &lt;= j));
+    prt(<font color=#004488>"i == j is "</font> + (i == j));
+    prt(<font color=#004488>"i != j is "</font> + (i != j));
+
+    <font color=#009900>// Трактовка int как boolean</font>
+    <font color=#009900>// в Java недопустимо</font>
+<font color=#009900>//! prt("i &amp;&amp; j is " + (i &amp;&amp; j));</font>
+<font color=#009900>//! prt("i || j is " + (i || j));</font>
+<font color=#009900>//! prt("!i is " + !i);</font>
+
+    prt(<font color=#004488>"(i &lt; 10) &amp;&amp; (j &lt; 10) is "</font>
+       + ((i &lt; 10) &amp;&amp; (j &lt; 10)) );
+    prt(<font color=#004488>"(i &lt; 10) || (j &lt; 10) is "</font>
+       + ((i &lt; 10) || (j &lt; 10)) );
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> prt(String s) {
+    System.out.println(s);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вы можете применять И, ИЛИ или НЕ только к значениям <B>boolean</B>. 
+  Вы не можете использовать не <B>boolean</B>, как будто это <A NAME="Index263"></A><B>boolean</B> 
+  в логических выражениях, как вы это можете делать в C и C++. Вы можете видеть 
+  неудачную попытку этого, убрав коментарий в строках, помеченных <B>//!</B>. 
+  Однако последующие выражения производят значения <B>boolean</B>, используя отношения 
+  сравнения, затем используя логические выражения для результата.</FONT></P>
+<P><FONT FACE="Georgia">Список вывода выглядит примерно так:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>i = 85
+j = 4
+i &gt; j is <font color=#0000ff>true</font>
+i &lt; j is <font color=#0000ff>false</font>
+i &gt;= j is <font color=#0000ff>true</font>
+i &lt;= j is <font color=#0000ff>false</font>
+i == j is <font color=#0000ff>false</font>
+i != j is <font color=#0000ff>true</font>
+(i &lt; 10) &amp;&amp; (j &lt; 10) is <font color=#0000ff>false</font>
+(i &lt; 10) || (j &lt; 10) is <font color=#0000ff>true</font></PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Обратите внимание, что значение <B>boolean</B> автоматически 
+  преобразуется в соответствующую текстовую форму, если он используется в месте, 
+  где ожидается <B>String</B>.</FONT></P>
+<P><FONT FACE="Georgia">Вы можете заменить определение для <B>int</B> в приведенной 
+  выше программе на любой другой примитивный тип данных, за исключением <B>boolean</B>. 
+  Однако осознавайте, что сравнение чисел с плавающей точкой очень строгое. Число, 
+  которое на бесконечно малую величину отличается от другого - &#8220;не равно&#8221;. 
+  Число, которое на бесконечно малую величину больше нуля - не ноль.<A NAME="Index264"></A></FONT></P>
+<A NAME="Heading136"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Короткое замыкание</H4>
+</FONT>
+<DIV ALIGN="LEFT">
+  <P><FONT FACE="Georgia">Когда имеете дело с <A NAME="Index265"></A><A NAME="Index266"></A><A NAME="Index267"></A>логическими 
+    операторами, вы входите в феномен, называемый &#8220;короткое замыкание&#8221;. 
+    Это означает, что выражение будет вычислятся только до тех пор, не будет определена 
+    неоднозначно правдивость или ложность всего выражения. как результат, все 
+    части логического выражения могут не вычислятся. Хдесь приведен пример, который 
+    демонстрирует короткое замыкание:</FONT><BR>
+  </P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:ShortCircuit.java</font>
+<font color=#009900>// Демонстрирует поведение короткого замыкания</font>
+<font color=#009900>// с логическими операциями.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> ShortCircuit {
+  <font color=#0000ff>static</font> <font color=#0000ff>boolean</font> test1(<font color=#0000ff>int</font> val) {
+    System.out.println(<font color=#004488>"test1("</font> + val + <font color=#004488>")"</font>);
+    System.out.println(<font color=#004488>"result: "</font> + (val &lt; 1));
+    <font color=#0000ff>return</font> val &lt; 1;
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>boolean</font> test2(<font color=#0000ff>int</font> val) {
+    System.out.println(<font color=#004488>"test2("</font> + val + <font color=#004488>")"</font>);
+    System.out.println(<font color=#004488>"result: "</font> + (val &lt; 2));
+    <font color=#0000ff>return</font> val &lt; 2;
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>boolean</font> test3(<font color=#0000ff>int</font> val) {
+    System.out.println(<font color=#004488>"test3("</font> + val + <font color=#004488>")"</font>);
+    System.out.println(<font color=#004488>"result: "</font> + (val &lt; 3));
+    <font color=#0000ff>return</font> val &lt; 3;
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>if</font>(test1(0) &amp;&amp; test2(2) &amp;&amp; test3(2))
+      System.out.println(<font color=#004488>"expression is true"</font>);
+    <font color=#0000ff>else</font>
+      System.out.println(<font color=#004488>"expression is false"</font>);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Каждый тест выполняет сравнение с аргументом и возвращает 
+  истину или ложь. Также печатается информация, чтобы показать вам, что вызывается. 
+  Тасты используются в выражении:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>if</font>(test1(0) &amp;&amp; test2(2) &amp;&amp; test3(2))</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вы на самом деле можете подумать, что выполняются все 
+  три теста, но выходные данные говорят об обратном:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>test1(0)
+result: <font color=#0000ff>true</font>
+test2(2)
+result: <font color=#0000ff>false</font>
+expression is <font color=#0000ff>false</font></PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Первый тест возвращает в результате <B>true</B>, так что 
+  продолжается вычисление выражения. Однако второй тест в результате возвращает 
+  <B>false</B>. Так как это означает, что все выражение должно быть <B>false</B>, 
+  то зачем продолжать вычисления оставшегося выражения? Это было бы слишком дорого. 
+  Оправдание короткого замыкания, фактически, заключается именно в этом; вы можете 
+  получить потенциальное увеличение производительности, если не будет необходимости 
+  вычислять все части логического выражения.</FONT><A NAME="_Toc375545254"></A><A NAME="_Toc481064548"></A></P>
+<A NAME="Heading137"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Битовые операторы<A NAME="Index268"></A><A NAME="Index269"></A></H3>
+</FONT> <FONT FACE="Georgia">Битовые операторы позволяют вам манипулировать индивидуальным 
+битом в интегрированном примитивном типе данных. Битовые операторы вычисляются 
+по Булевой алгебре<A NAME="Index270"></A> над соответствующими битами двух аргументов 
+для произведения результата.</FONT>
+<P><FONT FACE="Georgia">Битовые операторы пришли из никоуровневой ориентации C; 
+  вы будите часто напрямую манипулировать оборудованием и устанавливать биты в 
+  регистрах апаратуры. Java изначально была разработана для встраивания в телевизор<A NAME="Index271"></A>, 
+  так что низкоуровневая ориентация все еще чувствуется. Однако вы, вероятно, 
+  не будете часто использовать битовые операции.</FONT></P>
+<P><FONT FACE="Georgia">Битовый оператор И (<B>&amp;</B>)<A NAME="Index272"></A><A NAME="Index273"></A> 
+  производит единицу в выходном бите, если оба входных бита были единицами; в 
+  противном случае результат - ноль. Битовый оператор ИЛИ (<B>|</B>)<A NAME="Index274"></A><A NAME="Index275"></A> 
+  производит единицу в выходном бите, если один из входных бит - единица, и производит 
+  ноль, если оба бита - нули. Битовое ИСКЛЮЧАЮЩЕЕ ИЛИ, или XOR (<B>^</B>),<A NAME="Index276"></A><A NAME="Index277"></A><A NAME="Index278"></A> 
+  производит единицу в выходном бите, если один или другой входной бит - единица, 
+  но не оба. Битовая операция НЕ <A NAME="Index279"></A> (<B>~</B>, также называемый 
+  оператором <i>дополнения</i><A NAME="Index281"></A>) - это унарный оператор;<A NAME="Index282"></A><A NAME="Index283"></A> 
+  он принимает только один аргумент. (Все остальные битовые операторы - бинарные.<A NAME="Index284"></A><A NAME="Index285"></A>) 
+  Битовое НЕ на выходе производит бит, противоположных входящему &#8212; единицу, 
+  если входящий бит - ноль, и ноль, если входящий бит - единица.</FONT></P>
+<P><FONT FACE="Georgia">Битовые операторы и логические операторы используют одинаковые 
+  символы, так что полезно иметь мнемоническуе схему, которая поможет вам запомнить 
+  значения: так как биты &#8220;малы&#8221;, то используется только один символ 
+  в битовых операторах.</FONT></P>
+<P><FONT FACE="Georgia">Битовые операторы можно комбинировать со знаком <B>=</B> 
+  для соединения операции и присвоений: <B>&amp;=<A NAME="Index286"></A></B>, 
+  <B>|=<A NAME="Index287"></A></B> и <B>^=<A NAME="Index288"></A></B> являются 
+  допустимыми. (Так как <B>~</B> - это унарный оператор, он не может комбинироваться 
+  со знаком <B>=</B>.)</FONT></P>
+<P><FONT FACE="Georgia">Тип <B>boolean</B> трактуется как однобитное значение, 
+  так что это кое в чем отличается. Вы можете выполнять битовое И, ИЛИ и XOR, 
+  но вы не можете выполнять битовое НЕ (предположительно для предотвращения путаницы 
+  с логическим НЕ). Для булевских битовых операций имеется то же эффект, что и 
+  для логических операций, за исключением того, что они не подвержены короткому 
+  замыканию. Также, битовые операции на булевыми типами, включают логический оператор 
+  XOR, который не включен в список &#8220;логических&#8221; операторов. Вы предохранены 
+  от использования булевских типов в выражениях сдвига, которые описаны далее.</FONT><A NAME="_Toc375545255"></A><A NAME="_Toc481064549"></A></P>
+<A NAME="Heading138"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> Операторы сдвига<A NAME="Index289"></A><A NAME="Index290"></A></H3>
+</FONT> 
+<p><FONT FACE="Georgia">Операторы сдвига также манипулируют битами. Они могут 
+  использоваться исключительно с примитивными, целыми типами. Оператор сдвига 
+  влево (<B>&lt;&lt;</B>)<A NAME="Index291"></A><A NAME="Index292"></A> производит 
+  действия над операндом, расположенным слева от оператора, сдвигая влева на число 
+  бит, указанное после оператора (вставляя нули в биты младшего порядка). Оператор 
+  сдвига вправо с учетом знака (<B>&gt;&gt;</B>)<A NAME="Index293"></A><A NAME="Index294"></A> 
+  производит действия над операндом, расположенным слева от оператора, сдвигаяя 
+  вправо на число бит, указанное после оператора. Сдвиг в право с учетом знака 
+  <B>&gt;&gt; </B>использует <i>знаковое дополнение</i><I><A NAME="Index296"></A></I>: 
+  если значение положительное в биты старшего порядка вставляются нули; если значение 
+  отрицательное, в старшие биты вставляются единицы. Java также добавлен беззнаковый 
+  сдвиг вправо <B>&gt;&gt;&gt;, </B> который использует <i>дополнение нулями<A NAME="Index298"></A></i>: 
+  независимо от знака, в старшие биты вставляются нули. Этот оператор не существует 
+  ни в C, ни в C++.</FONT><BR>
+</p>
+<P><FONT FACE="Georgia">Если вы сдвигаете <B>char</B>, <B>byte</B> или <B>short</B>, 
+  это переводится в <B>int</B> перед сдвигом, а результат будет типа <B>int</B>. 
+  Будут использоваться только пять младших бит с правой стороны. Это предохранит 
+  вас от сдвига на болешее число бит, чем есть в <B>int</B>. Если вы работаете 
+  с <B>long</B>, в результате вы получите <B>long</B>. Будут использоваться только 
+  шесть младших бит с правой стороны, так что вы не сможете сдвинуть на большее 
+  число бит, чем есть в <B>long</B>.</FONT></P>
+<P><FONT FACE="Georgia">Сдвиг может быть скомбинирован со знаком равенства (<B>&lt;&lt;=</B> 
+  или <B>&gt;&gt;=</B> или <B>&gt;&gt;&gt;=</B>)<A NAME="Index299"></A><A NAME="Index300"></A>. 
+  lvalue заменяется на lvalue, сдвинутое на правое rvalue. Однако, есть проблема 
+  с беззнаковым правым сдвигом, скомбинированным с присваиванием. Если вы используете 
+  <B>byte</B> или <B>short</B>, вы не получаете корректный результат. Вместо этого 
+  происходит преобразование к <B>int</B> и правый сдвиг, но затем происходит усечение, 
+  так как результат снова присваивается к той же переменной, так что в этих случаях 
+  вы получите <B>-1</B>. Приведенный пример демонстрирует это:</FONT><BR>
+</P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:URShift.java</font>
+<font color=#009900>// Проверка беззнакового правого сдвига.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> URShift {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>int</font> i = -1;
+    i &gt;&gt;&gt;= 10;
+    System.out.println(i);
+    <font color=#0000ff>long</font> l = -1;
+    l &gt;&gt;&gt;= 10;
+    System.out.println(l);
+    <font color=#0000ff>short</font> s = -1;
+    s &gt;&gt;&gt;= 10;
+    System.out.println(s);
+    <font color=#0000ff>byte</font> b = -1;
+    b &gt;&gt;&gt;= 10;
+    System.out.println(b);
+    b = -1;
+    System.out.println(b&gt;&gt;&gt;10);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">В последней строке результирующее значение не присваивается 
+  назат переменной <B>b</B>, а сразу выводится на печать, поэтому мы видим правильное 
+  поведение.</FONT></P>
+<P><FONT FACE="Georgia">Здесь мы видим пример, который демонстрирует использование 
+  всех операторов, использующих биты:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:BitManipulation.java</font>
+<font color=#009900>// Использование битовых операторов.</font>
+<font color=#0000ff>import</font> java.util.*;
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> BitManipulation {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    Random rand = <font color=#0000ff>new</font> Random();
+    <font color=#0000ff>int</font> i = rand.nextInt();
+    <font color=#0000ff>int</font> j = rand.nextInt();
+    pBinInt(<font color=#004488>"-1"</font>, -1);
+    pBinInt(<font color=#004488>"+1"</font>, +1);
+    <font color=#0000ff>int</font> maxpos = 2147483647;
+    pBinInt(<font color=#004488>"maxpos"</font>, maxpos);
+    <font color=#0000ff>int</font> maxneg = -2147483648;
+    pBinInt(<font color=#004488>"maxneg"</font>, maxneg);
+    pBinInt(<font color=#004488>"i"</font>, i);
+    pBinInt(<font color=#004488>"~i"</font>, ~i);
+    pBinInt(<font color=#004488>"-i"</font>, -i);
+    pBinInt(<font color=#004488>"j"</font>, j);
+    pBinInt(<font color=#004488>"i &amp; j"</font>, i &amp; j);
+    pBinInt(<font color=#004488>"i | j"</font>, i | j);
+    pBinInt(<font color=#004488>"i ^ j"</font>, i ^ j);
+    pBinInt(<font color=#004488>"i &lt;&lt; 5"</font>, i &lt;&lt; 5);
+    pBinInt(<font color=#004488>"i &gt;&gt; 5"</font>, i &gt;&gt; 5);
+    pBinInt(<font color=#004488>"(~i) &gt;&gt; 5"</font>, (~i) &gt;&gt; 5);
+    pBinInt(<font color=#004488>"i &gt;&gt;&gt; 5"</font>, i &gt;&gt;&gt; 5);
+    pBinInt(<font color=#004488>"(~i) &gt;&gt;&gt; 5"</font>, (~i) &gt;&gt;&gt; 5);
+
+    <font color=#0000ff>long</font> l = rand.nextLong();
+    <font color=#0000ff>long</font> m = rand.nextLong();
+    pBinLong(<font color=#004488>"-1L"</font>, -1L);
+    pBinLong(<font color=#004488>"+1L"</font>, +1L);
+    <font color=#0000ff>long</font> ll = 9223372036854775807L;
+    pBinLong(<font color=#004488>"maxpos"</font>, ll);
+    <font color=#0000ff>long</font> lln = -9223372036854775808L;
+    pBinLong(<font color=#004488>"maxneg"</font>, lln);
+    pBinLong(<font color=#004488>"l"</font>, l);
+    pBinLong(<font color=#004488>"~l"</font>, ~l);
+    pBinLong(<font color=#004488>"-l"</font>, -l);
+    pBinLong(<font color=#004488>"m"</font>, m);
+    pBinLong(<font color=#004488>"l &amp; m"</font>, l &amp; m);
+    pBinLong(<font color=#004488>"l | m"</font>, l | m);
+    pBinLong(<font color=#004488>"l ^ m"</font>, l ^ m);
+    pBinLong(<font color=#004488>"l &lt;&lt; 5"</font>, l &lt;&lt; 5);
+    pBinLong(<font color=#004488>"l &gt;&gt; 5"</font>, l &gt;&gt; 5);
+    pBinLong(<font color=#004488>"(~l) &gt;&gt; 5"</font>, (~l) &gt;&gt; 5);
+    pBinLong(<font color=#004488>"l &gt;&gt;&gt; 5"</font>, l &gt;&gt;&gt; 5);
+    pBinLong(<font color=#004488>"(~l) &gt;&gt;&gt; 5"</font>, (~l) &gt;&gt;&gt; 5);
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> pBinInt(String s, <font color=#0000ff>int</font> i) {
+    System.out.println(
+      s + <font color=#004488>", int: "</font> + i + <font color=#004488>", binary: "</font>);
+    System.out.print(<font color=#004488>"   "</font>);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> j = 31; j &gt;=0; j--)
+      <font color=#0000ff>if</font>(((1 &lt;&lt; j) &amp;  i) != 0)
+        System.out.print(<font color=#004488>"1"</font>);
+      <font color=#0000ff>else</font>
+        System.out.print(<font color=#004488>"0"</font>);
+    System.out.println();
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> pBinLong(String s, <font color=#0000ff>long</font> l) {
+    System.out.println(
+      s + <font color=#004488>", long: "</font> + l + <font color=#004488>", binary: "</font>);
+    System.out.print(<font color=#004488>"   "</font>);
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 63; i &gt;=0; i--)
+      <font color=#0000ff>if</font>(((1L &lt;&lt; i) &amp; l) != 0)
+        System.out.print(<font color=#004488>"1"</font>);
+      <font color=#0000ff>else</font>
+        System.out.print(<font color=#004488>"0"</font>);
+    System.out.println();
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><A NAME="Index301"></A><FONT FACE="Georgia">Два метода в конце: <B>pBinInt(&#160;)</B> 
+  и <B>pBinLong(&#160;)</B> tполучают <B>int</B> или <B>long</B> соответственно, 
+  и печатают их в бинарном формате вместе с описательной строкой. Вы можете пока 
+  проигнорировать их реализацию.</FONT></P>
+<P><FONT FACE="Georgia">Вы обратите внимание на использование <B>System.out.print(&#160;)</B> 
+  вместо <B>System.out.println(&#160;)</B>. Метод <B>print(&#160;)</B> не вызывает 
+  появление новой строки, так что это позволяет вам выводить строку по кусочкам.</FONT></P>
+<P><FONT FACE="Georgia">Заодно здесь демонстрируется эффект для всех битовых операций 
+  для <B>int</B> и <B>long</B>, этот пример также показывает минимальное, максимальное, 
+  +1 и -1 значения для <B>int</B> и <B>long</B>, так что вы можете увидить как 
+  они выглядят. Обратите внимание на битовое представление знака: 0 означает положительное 
+  число, 1 означает отрицательное. Вывод для части <B>int</B> выглядит так:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>-1, <font color=#0000ff>int</font>: -1, binary: 
+   11111111111111111111111111111111
++1, <font color=#0000ff>int</font>: 1, binary: 
+   00000000000000000000000000000001
+maxpos, <font color=#0000ff>int</font>: 2147483647, binary: 
+   01111111111111111111111111111111
+maxneg, <font color=#0000ff>int</font>: -2147483648, binary: 
+   10000000000000000000000000000000
+i, <font color=#0000ff>int</font>: 59081716, binary: 
+   00000011100001011000001111110100
+~i, <font color=#0000ff>int</font>: -59081717, binary: 
+   11111100011110100111110000001011
+-i, <font color=#0000ff>int</font>: -59081716, binary: 
+   11111100011110100111110000001100
+j, <font color=#0000ff>int</font>: 198850956, binary: 
+   00001011110110100011100110001100
+i &amp; j, <font color=#0000ff>int</font>: 58720644, binary: 
+   00000011100000000000000110000100
+i | j, <font color=#0000ff>int</font>: 199212028, binary: 
+   00001011110111111011101111111100
+i ^ j, <font color=#0000ff>int</font>: 140491384, binary: 
+   00001000010111111011101001111000
+i &lt;&lt; 5, <font color=#0000ff>int</font>: 1890614912, binary: 
+   01110000101100000111111010000000
+i &gt;&gt; 5, <font color=#0000ff>int</font>: 1846303, binary: 
+   00000000000111000010110000011111
+(~i) &gt;&gt; 5, <font color=#0000ff>int</font>: -1846304, binary: 
+   11111111111000111101001111100000
+i &gt;&gt;&gt; 5, <font color=#0000ff>int</font>: 1846303, binary: 
+   00000000000111000010110000011111
+(~i) &gt;&gt;&gt; 5, <font color=#0000ff>int</font>: 132371424, binary: 
+   00000111111000111101001111100000</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Битовое представление чисел называется<a name="Index302"></a><a name="Index303"></a> 
+  <i>двоичным представлением</i><a name="_Toc375545256"></a><a name="_Toc481064550"></a>.</FONT></P>
+<A NAME="Heading139"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> Тернарный оператор if-else<A NAME="Index304"></A><A NAME="Index305"></A><A NAME="Index306"></A></H3>
+</FONT> 
+<p><FONT FACE="Georgia">Этот оператор необычен, поскольку использует три операнда. 
+  Это действительно деле оператор, поскольку он производит значение, в отличие 
+  от обычного выражения if-else, которое вы увидите в следующем разделе этой главы<A NAME="Index307"></A>. 
+  Это выражение имеет форму:</FONT></p>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>boolean</font>-exp ? value0 : value1</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Если <I>boolean-exp</I> вычисляется как <B>true</B>, вычисляется 
+  <I>value0</I> и оно становится результатом, производимым оператором. Если <I>boolean-exp</I> 
+  - <B>false</B>, вычисляется <I>value1</I> и оно становится результатом, производимым 
+  оператором.</FONT></P>
+<P><FONT FACE="Georgia">Конечно вы можете использовать обычное выражение <B>if-else 
+  </B>(описанное позже), но тернарный оператор более краткий. Хотя C (откуда пришел 
+  этот оператора) гордится собой, как кратким языком, а тернарный оператор может 
+  быть введен частично для эффективности, вы иногда должны быть осторожны при 
+  каждодневном его использовании &#8212; он легко делает код нечитаемым.</FONT></P>
+<DIV ALIGN="LEFT">
+  <P><FONT FACE="Georgia">Условный оператор может быть использован из-за его побочных 
+    эффектов или из-за значения, которое он производит, но в общем, вы хотите 
+    получить значение, так как это то, чем отличается оператор от <B>if-else</B>. 
+    Вот пример:</FONT></P>
+</DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>static</font> <font color=#0000ff>int</font> ternary(<font color=#0000ff>int</font> i) {
+  <font color=#0000ff>return</font> i &lt; 10 ? i * 100 : i * 10;
+} </PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вы можете заметить, что этот код более компактный, чем 
+  тот, который вам необходимо написать без использования тернарного оператора:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>static</font> <font color=#0000ff>int</font> alternative(<font color=#0000ff>int</font> i) {
+  <font color=#0000ff>if</font> (i &lt; 10)
+    <font color=#0000ff>return</font> i * 100;
+  <font color=#0000ff>else</font>
+    <font color=#0000ff>return</font> i * 10;
+}</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вторая форма легче для понимания, и не требует намного 
+  большего набора. Так что будьте уверены, когда выбираете тернарный оператор.</FONT><A NAME="_Toc375545257"></A><A NAME="_Toc481064551"></A></P>
+<A NAME="Heading140"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Оператор запятая<BR>
+  <A NAME="Index308"></A><A NAME="Index309"></A></H3>
+</FONT> 
+<P><FONT FACE="Georgia">Запятая используется в C и C++ нетолько как разделитель 
+  в списке аргументов функции, но также как оператор последовательности вычислений. 
+  Единственное место, где <i>оператор</i> запятая используется в Java - это цикл 
+  <B>for</B>, который будет описан позже в этой главе.</FONT><A NAME="_Toc375545258"></A><A NAME="_Toc481064552"></A></P>
+<A NAME="Heading141"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> String: оператор +<BR>
+  <A NAME="Index310"></A></H3>
+</FONT> 
+<p><FONT FACE = "Verdana"> </FONT> <FONT FACE="Georgia">Есть одно специальное 
+  использование оператора в Java: оператор <B>+</B> может быть использован для 
+  <A NAME="Index311"></A>конкатенции строк, как вы это уже видели. Это выглядит 
+  как обычное использование <B>+</B>, даже хотя это не вписывается в традиционные 
+  способы использования <B>+</B>. Такая совместимость выглядит как хорошая идея 
+  в C++, так как <A NAME="Index312"></A><A NAME="Index313"> </A><I>перегрузка 
+  операторо</I> была добавлена в C++, чтобы позволить программистам C++добавлять 
+  смысл почти всем операторам. К сожалению, перегрузка операторов сопровождается 
+  некоторыми другими ограничениями C++, которые являются довольно сложными особенностями 
+  для программистов при разработке своих классов. Хотя перегрузку операторов проще 
+  реализовать в Java, чем в C++, эта особенность все еще остается слишком сложной, 
+  так что программисты на Java не могут реализовывать свои собственные перегруженные 
+  операторы, как программисты C++.</FONT></p>
+<P><FONT FACE="Georgia">Использование <B>String +</B> имеет некоторые интересные 
+  черты поведения Если выражение начинается со <B>String</B>, то все операнды, 
+  которые идут дальше, должны быть типа <B>String</B> (помните, что компилятор 
+  превратит указанную последовательность символов в <B>String</B>):</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>int</font> x = 0, y = 1, z = 2;
+String sString = <font color=#004488>"x, y, z "</font>;
+System.out.println(sString + x + y + z);</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Здесь компилятор Java преобразует <B>x</B>, <B>y</B> и 
+  <B>z</B> в предстваление <B>String</B>, вместо того, чтобы сначала их сложить 
+  вместе. А если вы скажете:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>System.out.println(x + sString);</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Java переведет <B>x </B>в <B>String</B>.</FONT><A NAME="_Toc375545259"></A><A NAME="_Toc481064553"></A></P>
+<A NAME="Heading142"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> Общие ловушки при использовании операторов<A NAME="Index314"></A><A NAME="Index315"></A></H3>
+</FONT> 
+<p><FONT FACE="Georgia">Одна из ошибок при использовании операторов - это попытка 
+  обходится без круглых скобок, когда вы даже немного не представляете того, как 
+  будет вычисляться выражение. Это все еще верно в Java.</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+<P><FONT FACE="Georgia">Чрезвычайно общая ошибка в C и C++ выглядит так:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>while</font>(x = y) {
+    <font color=#009900>// ....</font>
+}</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Программист пробовал проверить на равенство (<B>==</B>), 
+  а выполнил присвоение. В C и C++ результат присвоения всегда будет <B>true</B>, 
+  если <B>y </B> не ноль, и вы, вероятно, получите бесконечный цикл. В Java, результат 
+  этого выражения не <B>boolean,</B> а компилятор ожидает <B>boolean</B> и не 
+  может преобразовать <B>int</B>, так что он выдаст вам ошибку времени компиляции 
+  и выявит проблему до того, как ы запустите программу. Так что ловушка никогда 
+  не случится в <A NAME="Index316"></A>Java. (Вы не получите сообщение об ошибке 
+  времени компиляции, когда <B>x</B> и <B>y</B> - <B>boolean</B>, в таком случае 
+  <B>x = y</B> i- допустимое выражение, но в приведенном примере, вероятно, ошибочное.)</FONT></P>
+<DIV ALIGN="LEFT">
+  <P><FONT FACE="Georgia">Аналогично C и C++ есть проблема использование битовыз 
+    И и ИЛИ вместо логической версии. Битовые И и ИЛИ используют один символ (<B>&amp;</B> 
+    или <B>|</B>), а логические И и ИЛИ используют два (<B>&amp;&amp;</B> и <B>||</B>). 
+    Как и с <B>=</B> и <B>==</B>, легко напечатать только один символ вместо двух.<A NAME="Index318"></A><A NAME="Index319"></A><A NAME="Index320"></A><A NAME="Index321"></A><A NAME="Index322"></A> 
+    В Java компилятор опять предотвратит это, потому что он не позволит вым бесцеремонно 
+    использовать один тип, где это не применимо.</FONT><A NAME="_Toc375545260"></A><A NAME="_Toc481064554"></A></P>
+</DIV>
+<A NAME="Heading143"></A><FONT FACE = "Verdana"> 
+<H3 ALIGN="LEFT"> Операторы приведения<A NAME="Index323"></A><A NAME="Index324"></A></H3>
+</FONT> 
+<p><FONT FACE="Georgia">Слово приведение используется в смысле &#8220;приведение 
+  к шаблону&#8221;. Java будет автоматически менять тип данных на другой при присвоении. 
+  Например, если вы присваиваете целочисленное значение переменной с плавающей 
+  точкой, компилятор автоматически конвертирует <B>int</B> в <B>float</B>. Приведение 
+  позволяет вам сделать такой тип преобразования более точным или форсировать 
+  его, когда оно не может выполнится нормально.</FONT></p>
+<P><FONT FACE="Georgia">Для выполнения приведения поместите нужный тип данный 
+  (включая все модификаторы) внутри круглых скобок с левой стороны от любого значения. 
+  Вот пример:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>void</font> casts() {
+  <font color=#0000ff>int</font> i = 200;
+  <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)i;
+  <font color=#0000ff>long</font> l2 = (<font color=#0000ff>long</font>)200;
+}</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Как вы можете видеть, возможно выполнить приведение для 
+  числового значения так же как и для переменной. Однако, вобоих показанных здесь 
+  приведениях излишне, так как компилятор автоматически переводит значение <B>int</B> 
+  в <B>long</B>, когда это необходимо. Но вам позволено применять излишнее преобразование, 
+  чтобы сделать какое-то место или сделать ваш код более понятным. В остальных 
+  ситуациях приведение может быть очень важно просто для того, чтобы код скомпилировался.</FONT></P>
+<P><FONT FACE="Georgia">В C и C++ приведение может стать причиной головной боли. 
+  В Java приведение безопасно, за исключением тех случаев, когда вы выполняете 
+  так называемое<A NAME="Index325"></A><A NAME="Index326"></A> <i>сужающее преобразование</i> 
+  (то есть, когда вы переходите от одного типа данных, который содержит больше 
+  информации, к другому, который не содержит так много), вы рискуете потерять 
+  информацию. Здесь компилятор заставляет вас выполнить преобразование и при этом 
+  говорит: &#8220;выполнение это может быть опасным &#8212; если вы хотите от 
+  меня, чтобы я все равно сделал это, вы должны выполнить явное преобразование&#8221;. 
+  При<A NAME="Index327"></A><A NAME="Index328"></A> <i>расширенном преобразовании</i> 
+  в явном приведении нет необходимости, потому что новый тип будет содержать больше 
+  информации, в отличае от старого типа, так что не будет потерь в информации.</FONT></P>
+<P><FONT FACE="Georgia">Java позволяет вам выполнить приведение любого примитивного 
+  типа к любому другому примитивному типу, за исключением <A NAME="Index329"></A><B>boolean</B>, 
+  для которого не допускается любое приведение. Типы классов не позволяют приведение. 
+  Для преобразования одного к другому должны быть специальные методы. (<B>String</B> 
+  - особый случай и вы позже найдете в этой книге, что объекты могут приводится 
+  в пределах <i>семейства</i> типов; <B>Oak</B> может быть преобразован к <B>Tree</B> 
+  и наоборот, но не к постороннему типу, такому как <B>Rock</B>.)</FONT></P>
+<A NAME="Heading144"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Литералы<BR>
+  <A NAME="Index330"></A></H4>
+</FONT> 
+<P><FONT FACE="Georgia">Обычно, когда вы вставляете литерное значение в программу, 
+  компилятор точно знает каким типом его сделать. Однако иногда тип неоднозначен. 
+  Когда это случается, вы должны указать компилятору дополнительную информацию 
+  в форме символов, ассоциированных со значением литерала. Приведенный ниже код 
+  показывает эти символы:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:Literals.java</font>
+
+<font color=#0000ff>class</font> Literals {
+  <font color=#0000ff>char</font> c = 0xffff; <font color=#009900>// максимальное шестнадцатиричное значение для char</font>
+  <font color=#0000ff>byte</font> b = 0x7f; <font color=#009900>// максимальное шестнадцатиричное значение для byte</font>
+  <font color=#0000ff>short</font> s = 0x7fff; <font color=#009900>// максимальное шестнадцатиричное значение для short</font>
+  <font color=#0000ff>int</font> i1 = 0x2f; <font color=#009900>// Шестнадцатирично-десятичное (в нижнем регистре)</font>
+  <font color=#0000ff>int</font> i2 = 0X2F; <font color=#009900>// Шестнацчатирично-десятичное (в верхнем регистре)</font>
+  <font color=#0000ff>int</font> i3 = 0177; <font color=#009900>// Восьмеричное (ведущий ноль)</font>
+  <font color=#009900>// Шестнадцатиричные и восьмиричные также работают с long.</font>
+  <font color=#0000ff>long</font> n1 = 200L; <font color=#009900>// суффикс для long</font>
+  <font color=#0000ff>long</font> n2 = 200l; <font color=#009900>// суффикс для long</font>
+  <font color=#0000ff>long</font> n3 = 200;
+  <font color=#009900>//! long l6(200); // не допустимо</font>
+  <font color=#0000ff>float</font> f1 = 1;
+  <font color=#0000ff>float</font> f2 = 1F; <font color=#009900>// суффикс для float</font>
+  <font color=#0000ff>float</font> f3 = 1f; <font color=#009900>// суффикс для float</font>
+  <font color=#0000ff>float</font> f4 = 1e-45f; <font color=#009900>// 10 - основание степени</font>
+  <font color=#0000ff>float</font> f5 = 1e+9f; <font color=#009900>// суффикс для float</font>
+  <font color=#0000ff>double</font> d1 = 1d; <font color=#009900>// суффикс для double</font>
+  <font color=#0000ff>double</font> d2 = 1D; <font color=#009900>// суффикс для double</font>
+  <font color=#0000ff>double</font> d3 = 47e47d; <font color=#009900>// 10 - основание степени</font>
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><A NAME="Index331"></A><FONT FACE="Georgia">Шестнадцатерично-десятичные (<A NAME="Index332"></A>основание 
+  16), которые работают со всеми интегрированными типами данных, указываются лидирующим 
+  символом <B>0x</B> или <B>0X</B>, за которыми следует 0&#8212;9 и далее a&#8212;f 
+  в верхнем, либо в нижнем регистре. Если вы попробуете проинициализировать переменную 
+  с помощью значения, большего, чем она может принять (не зависимо от числовой 
+  формы значения), компилятор выдаст вам сообщение об ошибке. Обратите внимание 
+  в приведенном выше коде на максимально допустимое шестнадцатирично-десятичное 
+  значение для <B>char</B>, <B>byte</B> и <B>short</B>. Если вы превысите его, 
+  компилятор автоматически преобразует значение к <B>int</B> и скажет вам, что 
+  необходимо сужающее приведение для присваения. Вы найдете это место, остановившись 
+  на этой строке.</FONT></P>
+<P><A NAME="Index333"></A><FONT FACE="Georgia">Восьмеричные (<A NAME="Index334"></A>основание 
+  8) указываются лидирующим нулемв цисле и цифррами 0-7. Нет специальных литералов 
+  для <A NAME="Index335"></A><A NAME="Index336"></A>бинарного впедсталения в C, 
+  C++ или Java.</FONT></P>
+<P><FONT FACE="Georgia">Замыкающие символы после литерного значения устанавливают 
+  тип. Символ <b>L</b> в верхнем или нижнем регистре означает <A NAME="Index337"></A><A NAME="Index338"></A><B>long</B>, 
+  верхний или нижний регистр <B>F</B> означает <A NAME="Index339"></A><A NAME="Index340"></A><B>float</B>, 
+  а верхний или нижний регистр <B>D</B> означает <A NAME="Index341"></A><A NAME="Index342"></A><B>double</B>.</FONT></P>
+<P><A NAME="Index343"></A><FONT FACE="Georgia">Используется експонентная запись, 
+  которую я всегда находил пугающей: <B>1.39 e-47f</B>. В науки и инженерии &#8216;e&#8217; 
+  означает основание <A NAME="Index344"></A><A NAME="Index345"></A>натурального 
+  логарифма, примерно 2.718. (Более точное значение типа <B>double </B>доступно 
+  в Java, как <B>Math.E</B>.) Здесь используется экспонентное выражение, такое 
+  как 1.39 x e<SUP>-47</SUP>, которое означает 1.39 x 2.718<SUP>-47</SUP>. Однако 
+  когда был создан <A NAME="Index346"></A>FORTRAN, то решили, что <B>e</B> на 
+  самом деле будет означать &#8220;десять в степени&#8221;, что было странным 
+  решением, потому что FORTRAN был предназначен для науки и инжененрии, и можно 
+  подумать, что его разработчики будут чувствительны к введению такой неоднозначности. 
+  </FONT><a href="#fn25">[25]</a><FONT FACE="Georgia"> В любом случае это перешло 
+  в C, C++ и теперь в Java. Так что, если вы используете мышление в терминах <B>e</B>, 
+  как основания натурального логарифма, вы должны в уме выполнить перевод, когда 
+  используете такое выражение, как <B>1.39 e-47f</B> в Java; это означает 1.39 
+  x 10<SUP>-47</SUP>. </FONT> </P>
+<P><FONT FACE="Georgia">Обратите внимание, что вам нет необходимости использовать 
+  завершающий символ, когда компилятор может определить подходящий тип. В примере</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>long</font> n3 = 200;</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">нет неоднозначности, так что <B>L</B> после 200 будет 
+  излишним. Однако в примере</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>float</font> f4 = 1e-47f; <font color=#009900>// 10 в степени</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">компилятор обычно принимает експоненциальные числа как 
+  числа двойной точности, так что без завершающего <B>f</B> это даст вам ошибку, 
+  говорящую вам о том, что вы должны использовать приведение для преобразования 
+  <B>double</B> к <B>float</B>.</FONT></P>
+<A NAME="Heading145"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Повышение</H4>
+</FONT>
+<P><FONT FACE="Georgia">Вы обнаружите, что если вы выполняете любую математическую 
+  или битовую операцию над примитивными типами данных, которые меньше, чем <B>int</B> 
+  (то есть, <B>char</B>, <B>byte</B> или <B>short</B>), эти значения будут <A NAME="Index347"></A>повышены 
+  до <B>int</B> перед выполнением операций, а результирующее значение будет типа 
+  <B>int</B>. Так что, если вы хотите присвоить обратно к маленькому типу, вы 
+  должны использовать приведение. (И, так как вы обратно присваиваете к меньшему 
+  типу, вы можете потерять информацию.) В общем, большие типы данных в выражениях 
+  - это то, что определяет размер результата выражения; если вы умножаете <B>float</B> 
+  на <B>double</B>, результатом будет <B>double</B>; если вы складываете <B>int</B> 
+  и <B>long</B>, результатом будет <B>long</B>.</FONT><A NAME="_Toc375545261"></A><A NAME="_Toc481064555"></A></P>
+<A NAME="Heading146"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> В Java нет &#8220;sizeof&#8221; </H3>
+</FONT> 
+<P><FONT FACE="Georgia">В C и C++ оператор <A NAME="Index348"></A><B>sizeof(&#160;)</B> 
+  удовлетворяет специфическим требованиям: он говорит вам число байт, занимаемых 
+  элементом данных. Наиболее неотразимая черта <B>sizeof(&#160;)</B> в C и C++ 
+  -<A NAME="Index349"></A> это компактность. Различные типы данных могут быть 
+  различных размеров на разных машинах, так что программист должен определить 
+  насколько велик этот тип данных, когда он выполняет операцию, чувствительную 
+  к размеру. Например, один компьютер может хранить целые числа в 32 битах, а 
+  другой компьютер хранит целые как 16 бит. Программы могут хранить большие значения 
+  в целых числах на первой машине. Как вы можете заметить, компактность - огромная 
+  головная боль для программистов C и C++.</FONT></P>
+<P><FONT FACE="Georgia">В Java нет необходимости в операторе <B>sizeof(&#160;)</B> 
+  для этих целей, потому что все типы данных имеют один размер на всех машинах. 
+  У вас нет необходимости думать о компакности на этом уровне &#8212; она встроена 
+  в язык.</FONT><A NAME="_Toc375545262"></A><A NAME="_Toc481064556"></A></P>
+<A NAME="Heading147"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Снова о предшествовании</H3>
+</FONT>
+<p><FONT FACE = "Verdana"> </FONT> <FONT FACE="Georgia">Слушая мои объяснения 
+  о сложности запомнинания <A NAME="Index350"></A><A NAME="Index351"></A>последовательности 
+  операторов, студенты подсказали мнемонику, которая одновременно является комментарием: 
+  &#8220;У нас Авария Случилась, Лежу Теперь Полуживой&#8221;.<a href="#per1"><sup>*</sup></a></FONT></p>
+<TABLE BORDER align="center">
+  <TR VALIGN="middle" align="center"> 
+    <TD> <FONT FACE="Georgia"><B>Мнемоника</B></FONT> </TD>
+    <TD> <FONT FACE="Georgia"><B>Типе оператора</B></FONT> </TD>
+    <TD> <FONT FACE="Georgia"><B>Операторы</B></FONT></TD>
+  </TR>
+  <TR VALIGN="TOP"> 
+    <TD> <FONT FACE="Georgia">У нас</FONT></TD>
+    <TD> <FONT FACE="Georgia">Унарные</FONT></TD>
+    <TD> <FONT FACE="Georgia"><B>+ - ++--</B></FONT></TD>
+  </TR>
+  <TR VALIGN="TOP"> 
+    <TD> <FONT FACE="Georgia">Авария</FONT></TD>
+    <TD> <FONT FACE="Georgia">Арифметические (и сдвиг)</FONT> </TD>
+    <TD> <FONT FACE="Georgia"><B>* / % + - &lt;&lt; &gt;&gt;</B></FONT></TD>
+  </TR>
+  <TR VALIGN="TOP"> 
+    <TD> <FONT FACE="Georgia">Случилась</FONT></TD>
+    <TD> <FONT FACE="Georgia">Сравнение</FONT></TD>
+    <TD> <FONT FACE="Georgia"><B>&gt; &lt; &gt;= &lt;= == !=</B></FONT></TD>
+  </TR>
+  <TR VALIGN="TOP"> 
+    <TD> <FONT FACE="Georgia">Лежу</FONT></TD>
+    <TD> <FONT FACE="Georgia">Логические (и битовые)</FONT></TD>
+    <TD> <FONT FACE="Georgia"><B>&amp;&amp; || &amp; | ^</B></FONT></TD>
+  </TR>
+  <TR VALIGN="TOP"> 
+    <TD> <FONT FACE="Georgia">Теперь</FONT></TD>
+    <TD> <FONT FACE="Georgia">Тернарная</FONT></TD>
+    <TD> <FONT FACE="Georgia"><B>A &gt; B ? X : Y</B></FONT></TD>
+  </TR>
+  <TR VALIGN="TOP"> 
+    <TD> <FONT FACE="Georgia">Полуживой</FONT></TD>
+    <TD> <FONT FACE="Georgia">Присваивание</FONT></TD>
+    <TD> <FONT FACE="Georgia"><B>= </B>(и комбинированное присваивание, как <B> 
+      *=</B>)</FONT></TD>
+  </TR>
+</TABLE>
+<p></p>
+<P><FONT FACE="Georgia">Конечно с операторами сдвига и битовыми операторами, распределенными 
+  по таблице это не совсем точная мнемоника, но для не битовых операций она работает.</FONT><A NAME="_Toc375545263"></A><A NAME="_Toc481064557"></A></P>
+<A NAME="Heading148"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Руководство по операторам</H3>
+</FONT> 
+<P><FONT FACE="Georgia">Следующий пример показывает какие <A NAME="Index352"></A><A NAME="Index353"></A><A NAME="Index354"></A>примитивные 
+  типы данных могут быть использованы с определенными операторами. В основном 
+  это пример, который повторяется снова и снова, но использует различные примитивные 
+  типы данных. Файл будет компилироваться без ошибок, потому что строки, которые 
+  могут стать причиной ошибки, закоментированы с помощью <B>//!</B>.</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:AllOps.java</font>
+<font color=#009900>// Проверка всех операторов для всех</font>
+<font color=#009900>// примитивных типов данных, чтобы показать,</font>
+<font color=#009900>// какие принимаются компилятором Java.</font>
+
+<font color=#0000ff>class</font> AllOps {
+  <font color=#009900>// Для получения результата булевой проверки:</font>
+  <font color=#0000ff>void</font> f(<font color=#0000ff>boolean</font> b) {}
+  <font color=#0000ff>void</font> boolTest(<font color=#0000ff>boolean</font> x, <font color=#0000ff>boolean</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    <font color=#009900>//! x = x * y;</font>
+    <font color=#009900>//! x = x / y;</font>
+    <font color=#009900>//! x = x % y;</font>
+    <font color=#009900>//! x = x + y;</font>
+    <font color=#009900>//! x = x - y;</font>
+    <font color=#009900>//! x++;</font>
+    <font color=#009900>//! x--;</font>
+    <font color=#009900>//! x = +y;</font>
+    <font color=#009900>//! x = -y;</font>
+    <font color=#009900>// Сравнение и логика:</font>
+    <font color=#009900>//! f(x &gt; y);</font>
+    <font color=#009900>//! f(x &gt;= y);</font>
+    <font color=#009900>//! f(x &lt; y);</font>
+    <font color=#009900>//! f(x &lt;= y);</font>
+    f(x == y);
+    f(x != y);
+    f(!y);
+    x = x &amp;&amp; y;
+    x = x || y;
+    <font color=#009900>// Битовые операторы:</font>
+    <font color=#009900>//! x = ~y;</font>
+    x = x &amp; y;
+    x = x | y;
+    x = x ^ y;
+    <font color=#009900>//! x = x &lt;&lt; 1;</font>
+    <font color=#009900>//! x = x &gt;&gt; 1;</font>
+    <font color=#009900>//! x = x &gt;&gt;&gt; 1;</font>
+    <font color=#009900>// Совмещение присваения:</font>
+    <font color=#009900>//! x += y;</font>
+    <font color=#009900>//! x -= y;</font>
+    <font color=#009900>//! x *= y;</font>
+    <font color=#009900>//! x /= y;</font>
+    <font color=#009900>//! x %= y;</font>
+    <font color=#009900>//! x &lt;&lt;= 1;</font>
+    <font color=#009900>//! x &gt;&gt;= 1;</font>
+    <font color=#009900>//! x &gt;&gt;&gt;= 1;</font>
+    x &amp;= y;
+    x ^= y;
+    x |= y;
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! char c = (char)x;</font>
+    <font color=#009900>//! byte B = (byte)x;</font>
+    <font color=#009900>//! short s = (short)x;</font>
+    <font color=#009900>//! int i = (int)x;</font>
+    <font color=#009900>//! long l = (long)x;</font>
+    <font color=#009900>//! float f = (float)x;</font>
+    <font color=#009900>//! double d = (double)x;</font>
+  }
+  <font color=#0000ff>void</font> charTest(<font color=#0000ff>char</font> x, <font color=#0000ff>char</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = (<font color=#0000ff>char</font>)(x * y);
+    x = (<font color=#0000ff>char</font>)(x / y);
+    x = (<font color=#0000ff>char</font>)(x % y);
+    x = (<font color=#0000ff>char</font>)(x + y);
+    x = (<font color=#0000ff>char</font>)(x - y);
+    x++;
+    x--;
+    x = (<font color=#0000ff>char</font>)+y;
+    x = (<font color=#0000ff>char</font>)-y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    x= (<font color=#0000ff>char</font>)~y;
+    x = (<font color=#0000ff>char</font>)(x &amp; y);
+    x  = (<font color=#0000ff>char</font>)(x | y);
+    x = (<font color=#0000ff>char</font>)(x ^ y);
+    x = (<font color=#0000ff>char</font>)(x &lt;&lt; 1);
+    x = (<font color=#0000ff>char</font>)(x &gt;&gt; 1);
+    x = (<font color=#0000ff>char</font>)(x &gt;&gt;&gt; 1);
+    <font color=#009900>// Совмещение присвоения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    x &lt;&lt;= 1;
+    x &gt;&gt;= 1;
+    x &gt;&gt;&gt;= 1;
+    x &amp;= y;
+    x ^= y;
+    x |= y;
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>byte</font> B = (<font color=#0000ff>byte</font>)x;
+    <font color=#0000ff>short</font> s = (<font color=#0000ff>short</font>)x;
+    <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)x;
+    <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)x;
+    <font color=#0000ff>float</font> f = (<font color=#0000ff>float</font>)x;
+    <font color=#0000ff>double</font> d = (<font color=#0000ff>double</font>)x;
+  }
+  <font color=#0000ff>void</font> byteTest(<font color=#0000ff>byte</font> x, <font color=#0000ff>byte</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = (<font color=#0000ff>byte</font>)(x* y);
+    x = (<font color=#0000ff>byte</font>)(x / y);
+    x = (<font color=#0000ff>byte</font>)(x % y);
+    x = (<font color=#0000ff>byte</font>)(x + y);
+    x = (<font color=#0000ff>byte</font>)(x - y);
+    x++;
+    x--;
+    x = (<font color=#0000ff>byte</font>)+ y;
+    x = (<font color=#0000ff>byte</font>)- y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    x = (<font color=#0000ff>byte</font>)~y;
+    x = (<font color=#0000ff>byte</font>)(x &amp; y);
+    x = (<font color=#0000ff>byte</font>)(x | y);
+    x = (<font color=#0000ff>byte</font>)(x ^ y);
+    x = (<font color=#0000ff>byte</font>)(x &lt;&lt; 1);
+    x = (<font color=#0000ff>byte</font>)(x &gt;&gt; 1);
+    x = (<font color=#0000ff>byte</font>)(x &gt;&gt;&gt; 1);
+    <font color=#009900>// Совмещение присваения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    x &lt;&lt;= 1;
+    x &gt;&gt;= 1;
+    x &gt;&gt;&gt;= 1;
+    x &amp;= y;
+    x ^= y;
+    x |= y;
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)x;
+    <font color=#0000ff>short</font> s = (<font color=#0000ff>short</font>)x;
+    <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)x;
+    <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)x;
+    <font color=#0000ff>float</font> f = (<font color=#0000ff>float</font>)x;
+    <font color=#0000ff>double</font> d = (<font color=#0000ff>double</font>)x;
+  }
+  <font color=#0000ff>void</font> shortTest(<font color=#0000ff>short</font> x, <font color=#0000ff>short</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = (<font color=#0000ff>short</font>)(x * y);
+    x = (<font color=#0000ff>short</font>)(x / y);
+    x = (<font color=#0000ff>short</font>)(x % y);
+    x = (<font color=#0000ff>short</font>)(x + y);
+    x = (<font color=#0000ff>short</font>)(x - y);
+    x++;
+    x--;
+    x = (<font color=#0000ff>short</font>)+y;
+    x = (<font color=#0000ff>short</font>)-y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    x = (<font color=#0000ff>short</font>)~y;
+    x = (<font color=#0000ff>short</font>)(x &amp; y);
+    x = (<font color=#0000ff>short</font>)(x | y);
+    x = (<font color=#0000ff>short</font>)(x ^ y);
+    x = (<font color=#0000ff>short</font>)(x &lt;&lt; 1);
+    x = (<font color=#0000ff>short</font>)(x &gt;&gt; 1);
+    x = (<font color=#0000ff>short</font>)(x &gt;&gt;&gt; 1);
+    <font color=#009900>// Совмещение присвоения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    x &lt;&lt;= 1;
+    x &gt;&gt;= 1;
+    x &gt;&gt;&gt;= 1;
+    x &amp;= y;
+    x ^= y;
+    x |= y;
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)x;
+    <font color=#0000ff>byte</font> B = (<font color=#0000ff>byte</font>)x;
+    <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)x;
+    <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)x;
+    <font color=#0000ff>float</font> f = (<font color=#0000ff>float</font>)x;
+    <font color=#0000ff>double</font> d = (<font color=#0000ff>double</font>)x;
+  }
+  <font color=#0000ff>void</font> intTest(<font color=#0000ff>int</font> x, <font color=#0000ff>int</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = x * y;
+    x = x / y;
+    x = x % y;
+    x = x + y;
+    x = x - y;
+    x++;
+    x--;
+    x = +y;
+    x = -y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    x = ~y;
+    x = x &amp; y;
+    x = x | y;
+    x = x ^ y;
+    x = x &lt;&lt; 1;
+    x = x &gt;&gt; 1;
+    x = x &gt;&gt;&gt; 1;
+    <font color=#009900>// Совмещение присвоения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    x &lt;&lt;= 1;
+    x &gt;&gt;= 1;
+    x &gt;&gt;&gt;= 1;
+    x &amp;= y;
+    x ^= y;
+    x |= y;
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)x;
+    <font color=#0000ff>byte</font> B = (<font color=#0000ff>byte</font>)x;
+    <font color=#0000ff>short</font> s = (<font color=#0000ff>short</font>)x;
+    <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)x;
+    <font color=#0000ff>float</font> f = (<font color=#0000ff>float</font>)x;
+    <font color=#0000ff>double</font> d = (<font color=#0000ff>double</font>)x;
+  }
+  <font color=#0000ff>void</font> longTest(<font color=#0000ff>long</font> x, <font color=#0000ff>long</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = x * y;
+    x = x / y;
+    x = x % y;
+    x = x + y;
+    x = x - y;
+    x++;
+    x--;
+    x = +y;
+    x = -y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    x = ~y;
+    x = x &amp; y;
+    x = x | y;
+    x = x ^ y;
+    x = x &lt;&lt; 1;
+    x = x &gt;&gt; 1;
+    x = x &gt;&gt;&gt; 1;
+    <font color=#009900>// Совмещение присвоения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    x &lt;&lt;= 1;
+    x &gt;&gt;= 1;
+    x &gt;&gt;&gt;= 1;
+    x &amp;= y;
+    x ^= y;
+    x |= y;
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)x;
+    <font color=#0000ff>byte</font> B = (<font color=#0000ff>byte</font>)x;
+    <font color=#0000ff>short</font> s = (<font color=#0000ff>short</font>)x;
+    <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)x;
+    <font color=#0000ff>float</font> f = (<font color=#0000ff>float</font>)x;
+    <font color=#0000ff>double</font> d = (<font color=#0000ff>double</font>)x;
+  }
+  <font color=#0000ff>void</font> floatTest(<font color=#0000ff>float</font> x, <font color=#0000ff>float</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = x * y;
+    x = x / y;
+    x = x % y;
+    x = x + y;
+    x = x - y;
+    x++;
+    x--;
+    x = +y;
+    x = -y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    <font color=#009900>//! x = ~y;</font>
+    <font color=#009900>//! x = x &amp; y;</font>
+    <font color=#009900>//! x = x | y;</font>
+    <font color=#009900>//! x = x ^ y;</font>
+    <font color=#009900>//! x = x &lt;&lt; 1;</font>
+    <font color=#009900>//! x = x &gt;&gt; 1;</font>
+    <font color=#009900>//! x = x &gt;&gt;&gt; 1;</font>
+    <font color=#009900>// Совмещение присвоения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    <font color=#009900>//! x &lt;&lt;= 1;</font>
+    <font color=#009900>//! x &gt;&gt;= 1;</font>
+    <font color=#009900>//! x &gt;&gt;&gt;= 1;</font>
+    <font color=#009900>//! x &amp;= y;</font>
+    <font color=#009900>//! x ^= y;</font>
+    <font color=#009900>//! x |= y;</font>
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)x;
+    <font color=#0000ff>byte</font> B = (<font color=#0000ff>byte</font>)x;
+    <font color=#0000ff>short</font> s = (<font color=#0000ff>short</font>)x;
+    <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)x;
+    <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)x;
+    <font color=#0000ff>double</font> d = (<font color=#0000ff>double</font>)x;
+  }
+  <font color=#0000ff>void</font> doubleTest(<font color=#0000ff>double</font> x, <font color=#0000ff>double</font> y) {
+    <font color=#009900>// Арифметические операторы:</font>
+    x = x * y;
+    x = x / y;
+    x = x % y;
+    x = x + y;
+    x = x - y;
+    x++;
+    x--;
+    x = +y;
+    x = -y;
+    <font color=#009900>// Сравнение и логика:</font>
+    f(x &gt; y);
+    f(x &gt;= y);
+    f(x &lt; y);
+    f(x &lt;= y);
+    f(x == y);
+    f(x != y);
+    <font color=#009900>//! f(!x);</font>
+    <font color=#009900>//! f(x &amp;&amp; y);</font>
+    <font color=#009900>//! f(x || y);</font>
+    <font color=#009900>// Битовые операторы:</font>
+    <font color=#009900>//! x = ~y;</font>
+    <font color=#009900>//! x = x &amp; y;</font>
+    <font color=#009900>//! x = x | y;</font>
+    <font color=#009900>//! x = x ^ y;</font>
+    <font color=#009900>//! x = x &lt;&lt; 1;</font>
+    <font color=#009900>//! x = x &gt;&gt; 1;</font>
+    <font color=#009900>//! x = x &gt;&gt;&gt; 1;</font>
+    <font color=#009900>// Совмещение присвоения:</font>
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+    <font color=#009900>//! x &lt;&lt;= 1;</font>
+    <font color=#009900>//! x &gt;&gt;= 1;</font>
+    <font color=#009900>//! x &gt;&gt;&gt;= 1;</font>
+    <font color=#009900>//! x &amp;= y;</font>
+    <font color=#009900>//! x ^= y;</font>
+    <font color=#009900>//! x |= y;</font>
+    <font color=#009900>// Приведение:</font>
+    <font color=#009900>//! boolean b = (boolean)x;</font>
+    <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)x;
+    <font color=#0000ff>byte</font> B = (<font color=#0000ff>byte</font>)x;
+    <font color=#0000ff>short</font> s = (<font color=#0000ff>short</font>)x;
+    <font color=#0000ff>int</font> i = (<font color=#0000ff>int</font>)x;
+    <font color=#0000ff>long</font> l = (<font color=#0000ff>long</font>)x;
+    <font color=#0000ff>float</font> f = (<font color=#0000ff>float</font>)x;
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Обратите внимание, что <A NAME="Index355"></A><B>boolean</B> 
+  достаточно ограничен. Вы можете присваивать ему только значения <B>true</B> 
+  и <B>false</B>, и вы можете проверить его на истину или ложь, но вы не можете 
+  складывать и выполнять любые другие типы операций над ним.</FONT></P>
+<P><FONT FACE="Georgia">Для <B>char</B>, <B>byte </B> и <B>short</B> вы можете 
+  увидеть эффект <A NAME="Index356"></A>повышения с арифметическими операторами. 
+  Каждая арифметическая операция для любого их этих типов дает в результате <B>int</B> 
+  , который должен быть явно преобразован обратно к начальному типу (сужающее 
+  преобразование, из-за которого может быть потеряна информация), чтобы присвоить 
+  обратно к этому типу. Однако со значением типа <B>int</B> вам нет необходимости 
+  выполнять приведение, потому что все и так типа <B>int</B>. Но не успокаивайтесь, 
+  думая, что все безопасно. Если вы умножите два числа типа <B>int</B>s, которые 
+  достаточно большие, вы получите в результате переполнение. Следующий пример 
+  демонстрирует это:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:Overflow.java</font>
+<font color=#009900>// Сюрприз! Java позволяет переполнение.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> Overflow {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>int</font> big = 0x7fffffff; <font color=#009900>// максимальное значение типа int</font>
+    prt(<font color=#004488>"big = "</font> + big);
+    <font color=#0000ff>int</font> bigger = big * 4;
+    prt(<font color=#004488>"bigger = "</font> + bigger);
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> prt(String s) {
+    System.out.println(s);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">На выходе получим это:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>big = 2147483647
+bigger = -4</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">и вы не получили ошибок или предупреждений от компилятора, 
+  так же нет исключений времени выполнения. Java - это хорошо, но не <i>так</i> 
+  хорошо.</FONT></P>
+<P><FONT FACE="Georgia">Совмещение с присвоением <i>не</i> требует приведения 
+  для <B>char</B>, <B>byte</B> или <B>short</B>, даже хотя выполняется повышение, 
+  которое дает тот же результат, что и прямые арифметические операции. С другой 
+  стороны, отсутствие приведение конечно упрощает код.</FONT></P>
+<P><FONT FACE="Georgia">Вы можете видеть, что за исключением <B>boolean</B>, любой 
+  <A NAME="Index358"></A>примитивный тип может быть приведен к любому другому 
+  типу. Также, вы должны позаботится об эффективном сужающем преобразовании <a name="Index359"></a>, 
+  когда преобразовываете к маленьким типам, в противном случае вы можете потерять 
+  информацию во время приведения.</FONT><A NAME="_Toc375545264"></A><A NAME="_Toc481064558"></A></P>
+<A NAME="Heading149"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Контроль за выполнением</H2>
+</FONT>
+<P><FONT FACE="Georgia">Java использует все выражения, управляющие выполнением, 
+  присущие C, так что если вы программировали на C или C++, то вы знакомы с большинством 
+  из того, что вы будете применять. Большинство языков процедурного программирования 
+  имеют аналогичные управляющие выражения, и они часто похожи во многих языках. 
+  В Java ключевые слова включают <B>if-else</B>, <B>while</B>, <B>do-while</B>, 
+  <B>for</B> и выражение выбора, называемое <B>switch</B>. Однако Java не поддерживает 
+  всеми ругаемое <B>goto</B> (которое все же остается наиболее подходящим способом 
+  для решения определенных проблем). Вы все еще можете делать переходы по типу 
+  <b>goto</b>, но они более ограничены, чем типичные <B>goto</B>.</FONT><A NAME="_Toc375545265"></A><A NAME="_Toc481064559"></A></P>
+<A NAME="Heading150"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> true и false</H3>
+</FONT>
+<P><FONT FACE="Georgia">Все сравнительные выражения используют правдивое или ложное 
+  выражение сравнения для определения пути выполнения. Примером сравнительного 
+  выражения является <B>A == B</B>. Здесь используется сравнительный оператор 
+  <B>==</B>, чтобы увидеть, если значение <B>A</B> равно значению <B>B</B>. Выражение 
+  возвращает <B>true</B> или <B>false</B>. Все операторы отношений, видимые вами 
+  ранее в этой главе могут быть использованы для производства сравнительных выражений. 
+  Обратите внимание, что Java не допусскает использование чисел, как значения 
+  типа <B>boolean</B>, несмотря на то, что это допустимо в C в C++ (где истинным 
+  является ненулевое значение, а ложным - нулевое). Если вы хотите использовать 
+  не <B>boolean</B> в булевских проверках, таких как <B>if(a)</B>, вы должны сначала 
+  перевести его в значение типа <B>boolean</B>, используя выражения сравнения, 
+  такие как <B>if(a != 0)</B>.</FONT><A NAME="_Toc375545266"></A><A NAME="_Toc481064560"></A></P>
+<A NAME="Heading151"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> if-else<BR>
+  <A NAME="Index360"></A><A NAME="Index361"></A></H3>
+</FONT>
+<p><FONT FACE = "Verdana"> </FONT><FONT FACE="Georgia">Выражение <B>if-else</B>, 
+  вероятно, основной способ управления течением программы. Выражение <B>else</B> 
+  необязательно, так что вы можете использовать <B>if</B> в двух формах:</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>if</font>(Логическое выражение)
+  инструкция</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">или</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>if</font>(Логическое выражение)
+  инструкция
+<font color=#0000ff>else</font>
+  инструкция</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Сравнение должно производит результат типа <B>boolean</B>. 
+  Под <i>ниструкцией </i> понимается либо простая инструкция, завершающаюся точкой 
+  с запятой, либо составная инструкция, которая группирует простые инструкции, 
+  обрамленные фигурными скобками. Везде, где используется слово &#8220;<I>инструкция</I>&#8221; 
+  , оно всегда подразумевает, что инструкция может быть простой или составной.</FONT></P>
+<P><FONT FACE="Georgia">Как пример <B>if-else</B>, здесь приведен метод <B> test(&#160;)</B>, 
+  который говорит вам является ли тестовое значение больше, меньше или равным 
+  контрольному значению:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:IfElse.java</font>
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> IfElse {
+  <font color=#0000ff>static</font> <font color=#0000ff>int</font> test(<font color=#0000ff>int</font> testval, <font color=#0000ff>int</font> target) {
+    <font color=#0000ff>int</font> result = 0;
+    <font color=#0000ff>if</font>(testval &gt; target)
+      result = +1;
+    <font color=#0000ff>else</font> <font color=#0000ff>if</font>(testval &lt; target)
+      result = -1;
+    <font color=#0000ff>else</font>
+      result = 0; <font color=#009900>// Совпадает</font>
+    <font color=#0000ff>return</font> result;
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    System.out.println(test(10, 5));
+    System.out.println(test(5, 10));
+    System.out.println(test(5, 5));
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+
+<p>Это соглашение для идентификации тела выражения, управляющего течением программы, 
+  так что читатель может легко определить где надало, а где конец.<A NAME="Heading152"></A></p>
+<FONT FACE = "Verdana"> 
+<H4 ALIGN="LEFT"> return</H4>
+</FONT> 
+<p><FONT FACE="Georgia">Ключевое слово <B>return</B> имеет два назначения: оно 
+  указывает какое значение возвращает метод (если он не имеет возвращаемое значение 
+  типа <B>void</B>) и является причиной того, что значение возвращается немедленно. 
+  Метод <B>test(&#160;)</B>, приведенный вше, может быть переписан с использованием 
+  этих приемуществ:</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:IfElse2.java</font>
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> IfElse2 {
+  <font color=#0000ff>static</font> <font color=#0000ff>int</font> test(<font color=#0000ff>int</font> testval, <font color=#0000ff>int</font> target) {
+    <font color=#0000ff>int</font> result = 0;
+    <font color=#0000ff>if</font>(testval &gt; target)
+      <font color=#0000ff>return</font> +1;
+    <font color=#0000ff>else</font> <font color=#0000ff>if</font>(testval &lt; target)
+      <font color=#0000ff>return</font> -1;
+    <font color=#0000ff>else</font>
+      <font color=#0000ff>return</font> 0; <font color=#009900>// Совпадает</font>
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    System.out.println(test(10, 5));
+    System.out.println(test(5, 10));
+    System.out.println(test(5, 5));
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia"> Здесь нет необходимости в <B>else</B>, потому что метод 
+  не будет продолжаться после выполнения <B>return</B>.</FONT><A NAME="_Toc375545267"></A><A NAME="_Toc481064561"></A></P>
+<A NAME="Heading153"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Итерации<A NAME="Index362"></A></H3>
+</FONT> 
+<P><FONT FACE="Georgia"><B>while</B>, <B>do-while</B> и <B>for</B> управляют циклом 
+  и иногда классифицируются как <i>итерационные инструкции</i>. <i>Инструкция</i> 
+  повторяется до тех пор, пока управляющее <i>логическое выражение</i> не станет 
+  ложным. Форма цикла <B>while</B> следующая:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>while</font>(Логическое выражение)
+  инструкция</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia"><i>Логическое выражение</i> вычисляется один раз в начале 
+  цикал, а затем каждый раз перед каждой будующей итерацией для <i>интсрукции</i></FONT></P>
+<P><FONT FACE="Georgia">Здесь приведен пример, который генерирует случайные числа, 
+  пока пока не достигнится определенное состояние:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:WhileTest.java</font>
+<font color=#009900>// Демонстрация цикла while.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> WhileTest {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>double</font> r = 0;
+    <font color=#0000ff>while</font>(r &lt; 0.99d) {
+      r = Math.random();
+      System.out.println(r);
+    }
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Здесь используется <b>статический</b> метод <B>random(&#160;)</B> 
+  из библиотеки <B>Math</B>, который генерирует значения типа <B>double </B>в 
+  пределах от 0 до 1. (Это включает 0, но не включает 1.) Сравнительное выражение 
+  для <B>while</B> говорит, &#8220;продолжать выражение этого цикла, пока не встретится 
+  число 0.99 или больше&#8221;. Всякий раз, когда вы запускаете программу, вы 
+  будете получать список чисел разной длины.</FONT><A NAME="_Toc375545268"></A><A NAME="_Toc481064562"></A></P>
+<A NAME="Heading154"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> do-while<A NAME="Index363"></A></H3>
+</FONT>
+<p><FONT FACE = "Verdana"> </FONT> <FONT FACE="Georgia">Форма для <B>do-while</B> 
+  следующая:</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>do</font>
+  инструкция
+<font color=#0000ff>while</font>(Логическое выражение);</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Главное отличие между <B>while</B> и <B>do-while</B> в 
+  том, что инструкция в цикле <B>do-while</B> всегда выполняется не менее одного 
+  раза, даже если вычесленное выражение ложное с самого начала. В цикле <B>while</B>, 
+  если условие ложное в первый раз, инструкция никогда не выполнится. На практике 
+  <B>do-while</B> используется реже, чем <B>while</B>.</FONT><A NAME="_Toc375545269"></A><A NAME="_Toc481064563"></A><BR>
+</P>
+<A NAME="Heading155"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+for<BR><A NAME="Index364"></A></H3></FONT>
+<P><FONT FACE="Georgia">Цикл <B>for</B> выполняет инициализацию перед первой итерацией. 
+  Затем он выполняет сравнение, а в конце каждой итерации выполняется, некоторого 
+  рода, &#8220;шагание&#8221;. Форма цикла <B>for</B> следующая:</FONT><BR>
+</P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>for</font>(инициализация;&#160;логическое выражение;&#160;шаг)
+  инструкция</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Любое из выражений: <i>инициализация</i>, <i>логическое 
+  выражение</i> или <i>шаг</i>, может быть пустым. Выражение проверяется перед 
+  каждой итерацией, и как только при вычислении получится <B>false</B>, выполнение 
+  продолжится со строкиЮ следующей за инструкцией <B>for</B>. В конце каждого 
+  цикла выполняется <i>шаг</i>.</FONT></P>
+<P><FONT FACE="Georgia">Цикл <B>for</B> обычно используется для задач &#8220;подсчета&#8221;:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:ListCharacters.java</font>
+<font color=#009900>// Демонстрация цикла "for" для составления</font>
+<font color=#009900>// списка всех ASCII символов.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> ListCharacters {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+  <font color=#0000ff>for</font>( <font color=#0000ff>char</font> c = 0; c &lt; 128; c++)
+    <font color=#0000ff>if</font> (c != 26 )  <font color=#009900>// ANSI Очистка экрана</font>
+      System.out.println(
+        <font color=#004488>"value: "</font> + (<font color=#0000ff>int</font>)c +
+        <font color=#004488>" character: "</font> + c);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Обратите внимание, что переменная <B>c</B> определена 
+  в том месте, где она используется, внутри управляющего выражения цикла <B>for</B>, 
+  раньше начала блока, указанного открывающей фигурной скобкой. Обоасть видимости 
+  <B>c </B>- это выражение, управляемое <B>for</B>.</FONT></P>
+<P><FONT FACE="Georgia">Традиционные процедурные языки, типа C, тредуют, чтобы 
+  все <A NAME="Index365"></A>переменные были определены в начале блока, чтобы 
+  когда компилятор создавал блок, он мог зарезервировать место для этих переменных. 
+  В Java и C++ вы можете распределить декларацию ваших переменных по всему блоку, 
+  определяя их в том месте, где они вам нужны. Это допускает естенственный стиль 
+  кодирования и делает код легче для понимания.</FONT></P>
+<P><FONT FACE="Georgia">Вы можете определит несколько переменных внутри инструкции 
+  <B>for</B>, но они должны быть одного типа:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0, j = 1;
+    i &lt; 10 &amp;&amp; j != 11;
+    i++, j++)
+  <font color=#009900>/* тело цикла for */</font>;</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Определение <B>int </B>в инструкции <B>for </B>распрастраняется 
+  на <B>i </B>и <B>j</B>.<B> </B> Способность определять переменные в управляющем 
+  выражении является ограничением для цикла <B>for</B>. Вы не можете использовать 
+  этот метод на с каким другим выражением выбора или итераций.</FONT><A NAME="_Toc375545270"></A></P>
+<A NAME="Heading156"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Оператор запятая</H4>
+</FONT> 
+<P><FONT FACE="Georgia">Ранее в этой главе я заявил, что <A NAME="Index366"></A><A NAME="Index367"></A><i>оператор</i> 
+  запятая (не <i>разделитель</i> запятая, который используется для разделения 
+  определений и аргументов функции) имеет в Java только один тип использования: 
+  в управляющих выражениях цикла <B>for</B>. И в разделе инициализации, и в разделе 
+  шага управляющего выражения вы можете использовать несколько инструкций, разделенных 
+  запятыми, и эти инструкции будут вычисляться последовательно. Предыдущий кусок 
+  кода использует эту возможность. Вот другой пример:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: c03:CommaOperator.java</font>
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> CommaOperator {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 1, j = i + 10; i &lt; 5;
+        i++, j = i * 2) {
+      System.out.println(<font color=#004488>"i= "</font> + i + <font color=#004488>" j= "</font> + j);
+    }
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вот вывод:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>i= 1 j= 11
+i= 2 j= 4
+i= 3 j= 6
+i= 4 j= 8</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вы можете заметить, что и в инициализации, и в часте шага 
+  инструкции вычисляются в последовательном порядке. Также раздел инициализации 
+  может иметь любое число определений <i>одного типа</i>.</FONT><A NAME="_Toc481064564"></A></P>
+<A NAME="Heading157"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> break и continue<BR>
+  <A NAME="Index368"></A><A NAME="Index369"></A></H3></FONT>
+<P><FONT FACE="Georgia">Внутри тела любой инструкции итераций вы также можете 
+  использовать управление течением цикла, используя <B>break</B> и <B>continue</B>. 
+  <B>break</B> прерывает цикл без выполнения оставшихся инструкций в цикле. <B>continue</B> 
+  останавливает выполнение текущей итерации и возвращается к началу цикла, начиная 
+  следующую итерацию.</FONT></P>
+<P><FONT FACE="Georgia">Эта программа показывает пример для <B>break</B> и <B>continue</B> 
+  внутри циклов <B>for </B>и <B>while</B>:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:BreakAndContinue.java</font>
+<font color=#009900>// Демонстрирует break и continue.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> BreakAndContinue {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++) {
+      <font color=#0000ff>if</font>(i == 74) <font color=#0000ff>break</font>; <font color=#009900>// вызод из цикла for</font>
+      <font color=#0000ff>if</font>(i % 9 != 0) <font color=#0000ff>continue</font>; <font color=#009900>// Следующая итерация</font>
+      System.out.println(i);
+    }
+    <font color=#0000ff>int</font> i = 0;
+    <font color=#009900>// "Бесонечный цикл":</font>
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      i++;
+      <font color=#0000ff>int</font> j = i * 27;
+      <font color=#0000ff>if</font>(j == 1269) <font color=#0000ff>break</font>; <font color=#009900>// Выход из цикла</font>
+      <font color=#0000ff>if</font>(i % 10 != 0) <font color=#0000ff>continue</font>; <font color=#009900>// В начало цикла</font>
+      System.out.println(i);
+    }
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">В цикле <B>for</B> значение <B>i</B> никогда не дойдет 
+  до 100, потому, что инструкция <B>break</B> прервет выполнение цикла, когда 
+  <B>i</B> будет равно 74. Обычно, вы будете использовать <B>break</B> как здесь, 
+  если вы не будете знать когда возникнет прерывающее условие. Инструкция <B>continue</B> 
+  влечет за собой возврат к началу цикла (при этом инкрементируя <B>i</B>) в любом 
+  случае, когда <B>i</B> не делится на 9 без остатка. Если это так, значение печатается.</FONT></P>
+<P><FONT FACE="Georgia">Второй раздел показывает &#8220;бесконечный цикл&#8221;, 
+  который, теоретически, никогда не закончится. Однако, внутри цикла есть инструкция 
+  <B>break</B>, которая оборвет цикл. Дополнительно, вы увидите, что <B>continue</B> 
+  возвращает назад к началу цикла не завершив оставшегося. (Таким образом печать 
+  происходит во втором цикле только когда значение <B>i</B> делится на 10.) Вот 
+  результаты:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>0
+9
+18
+27
+36
+45
+54
+63
+72
+10
+20
+30
+40</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Значение 0 печатается, потому что 0 % 9 равно 0.</FONT></P>
+<P><FONT FACE="Georgia">Вторая форма бесконечного цикла: <B>for(;;)</B>. Компилятор 
+  трактует и <B>while(true)</B> и<B> for(;;)</B> одинаково, что бы вы не использовали 
+  - это вопрос стиля программирования.</FONT></P>
+<A NAME="Heading158"></A><FONT FACE = "Verdana"> 
+<H4 ALIGN="LEFT"> Имеющий дурную славу &#8220;goto&#8221;</H4>
+</FONT> 
+<p><FONT FACE="Georgia">Ключевое слово <A NAME="Index370"></A><B>goto </B>существовало 
+  в языках программирования с самого начала. Несомненно, <B>goto</B> было рождено 
+  из ассемдлерных языков программирования: &#8220;Если условие A, то перейти сюда, 
+  в противном случае, перейти сюда&#8221;. Если вы читаете ассемблерный код, который 
+  в конце концов генерируется практически каждым компилятором, вы увидите, что 
+  такое управление программой содержит много переходов. Однако <B>goto </B>- это 
+  переход на уровне исходного кода, и это то, что снискало дурную славу. Если 
+  программа будет всегда перепрыгивать из одного места в другое, то будет ли способ 
+  реорганизовать код так, чтобы управление не было таким прыгающим? <B>goto </B>попал 
+  в немилость после известной газетной публикации &#8220;Goto considered harmful&#8221; 
+  Edsger Dijkstra, и с тех пор избиение goto было популярным занятием.</FONT></p>
+<DIV ALIGN="LEFT"></DIV>
+<P><FONT FACE="Georgia">Как обычно в такой ситуации середина наиболее плодотворна. 
+  Проблема не в использовании <B>goto</B>, а в перегрузке операторами <B>goto</B> 
+  &#8212; в редких ситуациях <B>goto</B> действительно лучший способ для структурирования 
+  управления течением прораммы.</FONT></P>
+<P><FONT FACE="Georgia">Хотя <B>goto </B>- это зарезервированное слово в Java, 
+  оно не используется в языке; в Java нет <B>goto</B>. Однако здесь есть кое что, 
+  что выглядит немного как переход при использовании ключевых слов <B>break</B> 
+  и <B>continue</B> . Это не переход, а способ прервать инструкцию итерации. Объяснение 
+  часто всплывает в дискусси о </FONT><FONT FACE="Georgia"> <B>goto</B>: потому 
+  что тут используется тот же механизм: метка.</FONT></P>
+<P><FONT FACE="Georgia"> <A NAME="Index371"></A>Метка - это идентификатор, за 
+  которым следует двоеточие, например:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>label1:</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia"><i>Только</i> водном месте в Java метки полезны: прямо 
+  перед итерационными инструкциями. А <i>сразу</i> перед означает, что нехорошо 
+  помещать любые другие инструкции между меткой и итерацией. И единственная причина 
+  помещать метку перед итерацией есть в том случае, если вы заходите в группу 
+  другой итерации или внутри есть переключатель. Это потому, что ключевые слова 
+  <A NAME="Index372"></A><B>break</B> и <A NAME="Index373"></A><B>continue</B> 
+  обычно прерывают только текущий цикл, но когда вы используете метку, они первут 
+  внешний цикл, где стоит метка:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>label1: 
+outer-iteration {
+  inner-iteration {
+    <font color=#009900>//...</font>
+    <font color=#0000ff>break</font>; <font color=#009900>// 1</font>
+    <font color=#009900>//...</font>
+    <font color=#0000ff>continue</font>;  <font color=#009900>// 2</font>
+    <font color=#009900>//...</font>
+    <font color=#0000ff>continue</font> label1; <font color=#009900>// 3</font>
+    <font color=#009900>//...</font>
+    <font color=#0000ff>break</font> label1;  <font color=#009900>// 4</font>
+  }
+}</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">В случае 1, <B>break</B> прерывает внутреннюю итерацию 
+  и вы выходите во внешнюю итерацию. В случие 2, <B>continue</B> перемещает к 
+  началу внутренней итерации. Но в случае 3, <B>continue label1</B> прерывает 
+  внутреннюю итерацию <i>и</i> внешнюю итерацию, все пути ведут к <B>label1</B>. 
+  Затем фактически продолжаются итерации, но начиная со внешней итерации. В случае 
+  4, <B>break label1</B> также прерывает все пути к метке <B>label1</B>, но не 
+  происходит повторного входа в итерацию. Реально происходит прерывание обеих 
+  итераций.</FONT></P>
+<P><FONT FACE="Georgia">Вот пример использования цикла <B>for</B>:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"> 
+  <PRE><font color=#009900>//: c03:LabeledFor.java</font>
+<font color=#009900>// "Помеченный цикл for" в </font><font color=#009900>Java</font><font color=#009900>.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> LabeledFor {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>int</font> i = 0;
+    outer: <font color=#009900>// Здесь не может быть инструкций</font>
+    <font color=#0000ff>for</font>(; <font color=#0000ff>true</font> ;) { <font color=#009900>// бесконечный цикл</font>
+      inner: <font color=#009900>// </font><font color=#009900>Здесь не может быть инструкций</font>
+      <font color=#0000ff>for</font>(; i &lt; 10; i++) {
+        prt(<font color=#004488>"i = "</font> + i);
+        <font color=#0000ff>if</font>(i == 2) {
+          prt(<font color=#004488>"continue"</font>);
+          <font color=#0000ff>continue</font>;
+        }
+        <font color=#0000ff>if</font>(i == 3) {
+          prt(<font color=#004488>"break"</font>);
+          i++; <font color=#009900>// В противном случае i никогда</font>
+               <font color=#009900>// не получит инкремент.</font>
+          <font color=#0000ff>break</font>;
+        }
+        <font color=#0000ff>if</font>(i == 7) {
+          prt(<font color=#004488>"continue outer"</font>);
+          i++; <font color=#009900>// </font><font color=#009900>В противном случае i никогда</font>
+               <font color=#009900>// не получит инкремент.</font>
+          <font color=#0000ff>continue</font> outer;
+        }
+        <font color=#0000ff>if</font>(i == 8) {
+          prt(<font color=#004488>"break outer"</font>);
+          <font color=#0000ff>break</font> outer;
+        }
+        <font color=#0000ff>for</font>(<font color=#0000ff>int</font> k = 0; k &lt; 5; k++) {
+          <font color=#0000ff>if</font>(k == 3) {
+            prt(<font color=#004488>"continue inner"</font>);
+            <font color=#0000ff>continue</font> inner;
+          }
+        }
+      }
+    }
+    <font color=#009900>// Здесь нельзя использовать break или continue</font>
+    <font color=#009900>// с меткой</font>
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> prt(String s) {
+    System.out.println(s);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Здесь используется метод <B>prt(&#160;)</B>, который был 
+  использован в других примерах.</FONT></P>
+<P><FONT FACE="Georgia">Обратите внимание, что <B>break</B> прерывает цикл <B>for</B>, 
+  и при этом не происходит инкрементации, пока не будет завершен проход цикла 
+  <B>for</B>. Так как <B>break</B> пропускает выражение инкремента, инкремент 
+  выполняется прямо в случае <B>i == 3</B>. Инструкция <B>continue outer</B> в 
+  случае <B>i == 7 </B> также переходит к началу цикла и также пропускает инкремент, 
+  так что нужно инкрементировать в ручную.</FONT></P>
+<P><FONT FACE="Georgia">Вот результат работы:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>i = 0
+<font color=#0000ff>continue</font> inner
+i = 1
+<font color=#0000ff>continue</font> inner
+i = 2
+<font color=#0000ff>continue</font>
+i = 3
+<font color=#0000ff>break</font>
+i = 4
+<font color=#0000ff>continue</font> inner
+i = 5
+<font color=#0000ff>continue</font> inner
+i = 6
+<font color=#0000ff>continue</font> inner
+i = 7
+<font color=#0000ff>continue</font> outer
+i = 8
+<font color=#0000ff>break</font> outer</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Если не использовать инструкцию <B>break outer</B>, то 
+  нет способа выйти во внешний цикл из внутреннего цикла, так как <B>break</B> 
+  сам по себе прерывает только самый внутренний цикл. (То же самое верно и для 
+  <B>continue</B>.)</FONT></P>
+<P><FONT FACE="Georgia">Конечно, в случае, когда нужно прервать цикл и одновременно 
+  выйти из метода, вы можете просто использовать <B>return</B>.</FONT></P>
+<P><FONT FACE="Georgia">Вот демонстрация использования помеченных инструкций <B>break</B> 
+  и <B>continue</B> с циклом <B>while</B>:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"> 
+  <PRE><font color=#009900>//: c03:LabeledWhile.java</font>
+<font color=#009900>// "Помеченный цикл while" в </font><font color=#009900>Java</font><font color=#009900>.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> LabeledWhile {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>int</font> i = 0;
+    outer:
+    <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+      prt(<font color=#004488>"Outer while loop"</font>);
+      <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+        i++;
+        prt(<font color=#004488>"i = "</font> + i);
+        <font color=#0000ff>if</font>(i == 1) {
+          prt(<font color=#004488>"continue"</font>);
+          <font color=#0000ff>continue</font>;
+        }
+        <font color=#0000ff>if</font>(i == 3) {
+          prt(<font color=#004488>"continue outer"</font>);
+          <font color=#0000ff>continue</font> outer;
+        }
+        <font color=#0000ff>if</font>(i == 5) {
+          prt(<font color=#004488>"break"</font>);
+          <font color=#0000ff>break</font>;
+        }
+        <font color=#0000ff>if</font>(i == 7) {
+          prt(<font color=#004488>"break outer"</font>);
+          <font color=#0000ff>break</font> outer;
+        }
+      }
+    }
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> prt(String s) {
+    System.out.println(s);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Те же правила применимы для <B>while</B>:</FONT></P>
+<OL>
+  <LI><FONT FACE="Verdana"> </FONT><FONT FACE="Georgia">Обычный <B>continue</B> 
+    переводит в начало самого внутреннего цикла и продолжает выполнение.</FONT>
+  <LI><FONT FACE="Verdana"> </FONT><FONT FACE="Georgia">Помеченный <B>continue</B> 
+    переходит к метке и вновь входит в цикл, расположенный сразу за этой меткой.</FONT>
+  <LI><FONT FACE="Verdana"> </FONT><FONT FACE="Georgia"> <B>break</B> &#8220;выбрасывает 
+    в низ&#8221; цикла.</FONT>
+  <LI><FONT FACE="Verdana">Помеченный </FONT><FONT FACE="Georgia"> <B>break</B> 
+    выбрасывает в низ после конца цикла, у которого объявлена метка.</FONT>
+</OL>
+<P><FONT FACE="Georgia">Вывод этого метода становится достаточно ясным:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>Outer <font color=#0000ff>while</font> loop
+i = 1
+<font color=#0000ff>continue</font>
+i = 2
+i = 3
+<font color=#0000ff>continue</font> outer
+Outer <font color=#0000ff>while</font> loop
+i = 4
+i = 5
+<font color=#0000ff>break</font>
+Outer <font color=#0000ff>while</font> loop
+i = 6
+i = 7
+<font color=#0000ff>break</font> outer</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Важно запомнить, что есть <i>только</i> одна причина использования 
+  меток в Java, когда вы имеете группу циклов и вы хотите использовать <B>break</B> 
+  или <B>continue</B> через группу, содержащую более одного уровня циклов.</FONT></P>
+<P><FONT FACE="Georgia">В газетной статье Dijkstra &#8220;Goto considered harmful&#8221;, 
+  то, против чего он действительно возражал - это метки, а не goto. Он заметил, 
+  что число ошибок увеличивается с увеличением числа меток в программе. Метки 
+  и переходы делают программу трудной для статического анализа, так как это вводит 
+  в программу циклы графов исполнения. Обратите внимание, что метки Java не испытывают 
+  этой проблемы, так как они ограничены своим местом и не могут быть использованы 
+  для передачи управления другим образом. Также интересно заметить, что это тот 
+  случай, когда особенности языка становятся более полезными при ограничении инструкции.</FONT><A NAME="_Toc375545271"></A><A NAME="_Toc481064565"></A></P>
+<A NAME="Heading159"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+switch<BR><A NAME="Index374"></A></H3></FONT>
+<P><FONT FACE="Georgia"> <B>switch</B> иногда классифицируется как <i>инструкция 
+  переключения</i>. Инструкция <B>switch </B>выбирает из нескольких частей кода 
+  на основании значения целочисленного выражения.Вот его форма:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"> 
+  <PRE><font color=#0000ff>switch</font>(целочисленный_переключатель) {
+  <font color=#0000ff>case</font> целочисленное_значение1 : инструкция; <font color=#0000ff>break</font>; 
+  <font color=#0000ff>case</font> целочисленное_значение2 : инструкция; <font color=#0000ff>break</font>;
+  <font color=#0000ff>case</font> целочисленное_значение3 : инструкция; <font color=#0000ff>break</font>;
+  <font color=#0000ff>case</font> целочисленное_значение4 : инструкция; <font color=#0000ff>break</font>;
+  <font color=#0000ff>case</font> целочисленное_значение5 : инструкция; <font color=#0000ff>break</font>; <font color=#009900>// 
+  ...</font> <font color=#0000ff>default</font>: инструкция; }</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia"><I>Целочисленный_переключатель</I> - это выражение, которое 
+  производит целое значение. <B>switch</B> сравнивает результат <i>целочисленного_переключателя</i> 
+  с каждым <i>целочисленным_значением</i>. Если он находит совпадение, выполняется 
+  соответственная инструкция (простая или составная). Если нет совпадений, выполняется 
+  <A NAME="Index375"></A>инструкция <b>default</b>.</FONT></P>
+<P><FONT FACE="Georgia">Обратите внимание, что в приведенном выше определении 
+  каждый <B>case<A NAME="Index376"></A></B> заканчивается <B>break</B>, который 
+  является причиной того, что выполнение перепрыгивает на конец тела <B>switch</B>. 
+  Это традиционный способ для построения инструкции <B>switch</B>, но <B>break</B> 
+  не обязателен. Если его нет, выполняется код случая следующей инструкции, пока 
+  не обнаружится <B>break</B>. Хотя обычно поведение такого рода не нужно, это 
+  может быть полезно для опытных программистов. Обратите внимание, что последняя 
+  инструкция, следующая за <B>default</B>, не имеет <B>break</B>, потому что выполнение 
+  переходит туда же, куда оно и так перейдет после <B>break</B>. Вы можете поместить 
+  <B>break</B> в конце инструкции <B>default</B> без всякого ущерба, если вы решите, 
+  что это важно для стиля.</FONT></P>
+<P><FONT FACE="Georgia">Инструкция <B>switch</B> - это ясный способ для реализации 
+  множественного выбора (т.е., выбора из большого числа разных путей выполнения), 
+  но это требует переключателя, при вычислении которого получается целое значение 
+  типа <B>int</B> или <B>char</B>. Если вы хотите использовать, например, строку 
+  или число с плавающей точкой в качестве переключателя, они не будут работать 
+  в инструкции <B>switch</B>. Для не целых типов вы должны использовать серию 
+  инструкций <B>if</B>.</FONT></P>
+<P><FONT FACE="Georgia">Вот пример, в котором в случайном порядке создаются буквы 
+  и проверяются являются ли они гласными или согласными:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:VowelsAndConsonants.java</font>
+<font color=#009900>// Демонстрация инструкции switch.</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> VowelsAndConsonants {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++) {
+      <font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)(Math.random() * 26 + 'a');
+      System.out.print(c + <font color=#004488>": "</font>);
+      <font color=#0000ff>switch</font>(c) {
+      <font color=#0000ff>case</font> 'a':
+      <font color=#0000ff>case</font> 'e':
+      <font color=#0000ff>case</font> 'i':
+      <font color=#0000ff>case</font> 'o':
+      <font color=#0000ff>case</font> 'u':
+                System.out.println(<font color=#004488>"vowel"</font>);
+                <font color=#0000ff>break</font>;
+      <font color=#0000ff>case</font> 'y':
+      <font color=#0000ff>case</font> 'w':
+                System.out.println(
+                  <font color=#004488>"Sometimes a vowel"</font>);
+                <font color=#0000ff>break</font>;
+      <font color=#0000ff>default</font>:
+                System.out.println(<font color=#004488>"consonant"</font>);
+      }
+    }
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Так как <B>Math.random(&#160;)</B> генерирует значения 
+  в пределах от 0 до 1, вам необходимо только умножить его на верхний предел границы 
+  чисел, которые вы хотите производить (26 для букв алфавита) и прибавлять смещение 
+  для установки нижней границы.</FONT></P>
+<P><FONT FACE="Georgia">Хотя здесь используется переключение для символов (char), 
+  инструкция <B>switch</B> на самом деле использует целое значение для символов. 
+  Символы в одинарных кавычках в инструкциях <B>case</B> также производят целочисленные 
+  значения, которые также используются для сравнения.</FONT></P>
+<P><FONT FACE="Georgia">Обратите внимание как расположены <B>case</B>'ы друг над 
+  другом, чтобы обеспечить выравнивание определенным частям кода. Вы можете также 
+  осознавать, что важно помещать инструкцию <B>break</B> в конце соответствующего 
+  case, в противном случае управление проидет дальше и продолжится выполнение 
+  следующего case.</FONT></P>
+<A NAME="Heading160"></A><FONT FACE = "Verdana">
+<H4 ALIGN="LEFT"> Детали расчета</H4>
+</FONT>
+  
+<P><FONT FACE="Georgia">Инструкция:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE>
+<font color=#0000ff>char</font> c = (<font color=#0000ff>char</font>)(Math.random() * 26 + 'a');</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">заслуживает более подробного рассмотрения. <B>Math.random(&#160;)</B> 
+  производит <B>double</B>, так что значение 26 переводится в <B>double</B> для 
+  выполнения умножения, которое также производит <B>double</B>. Это означает, 
+  что <B>&#8216;a&#8217;</B> должно переводится в <B>double</B> для выполнения 
+  сложения. Результат типа <B>double</B> переводится назад к <B>char</B> с помощью 
+  приведения.</FONT></P>
+<P><FONT FACE="Georgia">Что делает приведение к <B>char</B>? То есть, если вы 
+  имеете значение 29.7 и вы приводите его к <B>char</B>, будет ли результирующее 
+  значение равно 30 или 29? Ответ можно найти в этом примере:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: c03:CastingNumbers.java</font>
+<font color=#009900>// Что случается, когда вы приводите float </font>
+<font color=#009900>// или double к целому значению?</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> CastingNumbers {
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>double</font>
+      above = 0.7,
+      below = 0.4;
+    System.out.println(<font color=#004488>"above: "</font> + above);
+    System.out.println(<font color=#004488>"below: "</font> + below);
+    System.out.println(
+      <font color=#004488>"(int)above: "</font> + (<font color=#0000ff>int</font>)above);
+    System.out.println(
+      <font color=#004488>"(int)below: "</font> + (<font color=#0000ff>int</font>)below);
+    System.out.println(
+      <font color=#004488>"(char)('a' + above): "</font> +
+      (<font color=#0000ff>char</font>)('a' + above));
+    System.out.println(
+      <font color=#004488>"(char)('a' + below): "</font> +
+      (<font color=#0000ff>char</font>)('a' + below));
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вот результат:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>above: 0.7
+below: 0.4
+(<font color=#0000ff>int</font>)above: 0
+(<font color=#0000ff>int</font>)below: 0
+(<font color=#0000ff>char</font>)('a' + above): a
+(<font color=#0000ff>char</font>)('a' + below): a</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Так что ответ такой: <A NAME="Index377"></A>приведение 
+  <B>float</B> или <B>double</B> к целому значению происходит простым обрезанием.</FONT></P>
+<P><FONT FACE="Georgia">Второй вопрос относительно <A NAME="Index378"></A><A NAME="Index379"></A><B>Math.random(&#160;)</B>. 
+  Тут производится значение от нуля до одного, включая или не включая значение 
+  &#8216;1&#8217;? На математическом языке: (0,1) или [0,1], или (0,1] или [0,1)? 
+  (Прямоугольная скобка означает &#8220;включая&#8221;, а круглая скобка означает 
+  &#8220;не включая&#8221;.) И в этот раз тестовая программа поможет получить 
+  ответ:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"> 
+  <PRE><font color=#009900>//: c03:RandomBounds.java</font>
+<font color=#009900>// Может ли Math.random() производить 0.0 и 1.0?</font>
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> RandomBounds {
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> usage() {
+    System.out.println(<font color=#004488>"Usage: \n\t"</font> +
+      <font color=#004488>"RandomBounds lower\n\t"</font> +
+      <font color=#004488>"RandomBounds upper"</font>);
+    System.exit(1);
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    <font color=#0000ff>if</font>(args.length != 1) usage();
+    <font color=#0000ff>if</font>(args[0].equals(<font color=#004488>"lower"</font>)) {
+      <font color=#0000ff>while</font>(Math.random() != 0.0)
+        ; <font color=#009900>// Продолжаем пробовать</font>
+      System.out.println(<font color=#004488>"Produced 0.0!"</font>);
+    } 
+    <font color=#0000ff>else</font> <font color=#0000ff>if</font>(args[0].equals(<font color=#004488>"upper"</font>)) {
+      <font color=#0000ff>while</font>(Math.random() != 1.0)
+        ; <font color=#009900>// </font><font color=#009900>Продолжаем пробовать</font>
+      System.out.println(<font color=#004488>"Produced 1.0!"</font>);
+    } 
+    <font color=#0000ff>else</font> 
+      usage();
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Для запуска программы наберите в командной строке:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>java RandomBounds lower</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">или</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>java RandomBounds upper</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">В обоих случаях вы можете прервать программу в ручную 
+  в том случае, если <i>окажется</i>, что <B>Math.random(&#160;)</B> никогда не 
+  производит 0.0 или 1.0. Но такой экспериметн может обмануть. Если вы узнаете, 
+  </FONT><a href="#fn26">[26]</a><FONT FACE="Georgia"> что есть примерно 2<SUP>62</SUP> 
+  различных значений типа double в пределах от 0 до 1, вероятность достижения 
+  любого единичного значения экспериментально может превышать время жизни компьютера 
+  и даже экспериментатора. Считается, что 0.0 - включается в выходные значения 
+  <B>Math.random(&#160;)</B>. или, на математическом языке, [0,1).</FONT><A NAME="_Toc375545272"></A><A NAME="_Toc481064566"></A></P>
+<A NAME="Heading161"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Резюме</H2>
+</FONT>
+<P><FONT FACE="Georgia">Эта глава заканчивает обучение фундаментальным особенностям, 
+  имеющимся в большинстве языков программирования: вычисления, последовательность 
+  операоторов, приведение типов, выбор и итерации. Теперь вы готовы начать делать 
+  шаги, которые ближе продвинут вас в мир объектно-ориентированного программирования. 
+  Следующая глава расскажит о важности инициализации и очистки объектов, дальнейшие 
+  главы расскажут о сущности концепции скрытия реализации.</FONT><A NAME="_Toc375545273"></A><A NAME="_Toc481064567"></A></P>
+<A NAME="Heading162"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Упражнения</H2>
+</FONT>
+<DIV ALIGN="LEFT"> 
+  <P><FONT FACE="Georgia" SIZE=2>Решения для выбранных управжнений могут быть 
+    найдены в электронной документации <i>The Thinking in Java Annotated Solution 
+    Guide</i>, доступной за малую плату на <i>www.BruceEckel.com</i>.</FONT></P>
+  </DIV>
+<OL>
+  <LI><FONT FACE="Georgia">Есть два примера в разделе, озаглавленном &#8220;Предшествование&#8221; 
+    в начале этой главы. Соберите эти примеры в программу и посмотрите почему 
+    они дают разный результат.</FONT> 
+  <LI><FONT FACE="Georgia">Поместите методы ternary(&#160;) и alternative(&#160;) 
+    в работающую программу.</FONT> 
+  <LI><FONT FACE="Verdana"> </FONT><FONT FACE="Georgia">Из разделов, озаглавленных 
+    &#8220;if-else&#8221; и &#8220;return&#8221;, поместите методы test(&#160;) 
+    и test2(&#160;) в работающую программу.</FONT> 
+  <LI><FONT FACE="Georgia">Напишите программу, которая печатает значения от одного 
+    до 100.</FONT> 
+  <LI><FONT FACE="Georgia">Измените упражнение 4 так, чтобы программа выходила 
+    при использовании ключавого слова break на значении 47. Попробуйте вместо 
+    этого использовать return.</FONT> 
+  <LI><FONT FACE="Georgia">Напишите функцию, получающую два аргумента String и 
+    использующую все логические сравнения для сравнения двух строк и печати результата. 
+    Для == и != также выполните проверку equals(&#160;). В main(&#160;) вызовите 
+    вашу функцию с несколькими разными объектами String.</FONT> 
+  <LI><FONT FACE="Georgia">Напишите программу, которая генерирует 25 случайных 
+    значений. Для каждого значения используйте инструкцию if-then-else, чтобы 
+    узнать, является ли число больше, меньше или равным другому случайному числу.</FONT> 
+  <LI><FONT FACE="Georgia">Измените упражнение 7 так, чтобы ваш код был окружен 
+    &#8220;бесконечным&#8221; циклом while. Она будет работать до тех пор, пока 
+    вы не прервете ее с клавиатуры (обычно при нажатии Control-C).</FONT>
+  <LI><FONT FACE="Georgia">Напишите программу, которая использует два вложенных 
+    цикла for и оператор остатка от деления (%) для определения простых чисел 
+    для печати (целых чисел, которые не точно делятся на любое число за исключением 
+    себя и 1</FONT>).
+  <LI><FONT FACE="Verdana"> </FONT><FONT FACE="Georgia">Создайте инструкцию switch, 
+    которая напечатает сообщение для каждого варианта, и помесите switch в цикл 
+    for, который опробует каждый случай. Поместите break после каждого случая 
+    и проверьте это, затем уберите break и посмотрите, что случится.</FONT>
+</OL>
+<HR>
+<P><a name="fnB25"></a>[25]<FONT FACE="Georgia" SIZE=2> John Kirkham пишет: Я 
+  начал заниматься компьютерами в 1962, испоьзуя FORTRAN II для IBM 1620. В то 
+  время и на протяжении 1960-х и до 1970-х FORTRAN был языком с буквами верхнего 
+  регистра. Это, вероятно, произошло потому, что многие вводные устройства были 
+  старыми терминальными устройствами, которые использовали 5-ти битный код Боде, 
+  в котором не было маленьких букв. &#8216;E&#8217; в экспоненциальной записи 
+  было также всегда в верхнем регистре и никогда не путалось с основанием натурального 
+  логарифма &#8216;e&#8217;, которое всегда в нижнем регистре. &#8216;E&#8217; 
+  просто оставили для экспоненты, которая используется в обычной системе счисления 
+  &#8212; обычно это 10. В то время восмеричная система также широко использовалась 
+  программистами. Хотя я никогда не видел ее использования, если я видел восмеричное 
+  число в экспоненциальной записи, я рассматривал его с основанием 8. Первое время, 
+  помня вид экспоненциального использования &#8216;e&#8217; в нижнем регистре, 
+  позднее 1970 я также находил это запутывающим. Проблема возникла, поскольку 
+  нижний регистр пришел в FORTRAN не с самого начала. Мы на самом деле имели функции, 
+  в которых можно было использовать натуральный логарифм, но они все были в верхнем 
+  регистре.</FONT></P>
+<P><a name="fnB26"></a>[26]<FONT FACE="Georgia" SIZE=2> Chuck Allison пищет: &#8220;Полное 
+  количество чисел в системе чисел с плавающей точкой:</FONT><BR>
+  <FONT FACE="Georgia" SIZE=2><B>2(M-m+1)b^(p-1) + 1</B></FONT><BR>
+  <FONT FACE="Georgia" SIZE=2>где <B>b</B> - основание (обычно 2), <B>p</B> - 
+  показатель (число в мантиссе), <B>M</B> - наибольшая експонента, а <B>m</B> 
+  - наименьшая экспонента. IEEE 754 использует:</FONT><BR>
+  <FONT FACE="Georgia" SIZE=2><B>M = 1023, m = -1022, p = 53, b = 2</B></FONT><BR>
+  <FONT FACE="Georgia" SIZE=2>так что полное количество чисел:</FONT><BR>
+  <FONT FACE="Georgia" SIZE=2><B>2(1023+1022+1)2^52</B></FONT><BR>
+  <FONT FACE="Georgia" SIZE=2><B>= 2((2^10-1) + (2^10-1))2^52</B></FONT><BR>
+  <FONT FACE="Georgia" SIZE=2><B>= (2^10-1)2^54</B></FONT><BR>
+  <FONT FACE="Georgia" SIZE=2><B>= 2^64 - 2^54</B></FONT><BR>
+  <FONT FACE="Georgia" SIZE=2>Половина этих чисел (соответствующих экспоненте 
+  в пределах [-1022, 0]) меньше 1 по величине (и положительные, и отрицательные), 
+  так что 1/4 этого выражения, или 2^62 - 2^52 + 1 (примерно 2^62) в диапазоне 
+  [0,1). Смотри мою статью на http://www.freshsources.com/1995006a.htm (в конце 
+  текста)&#8221;.</FONT></P>
+<P><font size="2"><a name="per1"></a>* Конечно в английском языке эта мнемоника 
+  звучит по другому: <font face="Georgia">&#8220;</font>Ulcer Addicts Really Like 
+  C A lot<font face="Georgia">&#8221;. (Язвы наркомана во многом похожи на C).</font></font> 
+</P>
+<DIV ALIGN="CENTER"> <FONT FACE="Verdana" size = "-1"> [ <a href="Chapter02.html">Предыдущая 
+  глава </a> ] [ <a href="SimpleContents.html">Оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+  ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="Chapter04.html">Следующая 
+  глава </a> ]</FONT></DIV>
+
+</BODY>
+
+</HTML>

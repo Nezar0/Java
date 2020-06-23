@@ -1,0 +1,475 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TIJ2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:04/24/2000
+Translation Time:06:37:16
+Translation Platform:Win32
+Number of Output files:23
+This File:AppendixB.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<TITLE>B: The Java Native Interface (JNI)</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF">
+<DIV ALIGN="CENTER"> <a href="http://www.MindView.net"> </a><FONT FACE="Verdana" size = "-1"> 
+  </FONT> 
+  <CENTER>
+    <H2><FONT FACE="Verdana">
+  Thinking in Java, 2nd edition, Revision 11</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  
+    <FONT FACE="Verdana" size = "-1"> [ <a href="AppendixA.html">Предыдущая глава 
+    </a> ] [ <a href="SimpleContents.html">Оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+    ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="AppendixC.html">Следующая 
+    глава </a> ]</FONT> 
+  </CENTER>
+</DIV>
+<A NAME="_Toc477690737"></A><A NAME="_Toc481064947"></A><A NAME="Heading628"></A><FONT FACE = "Verdana">
+<H1 ALIGN="LEFT"> B: Java Native Interface (JNI)</H1>
+</FONT> 
+<P><FONT FACE="Georgia"></FONT><i>Данное приложение было написано и используется 
+  с разрешения Andrea Parovaglio (www.AndreaProvaglio.com)</i>.<BR>
+</P>
+<P><FONT FACE="Georgia" SIZE=4>Язык Java и его стандартные API самодостаточны 
+  для написания полноценного приложения. Но в некоторых случаях Вы должны использовать 
+  <a name="Index2279"></a><a name="Index2280"></a>не-Java код, например, в случае 
+  вызова функций специфичных для операционной системы, <a name="Index2281"></a>доступа 
+  к специальным <a name="Index2282"></a>аппаратным устройствам, использовании 
+  уже существующего не-Java кода или создании <a name="Index2283"></a>критичных 
+  ко времени выполнения частей кода.</FONT></P>
+<P><FONT FACE="Georgia">Для взаимодействия с не-Java кодом требуется специальная 
+  поддержка в компиляторе и Виртуальной Машине, и дополнительные средства отображения 
+  Java кода в не-Java код. Стандартным решением для вызова не-Java кода, который 
+  обеспечивает JavaSoft, называется <i>ava Native Interface</i>, который был введен 
+  в этом приложении. Это не глубокая трактовка, и в некоторых случаях вы должны 
+  принимать на себя изучение части знаний относительно концепции и техники.</FONT> 
+</P>
+<P><FONT FACE="Georgia">JNI достаточно богатый программный интерфейс позволяющий 
+  выполнять системные вызовы из приложений на Java. Данная возможность была добавлена 
+  в Java 1.1, устанавливая определенную степень соответствия с их эквивалентами 
+  в Java 1.0, native method interface (NMI). NMI имеет спроектированные характеристики 
+  которые делают его неподходящими для адаптации на всех виртуальных машинах. 
+  По этой причине, будущие версии языка могут не поддерживать NMI, и они не будут 
+  здесь описаны.</FONT></P>
+<P><FONT FACE="Georgia">В настоящий момент JNI разработана как интерфейс с собственными 
+  методами написанными только на <a name="Index2286"></a>С или С++. Используя 
+  JNI ваши собственные методы могут:</FONT><BR>
+</P>
+<UL>
+  <LI><FONT FACE="Georgia"> Создавать, проверять и обновлять Java объекты (включая 
+    массивы и типы <B>String</B>)</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"> Вызывать Java методы</FONT>
+  <LI>Ловить <FONT FACE="Symbol"> </FONT><FONT FACE="Georgia">и выбрасывать исключения</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"> Загружать классы и получать 
+    информацию о классах</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia">Выполнять проверку типов 
+    во время исполнения</FONT>
+</UL>
+<P><FONT FACE="Georgia">Таким образом, практически все, что вы можете делать с 
+  классами и объектами в Java вы можете выполнить с собственными методами.</FONT><A NAME="_Toc481064948"></A></P>
+<A NAME="Heading629"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Вызов собственных методов</H2>
+</FONT> 
+<P><FONT FACE="Georgia">Мы начнем с простого примера: Java программы, вызывающей 
+  собственные метод, который в свою очередь вызывает функцию </FONT><font face="Georgia"> 
+  <b>printf(&#160;)</b> </font><FONT FACE="Georgia">стандартной библиотеки С:</FONT></P>
+<P><FONT FACE="Georgia">Первый шаг заключается в написании Java кода с описанием 
+  прототипа собственного метода и его аргументов:</FONT><BR>
+</P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: appendixb:ShowMessage.java</font>
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> ShowMessage {
+  <font color=#0000ff>private</font> <font color=#0000ff>native</font> <font color=#0000ff>void</font> ShowMessage(String msg);
+  <font color=#0000ff>static</font> {
+    System.loadLibrary(<font color=#004488>"MsgImpl"</font>);
+    <font color=#009900>// Linux hack, если в вашей среде не установлен</font>
+    <font color=#009900>// путь к библиотеке:</font>
+    <font color=#009900>// System.load(</font>
+    <font color=#009900>//  "/home/bruce/tij2/appendixb/MsgImpl.so");</font>
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    ShowMessage app = <font color=#0000ff>new</font> ShowMessage();
+    app.ShowMessage(<font color=#004488>"Generated with JNI"</font>);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Описание собственного метода следует за блоком <b>static</b>, 
+  который вызывает <b>System.loadLibrary( )</b> (который вы можете вызывать в 
+  любое время, но приведенный стиль более приемлемый). <b>System.loadLibrary( 
+  )</b> загружает DLL в память и связывает ее. DLL должна быть в каталоге системных 
+  библиотек. Расширение файла будет автоматически добавлено JVM в зависимости 
+  от типа операционной системы.</FONT></P>
+<P><FONT FACE="Georgia"> </FONT><FONT FACE="Georgia">В приведенном выше коде вы 
+  можете также видеть вызов метода <B>System.load(&#160;)</B>, который закоментирован. 
+  Путь, указанный здесь, это абсолютный путь, а не относительный с учетом переменной 
+  окружения. Использование переменной окружения, естественно, лучшее и более портативное 
+  решение, но если вы не можете закомментировать вызов <B>loadLibrary(&#160;)</B> 
+  и раскомментировать эту строку, отрегулировав путь к вашему собственному директорию.</FONT><A NAME="_Toc481064949"></A></P>
+<DIV ALIGN="LEFT"></DIV>
+<A NAME="Heading630"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> javah: генератор заголовочных файлов на С</H3>
+</FONT> 
+<P><FONT FACE="Georgia">Теперь скомпилируйте ваш исходный файл на Java и запустите 
+  <a name="Index2287"></a><b>javah</b> с полученным файлом <b>.class</b> в качестве 
+  параметра, указав ключ <b>&#8212;jni</b> (это выполнится автоматически за вас 
+  с помощью makefile, присутствующим в исходном коде для книги</FONT><FONT FACE="Georgia">):</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>javah &#8212;jni ShowMessage</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia"><B>javah</B> читает файл Java класса, и для каждого описания 
+  собственного метода генерирует прототип функции в заголовочном файле С или С++. 
+  Ниже приведен результат вызова javah для нашего случая (слегка измененный, чтобы 
+  уместиться в книгу):</FONT><BR>
+</P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>/* НЕ РЕДАКТИРУЙТЕ ЭТОТ ФАЙЛ 
+   - он сгенерирован машиной */</font>
+#include &lt;jni.h&gt;
+<font color=#009900>/* Заголовок для класса ShowMessage */</font>
+
+#ifndef _Included_ShowMessage
+#define _Included_ShowMessage
+#ifdef __cplusplus
+extern <font color=#004488>"C"</font> {
+#endif
+<font color=#009900>/*
+ * Class:     ShowMessage
+ * Method:    ShowMessage
+ * Signature: (Ljava/lang/String;)V
+ */</font>
+JNIEXPORT <font color=#0000ff>void</font> JNICALL 
+Java_ShowMessage_ShowMessage
+  (JNIEnv *, jobject, jstring);
+
+#ifdef __cplusplus
+}
+#endif
+#endif</PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Как можно видеть с помощью препроцессорной директивы <b>#ifdef 
+  __cplusplus</b> данный файл может быть откомпилирован как С так и С++ компилятором. 
+  Первая директива <b>#include</b> включает <b>jni.h</b>, заголовочный файл, который 
+  кроме всего прочего, определяет типы, используемые далее. <a name="Index2288"></a><b>JNIEXPORT</b> 
+  и <a name="Index2289"></a><b>JNICALL</b> - это макросы который расширены чтобы 
+  соответствовать платформо-зависимым директивам. <b>JNIEnv</b>, <b>jobject</b> 
+  и <b>jstring</b> определение JNI типов данных, который скоро будут описаны</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064950"></A></P>
+<A NAME="Heading631"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Искажение имен и сигнатура функций</H3>
+</FONT> 
+<p><FONT FACE="Georgia">JNI использует преобразование имен (называемое <i>name 
+  mangling</i> - <i>искажением имен</i>) собственных методов. Это важно, так как 
+  это является частью механизма, с помощью которого виртуальная машина компонует 
+  Java вызовы собственных методов. В основном все собственные методы начинаются 
+  со слова "Java", за которым слкдует имя класса в котором присутствует собственный 
+  вызов Java, следом идет имя Java метода. Символ подчеркивания используется как 
+  разделитель. Если собственный Java метод перекрывается, то к имени также добавляется 
+  сигнатура функции; вы можете видеть собственную сигнатуру в комментариях предшествующих 
+  прототипу. Дополнительную информацию об искажении имен и сигнатурах собственных 
+  методов можно найти в документации по JNI</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064951"></A></p>
+<A NAME="Heading632"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Реализация вашей DLL</H3>
+</FONT> 
+<P><FONT FACE="Georgia">В данном случае, все что вам нудно сделать - это написать 
+  файл с исходным код на C или C++ включающий заголовок сгенерированный утилитой 
+  <b>javah</b> и реализацию собственных методов, затем откомпилировать его и создать 
+  библиотеку динамической компоновки. Данная часть платформо - зависимая. Нижеприведенный 
+  код компонуется в файл называемый <b>MsgImpl.dll</b> для Windows или <b>MsgImlp.so</b> 
+  для UNIX/Linux (makefile включенный в список файлов с исходными текстами содержит 
+  соответствующие команды, он доступен на CD-ROM поставляемым вместе с данной 
+  книгой, либо его можно загрузить с сайта <i>www.BruceEckel.com</i>).</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: appendixb:MsgImpl.cpp</font>
+<font color=#009900>//# Проверено с  VC++ &amp; BC++. Включенный путь</font>
+<font color=#009900>//# должен быть изменен для нахождения JNI заголовков. Смотрите </font>
+<font color=#009900>//# makefile для этой главы (в загруженном исходном коде)</font>
+<font color=#009900>//# для примера.</font>
+#include &lt;jni.h&gt;
+#include &lt;stdio.h&gt;
+#include <font color=#004488>"ShowMessage.h"</font>
+
+extern <font color=#004488>"C"</font> JNIEXPORT <font color=#0000ff>void</font> JNICALL 
+Java_ShowMessage_ShowMessage(JNIEnv* env, 
+jobject, jstring jMsg) {
+  <font color=#0000ff>const</font> <font color=#0000ff>char</font>* msg=env-&gt;GetStringUTFChars(jMsg,0);
+  printf(<font color=#004488>"Thinking in Java, JNI: %s\n"</font>, msg);
+  env-&gt;ReleaseStringUTFChars(jMsg, msg);
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Аргументы, передаваемые в собственные методы - это доступ 
+  к коду на Java. Во-первых, согласно <b>JNIEnv</b>, содержит все привязки которые 
+  позволяют вам выполнить обратные вызовы JVM. (Мы рассмотрим это в следующей 
+  разделе). Во-вторых, аргументы имеют разное толкование в зависимости от типа 
+  метода. Для не статических (<b>static</b>) методов, таких как приведенный выше 
+  пример, второй аргумент соответствует указателю &#8220;this&#8221; в С++ и похож 
+  на <b>this</b> в Java: он ссылается на объект вызвавший собственный метод. Для 
+  статических методов он ссылается на объект <b>Class</b>, в котором метод реализован</FONT><FONT FACE="Georgia">.</FONT></P>
+<P><FONT FACE="Georgia">Оставшиеся аргументы представляют собой объекты Java передаваемые 
+  в вызов собственного метода. Примитивы передаются аналогичным образом, по значению.</FONT></P>
+<P><FONT FACE="Georgia">В следующем разделе мы рассмотрим данный код с точки зрения 
+  доступа и управления JVM из собственного метода.</FONT><A NAME="_Toc481064952"></A></P>
+<A NAME="Heading633"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Доступ к JNI функциям: аргументы JNIEnv<A NAME="Index2290"></A><A NAME="Index2291"></A></H2>
+</FONT> 
+<P><FONT FACE="Georgia">Под функциями JNI подразумеваются функции, которые взаимодействуют 
+  с JVM из собственных методов. Как вы могли видеть в приведенном выше примере, 
+  каждый собственный метод JNI получает специальный аргумент в качестве первого 
+  параметра: это и есть <b>JNIEnv</b> аргумент, который является указателем на 
+  специальную структура данных типа <b>JNIEnv_</b>. Один из элемент структуры 
+  данных JNI является указателем на массив генерируемый JVM. Массив состоит из 
+  указателей на JNI функции. JNI функции могут быть вызваны из собственного метода 
+  путем разыменования данных указателей (это проще чем кажется). Каждая JVM обеспечивает 
+  собственной реализацией JNI функций, но их адреса всегда остаются на определенном 
+  месте</FONT><FONT FACE="Georgia">.</FONT></P>
+  
+<P><FONT FACE="Georgia">С помощью аргументов <b>JNIEnv</b> программе доступно 
+  большое количество функций. Эти функции могут быть сгруппированы в следующие 
+  категории:</FONT></P>
+<UL>
+  <LI><FONT FACE="Georgia">Получение информации о версии</FONT>
+  <LI><FONT FACE="Georgia">Выполнение операций с классами и объектами</FONT>
+  <LI><FONT FACE="Symbol"> </FONT>Использование глобальных и локальных ссылок 
+    на Java объекты
+  <LI>Доступ к полям ссылки и статическим полям
+  <LI>Вызов ссылочных методов и статических методов
+  <LI>Выполнение операций со строками и массивами
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia">Генерация и перехват Java 
+    исключений</FONT>
+</UL>
+<P><FONT FACE="Georgia">Количество JNI функций достаточно большое и не может быть 
+  описано здесь. Вместо этого покажем логическое обоснование использования этих 
+  функций. Более детальная информация находиться в документации по JNI.</FONT></P>
+<P><FONT FACE="Georgia">Если посмотреть на заголовочный файл <b>jni.h</b> можно 
+  видеть что внутри условий препроцессора <b>#ifdef __cplusplus</b> структура 
+  <b>JNIEnv_</b> определена как класс когда компилируется С++ компилятором. Данный 
+  класс содержит несколько функций, которые позволяют вам получить доступ к JNI 
+  функциям через простой и знакомый синтаксис. В качестве иллюстрации приведем 
+  строку кода из рассмотренного примера</FONT><FONT FACE="Georgia">:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>env-&gt;ReleaseStringUTFChars(jMsg, msg);</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">также может быть вызвано из С следующим образом:</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>(*env)-&gt;ReleaseStringUTFChars(env, jMsg, msg);</PRE></FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Вы заметили, что строка на С гораздо сложнее (что естесственно) 
+  - вам необходимо двойное разыменование указателя на env. Вы также должны передать 
+  этот указатель в качестве первого параметра при вызове JNI функции. Примеры 
+  данного приложения используют С++ стиль</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064953"></A></P>
+<A NAME="Heading634"></A><FONT FACE = "Verdana">
+<H3 ALIGN="LEFT"> Доступ к Java строкам</H3>
+</FONT> 
+<P><FONT FACE="Georgia">В качестве примера доступа к JNI функции рассмотрим код 
+  <b>MsgImрl.cpp</b>. Здесь аргумент <b>env</b> типа <b>JNIEnv</b> используется 
+  для доступа к типам <b>String</b> в Java. Строки в Java хранятся в формате Unicode, 
+  поэтому если вы хотите передать их в качестве параметра в функцию, которая Unicode 
+  не поддерживает (<b>printf()</b> например), необходимо вначале преобразовать 
+  строку в ASCII с помощью <b>GetStringUTFChars()</b>. Данная функция принимает 
+  <b>String</b> и преобразует в строку в формате UTF-8. (Для хранения ASCII достаточно 
+  8 бит и 16 бит для Unicode. Если исходная строка 8-ми битовая ASCII, то результирующая 
+  строка будет также ASCII.)</FONT></P>
+  
+<P><FONT FACE="Georgia"><B>GetStringUTFChars(&#160;)</B> одна из функций-членов 
+  <b>JNIEnv</b>. Для доступа к JNI функции мы используем типичный C++ синтаксис 
+  для вызова функции-члена несмотря на указатель. Можно использовать приведенную 
+  выше форму для доступа ко всем JNI функциям</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064954"></A></P>
+<A NAME="Heading635"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Передача и использование Java объектов</H2>
+</FONT> 
+<P><FONT FACE="Georgia">В предыдущем примере мы передавали <b>String</b> в собственный 
+  метод. Можно также передавать ваши собственные Java объекты в собственные методы. 
+  Внутри вашего собственного метода вы имеете доступ к полям и методам полученного 
+  объекта</FONT><FONT FACE="Georgia">.</FONT></P>
+<P><FONT FACE="Georgia">Для передачи объектов используйте обычный Java синтаксис 
+  когда описываете собственные методы. В следующем примере <b>MyJavaClass</b> 
+  имеет одно <b>public</b> поле и один <b>public</b> метод. В классе <b>UseObject</b> 
+  объявлен собственный метод, который принимает объекты класса <b>MyJavaClass</b>. 
+  Для отображения того, что собственный метод использует эти аргументы передадим 
+  поле <b>public</b>, вызовем собственный метод и, затем, распечатаем это поле</FONT><FONT FACE="Georgia">.</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1">
+  <PRE><font color=#009900>//: appendixb:UseObjects.java</font>
+<font color=#0000ff>class</font> MyJavaClass {
+  <font color=#0000ff>public</font> <font color=#0000ff>int</font> aValue;
+  <font color=#0000ff>public</font> <font color=#0000ff>void</font> divByTwo() { aValue /= 2; }
+}
+
+<font color=#0000ff>public</font> <font color=#0000ff>class</font> UseObjects {
+  <font color=#0000ff>private</font> <font color=#0000ff>native</font> <font color=#0000ff>void</font> 
+    changeObject(MyJavaClass obj);
+  <font color=#0000ff>static</font> {
+    System.loadLibrary(<font color=#004488>"UseObjImpl"</font>);
+    <font color=#009900>// Linux hack, если в вашей среде не установлен</font>
+<font color=#009900>    // путь к библиотеке:</font>
+    <font color=#009900>// System.load(</font>
+    <font color=#009900>//"/home/bruce/tij2/appendixb/UseObjImpl.so");</font>
+  }
+  <font color=#0000ff>public</font> <font color=#0000ff>static</font> <font color=#0000ff>void</font> main(String[] args) {
+    UseObjects app = <font color=#0000ff>new</font> UseObjects();
+    MyJavaClass anObj = <font color=#0000ff>new</font> MyJavaClass();
+    anObj.aValue = 2;
+    app.changeObject(anObj);
+    System.out.println(<font color=#004488>"Java: "</font> + anObj.aValue);
+  }
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">После компиляции кода и использования <b>javah</b> можно 
+  реализовать собственные методы. В примере ниже, как только поле и ID метода 
+  получены они доступны чере JNI функции</FONT><FONT FACE="Georgia">.</FONT></P>
+<BLOCKQUOTE><FONT SIZE = "+1"> 
+  <PRE><font color=#009900>//: appendixb:UseObjImpl.cpp</font>
+<font color=#009900>//# Проверено с VC++ &amp; BC++. </font><font color=#009900>Включенный путь</font>
+<font color=#009900>//# должен быть изменен для нахождения JNI заголовков. Смотрите </font>
+<font color=#009900>//# makefile для этой главы (в загруженном исходном коде)</font>
+<font color=#009900>//# для примера.</font>
+#include &lt;jni.h&gt;
+extern <font color=#004488>"C"</font> JNIEXPORT <font color=#0000ff>void</font> JNICALL
+Java_UseObjects_changeObject(
+JNIEnv* env, jobject, jobject obj) {
+  jclass cls = env-&gt;GetObjectClass(obj);
+  jfieldID fid = env-&gt;GetFieldID(
+    cls, <font color=#004488>"aValue"</font>, <font color=#004488>"I"</font>);
+  jmethodID mid = env-&gt;GetMethodID(
+    cls, <font color=#004488>"divByTwo"</font>, <font color=#004488>"()V"</font>);
+  <font color=#0000ff>int</font> value = env-&gt;GetIntField(obj, fid);
+  printf(<font color=#004488>"Native: %d\n"</font>, value);
+  env-&gt;SetIntField(obj, fid, 6);
+  env-&gt;CallVoidMethod(obj, mid);
+  value = env-&gt;GetIntField(obj, fid);
+  printf(<font color=#004488>"Native: %d\n"</font>, value);
+} <font color=#009900>///:~</font></PRE>
+  </FONT></BLOCKQUOTE>
+<P><FONT FACE="Georgia">Игнорируя эквиваелент "this", функция С++ получает <b>jobject</b>, 
+  который является собственной частью Java объекта переданного нами из Java кода. 
+  Мы просто прочитали значение <b>aValue</b>, напечатали его, изменили, вызвали 
+  метод объекта <b>divByTwo()</b> и напечатали значение параметра еще раз.</FONT></P>
+<P><FONT FACE="Georgia">Для доступа к полю или методу Java первоначально необходимо 
+  получить их дескриптор, используя GetFieldID() для полей и GetMethodID() для 
+  методов. Данные функции принимают объект класса, строку содержащую название 
+  элементов и строку с информацией о классах: тип данных поля или информацию с 
+  описанием для метода (подробности описаны в документации по JNI). Данные функции 
+  возвращают дескриптор, который потом используется для доступа к элементам.Данный 
+  подход может казаться запутанным, но ваши собственные методы не знают о внутренней 
+  компоновке Java объектов. Вместо этого, они должны обращаться к полям и методам 
+  через индексы, возвращаемые JVM.Это позволяет различным JVM реализовать различные 
+  сруктуры внутренних объектов, не влияя на ваши собственные методы</FONT><FONT FACE="Georgia">.</FONT></P>
+<P><FONT FACE="Georgia">Если запустить Java программу видно, что объекты передаваемые 
+  со стороны Java используют ваши собственные методы. Но что же передается в действительности? 
+  Указатель или значение Java? И что делает сборщик мусора при вызове собственных 
+  методов?</FONT></P>
+<DIV ALIGN="LEFT"> 
+  <P><FONT FACE="Georgia"><a name="Index2292"></a>Сборщик мусора продолжает работать 
+    во время вызова собственных методов, но он гарантирует, что ваши объекты не 
+    будут собраны во время вызова собственных методов. Для достоверности, вначале 
+    создаются <i>локальные ссылки</i>, которые уничтожаются сразу после вызова 
+    собственного метода. Поскольку их время жизни включает и сам вызов, вы знаете, 
+    что объекты будут доступны в течении времени вызова собственного метода</FONT><FONT FACE="Georgia">.</FONT></P>
+  </DIV>
+<P><FONT FACE="Georgia">Поскольку данные ссылки создаются и потом уничтожаются 
+  при каждом вызове функции, вы не можете сделать локальную копию вашего собственного 
+  метода в <b>static</b> переменную. Если вам нужна ссылка, которая используется 
+  в течении вызова функции вам необходимо определить глобальную ссылку. Глобальная 
+  ссылка не создается JVM, но программист может создать глобальную ссылку вызовом 
+  специальных функций JVM. После создания глобальной ссылки вы отвечаете за время 
+  жизни и самого объекта. Глобальная ссылка (и объект к которому она относиться) 
+  должны находиться в памяти до тех пор пока программист явно не освободит память 
+  соответствующей JNI функцией. Это аналогично использованию <b>malloc()</b> и 
+  <b>free()</b> в С.</FONT><A NAME="_Toc481064955"></A></P>
+<A NAME="Heading636"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> JNI и исключения в Java</H2>
+</FONT> 
+<P><FONT FACE="Georgia">С помощью <a name="Index2293"></a>JNI, Java исключения 
+  могут быть сгенерированы, перехвачены, распечатаны или вызваны повторно аналогично 
+  тому, как это делается в Java. Но при этом для работы с исключениями необходимо 
+  использовать специальные функции. Ниже приведен список JNI функций для обработки 
+  исключений</FONT><FONT FACE="Georgia">:</FONT></P>
+<UL>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"><B>Throw(&#160;)</B></FONT><BR>
+    <FONT FACE="Georgia">Выбрасывает существующий объект исключения. Используется 
+    в собственном объекте для повторного выбрасывания исключения.</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"><B>ThrowNew(&#160;)</B></FONT><BR>
+    <FONT FACE="Georgia">Создает новый объект исключения и выбрасывает его.</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"><B>ExceptionOccurred(&#160;)</B></FONT><BR>
+    <FONT FACE="Georgia">Определяет, было ли исключение уже выброшено, но еще 
+    не очищено.</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"><B>ExceptionDescribe(&#160;)</B></FONT><BR>
+    <FONT FACE="Georgia">Печатает исключение и содержимое стека.</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"><B>ExceptionClear(&#160;)</B></FONT><BR>
+    <FONT FACE="Georgia">Очищает рассматриваемое исключение.</FONT>
+  <LI><FONT FACE="Symbol"> </FONT><FONT FACE="Georgia"><B>FatalError(&#160;)</B></FONT><BR>
+    Вызывает фатальную ошибку. Возврата нет.
+</UL>
+<P><FONT FACE="Georgia">Среди перечисленных вы не можете игнорировать <b>ExceptionOccured( 
+  )</b> и <b>ExceptionCleared( )</b>. Большинство функций JNI способны генерировать 
+  исключения, кроме try блока у вас нет других возможностей отследить исключения, 
+  поэтому необходимо вызывать <b>ExceptionOccured( )</b> после каждого вызова 
+  функции JNI для перехвата возможного исключения. При обнаружении исключения 
+  можно его перехватить и обработать (и, вероятно, сгенерировать повторно). Вы 
+  должны быть уверены однако, что исключение очищено. Это можно сделать в вашей 
+  функции вызовом <b>ExceptionClear( )</b> или какой-либо другой функцией, если 
+  исключение вызвано повторно, но это должно быть сделано</FONT><FONT FACE="Georgia">.</FONT></P>
+<P><FONT FACE="Georgia">Вы должны быть уверены, что исключение очищено, потому 
+  что в противном случае вызов функции JNI будет непредсказуемым, пока исключение 
+  обрабатывается. Существует несколько функций JNI, которые можно вызывать во 
+  время обработки исключения, несомненно, все они являются функциями обработки 
+  исключения</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064956"></A></P>
+<A NAME="Heading637"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> JNI и нити процесса</H2>
+</FONT> 
+<P><FONT FACE="Georgia">Поскольку Java поддерживает нити процессов, несколько 
+  нитей могут конкурировать в вызовах собственных методов. (Собственный метод 
+  может быть временно остановлен в середине выполнения в момент, когда другая 
+  нить процесса пытается обратиться к нему.) Поэтому вся ответственность за вызов 
+  собственного метода из нити лежит на программисте. В основном, имеется две возможости: 
+  описать собственный метод как <b>synchronized</b> или реализовать какую-либо 
+  другую стратегию внутри собственного метода, чтобы быть уверенным в правильном, 
+  конкурирующем изменении данных</FONT><FONT FACE="Georgia">.</FONT></P>
+<P><FONT FACE="Georgia">Кроме того, никогда нельзя передавать указатель на <b>JNIEnv</b> 
+  через нити, поскольку внутренняя структура, на которую они указывают, выделена 
+  на одно-нитевой основе и имеет смысл только в данной нити</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064957"></A></P>
+<A NAME="Heading638"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Использование существующего кода</H2>
+</FONT>
+<DIV ALIGN="LEFT">
+  <P><FONT FACE="Georgia">Наиболее легкий метод реализовать собственные методы 
+    JNI - начать с написания прототипов собственных методов в Java классе, компиляции 
+    данного класса и запуске полученного <b>.class</b> файла используя <b>javah</b>. 
+    Но что делать если уже имеется большой код который хотелось бы вызывать из 
+    Java? Переименование всех вызовов функций в нашей DLL для соответствия именованиям 
+    JNI не самый реальный путь. Наиболее приемлемое решение заключается в написании 
+    оболочки для вызова функций оригинальной DLL. В этом случае Java код вызывает 
+    функции из новой DLL которая в свою очередь вызывает функции из оригинальной 
+    DLL. Данный путь не так уж бессмыслен, в большинстве случаев вам все равно 
+    придется сделать это, так как вам необходимо вызывать функции JNI в описании 
+    объектов до того как они будут использованы</FONT><FONT FACE="Georgia">.</FONT><A NAME="_Toc481064958"></A></P>
+  </DIV>
+<A NAME="Heading639"></A><FONT FACE = "Verdana">
+<H2 ALIGN="LEFT"> Дополнительная информация</H2>
+</FONT> 
+<P><FONT FACE="Georgia">Вы можете найти более подробное объяснение, включая примеры 
+  кода на С (скорее чем С++) и дискуссию относительно подхода Microsoft в Приложении 
+  А первой редакции этой книги (находиться на CD поставляемого с этой книгой или 
+  на Web-сайте <i>www.BruceEckel.com</i>). Более подробная информация находиться 
+  на сайте <i>java.sun.com</i> (в поисковой системе выберите &#8220;training & 
+  tutorials&#8221;, а в качестве ключа &#8220;native methods&#8221;). Глава 11 
+  книги Core Java 2, Volume II, by Horstmann & Cornell (Prentice-Hall, 2000) содержит 
+  всеобъемлющее описание собственных методов</FONT><FONT FACE="Georgia">.</FONT></P>
+<P align="center"><font face="Verdana" size = "-1">[ <a href="AppendixA.html">Предыдущая 
+  глава </a> ] [ <a href="SimpleContents.html">Оглавление</a> ] [ <a href="Contents.html">Содержание</a> 
+  ] [ <a href="DocIndex.html">Индекс</a> ] [ <a href="AppendixC.html">Следующая 
+  глава </a> ]</font></P>
+</BODY>
+
+</HTML>
